@@ -3,7 +3,7 @@ plugins {
 }
 
 allprojects {
-    group = 'dev.atunko'
+    group = 'io.github.atunko'
     version = '0.1.0-SNAPSHOT'
 
     repositories {
@@ -42,6 +42,7 @@ subprojects {
         testImplementation rootProject.libs.junit.jupiter
         testImplementation rootProject.libs.junit.jupiter.params
         testImplementation rootProject.libs.assertj.core
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
 
     tasks.named('test') {

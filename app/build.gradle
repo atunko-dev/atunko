@@ -3,7 +3,7 @@ plugins {
 }
 
 application {
-    mainClass = 'dev.atunko.App'
+    mainClass = 'io.github.atunko.App'
 }
 
 dependencies {
