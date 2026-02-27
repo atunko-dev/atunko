@@ -1,0 +1,16 @@
+metadata:
+  urn: atunko-app
+  variant: microservice
+  title: Atunko App Module Requirements
+
+imports:
+  local:
+    - path: ../../../docs/reqstool
+
+filters:
+  atunko:
+    requirement_ids:
+      includes:
+        - CLI_0001
+        - CLI_0002
+        - CLI_0003

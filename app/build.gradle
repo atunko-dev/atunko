@@ -1,0 +1,22 @@
+plugins {
+    id 'application'
+}
+
+application {
+    mainClass = 'dev.atunko.App'
+}
+
+dependencies {
+    implementation project(':core')
+
+    // Picocli
+    implementation libs.picocli
+    annotationProcessor libs.picocli.codegen
+
+    // TamboUI
+    implementation platform(rootProject.libs.tamboui.bom)
+    implementation libs.tamboui.toolkit
+    implementation libs.tamboui.css
+    implementation libs.tamboui.picocli
+    implementation libs.tamboui.jline3.backend
+}

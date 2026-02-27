@@ -1,0 +1,53 @@
+[versions]
+openrewrite-bom = "3.25.0"
+picocli = "4.7.7"
+gradle-tooling-api = "9.3.1"
+tamboui = "0.2.0-SNAPSHOT"
+reqstool-annotations = "1.0.0"
+junit = "5.11.4"
+assertj = "3.27.3"
+
+[libraries]
+# OpenRewrite BOM
+openrewrite-bom = { module = "org.openrewrite.recipe:rewrite-recipe-bom", version.ref = "openrewrite-bom" }
+
+# OpenRewrite core
+openrewrite-core = { module = "org.openrewrite:rewrite-core" }
+openrewrite-java = { module = "org.openrewrite:rewrite-java" }
+openrewrite-java21 = { module = "org.openrewrite:rewrite-java-21" }
+openrewrite-xml = { module = "org.openrewrite:rewrite-xml" }
+openrewrite-yaml = { module = "org.openrewrite:rewrite-yaml" }
+openrewrite-json = { module = "org.openrewrite:rewrite-json" }
+openrewrite-properties = { module = "org.openrewrite:rewrite-properties" }
+openrewrite-maven = { module = "org.openrewrite:rewrite-maven" }
+openrewrite-gradle = { module = "org.openrewrite:rewrite-gradle" }
+
+# OpenRewrite recipe modules
+openrewrite-migrate-java = { module = "org.openrewrite.recipe:rewrite-migrate-java" }
+openrewrite-spring = { module = "org.openrewrite.recipe:rewrite-spring" }
+openrewrite-static-analysis = { module = "org.openrewrite.recipe:rewrite-static-analysis" }
+openrewrite-testing-frameworks = { module = "org.openrewrite.recipe:rewrite-testing-frameworks" }
+
+# Picocli
+picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
+picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
+
+# Gradle Tooling API
+gradle-tooling-api = { module = "org.gradle:gradle-tooling-api", version.ref = "gradle-tooling-api" }
+
+# TamboUI
+tamboui-bom = { module = "dev.tamboui:tamboui-bom", version.ref = "tamboui" }
+tamboui-toolkit = { module = "dev.tamboui:tamboui-toolkit" }
+tamboui-css = { module = "dev.tamboui:tamboui-css" }
+tamboui-picocli = { module = "dev.tamboui:tamboui-picocli" }
+tamboui-jline3-backend = { module = "dev.tamboui:tamboui-jline3-backend" }
+
+# reqstool
+reqstool-annotations = { module = "io.github.reqstool:reqstool-java-annotations", version.ref = "reqstool-annotations" }
+
+# Testing
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }

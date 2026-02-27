@@ -1,0 +1,18 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Java 25, Gradle 9.x (Groovy DSL), Picocli, TamboUI, OpenRewrite
+  We use conventional commits
+  TDD: tests before implementation
+  Domain: Developer tooling — OpenRewrite recipe discovery, execution, and configuration
+  Architecture: Multi-module Gradle (app + core). Core has no UI dependencies.
+  reqstool is SSOT for requirements and SVCs — see docs/reqstool/
+  License: Apache 2.0
+
+rules:
+  proposal:
+    - Reference reqstool requirement IDs (CORE_xxxx, CLI_xxxx) when applicable
+    - Keep proposals focused on a single capability
+  tasks:
+    - Each task should be testable independently
+    - Include the reqstool SVC IDs that the task covers

@@ -1,0 +1,71 @@
+cases:
+  - id: SVC_CORE_0001
+    requirement_ids: ["CORE_0001"]
+    title: Discover all recipes from classpath
+    verification: automated-test
+    description: |
+      GIVEN the tool has recipe modules on its classpath
+      WHEN the RecipeDiscoveryService scans the classpath
+      THEN all recipes from all modules are returned with name and description
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0002
+    requirement_ids: ["CORE_0002"]
+    title: Search recipes by keyword
+    verification: automated-test
+    description: |
+      GIVEN the recipe catalog contains recipes
+      WHEN the user searches for "spring boot"
+      THEN only recipes matching "spring boot" in name or description are returned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0003
+    requirement_ids: ["CORE_0003"]
+    title: Execute recipe against project
+    verification: automated-test
+    description: |
+      GIVEN a Gradle project with Java sources
+      WHEN the user runs RemoveUnusedImports recipe
+      THEN unused imports are removed from all Java files
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0004
+    requirement_ids: ["CORE_0004"]
+    title: Resolve Gradle classpath via Tooling API
+    verification: automated-test
+    description: |
+      GIVEN a Gradle project with dependencies
+      WHEN the GradleToolingApiResolver connects to the project
+      THEN compile classpath JAR paths and source directories are returned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0007
+    requirement_ids: ["CORE_0007"]
+    title: Save run configuration
+    verification: automated-test
+    description: |
+      GIVEN the user has selected recipes and options
+      WHEN they invoke config save
+      THEN a .atunko.yml file is written with the recipe setup
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0008
+    requirement_ids: ["CORE_0008"]
+    title: Load and execute from saved config
+    verification: automated-test
+    description: |
+      GIVEN a valid .atunko.yml file exists
+      WHEN the user runs with --config .atunko.yml
+      THEN the saved recipes are executed with the saved options
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0001
+    requirement_ids: ["CLI_0001"]
+    title: Launch TUI by default
+    verification: manual-test
+    description: |
+      GIVEN the user runs `atunko` with no subcommand
+      WHEN the application starts
+      THEN the TamboUI main dashboard is displayed
+    instructions: "Run `atunko` and verify the TUI dashboard appears"
+    revision: "0.1.0"

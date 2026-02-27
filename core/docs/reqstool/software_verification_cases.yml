@@ -1,0 +1,12 @@
+filters:
+  atunko:
+    svc_ids:
+      includes:
+        - SVC_CORE_0001
+        - SVC_CORE_0002
+        - SVC_CORE_0003
+        - SVC_CORE_0004
+        - SVC_CORE_0007
+        - SVC_CORE_0008
+
+cases: []

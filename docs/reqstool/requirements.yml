@@ -1,0 +1,97 @@
+metadata:
+  urn: atunko
+  variant: system
+  title: Atunko System Requirements
+  url: https://github.com/atunko/atunko
+
+implementations:
+  local:
+    - path: ../../../core/docs/reqstool
+    - path: ../../../app/docs/reqstool
+
+requirements:
+  # CLI requirements
+  - id: CLI_0001
+    title: TUI Launch
+    significance: shall
+    description: The tool shall launch an interactive TUI when invoked without subcommands
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0002
+    title: CLI Recipe Discovery
+    significance: shall
+    description: The tool shall list and search available recipes via CLI subcommand
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0003
+    title: CLI Recipe Execution
+    significance: shall
+    description: The tool shall execute recipes via CLI subcommand
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  # Core requirements
+  - id: CORE_0001
+    title: Recipe Discovery
+    significance: shall
+    description: The core engine shall discover all OpenRewrite recipes from the classpath
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0002
+    title: Recipe Search
+    significance: shall
+    description: The core engine shall support searching recipes by name, description, and tags
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0003
+    title: Recipe Execution
+    significance: shall
+    description: The core engine shall execute selected OpenRewrite recipes against a target project
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0004
+    title: Gradle Project Support
+    significance: shall
+    description: The core engine shall resolve classpaths and source dirs for Gradle projects via Tooling API
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0005
+    title: Maven Project Support
+    significance: shall
+    description: The core engine shall resolve classpaths and source dirs for Maven projects
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0006
+    title: Git Integration
+    significance: should
+    description: The core engine should detect git repos and support stash-based versioning
+    categories: [functional-suitability, safety]
+    revision: 0.1.0
+
+  - id: CORE_0007
+    title: Save Run Configuration
+    significance: shall
+    description: The tool shall save current recipe setup to a portable YAML file (.atunko.yml)
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0008
+    title: Load Run Configuration
+    significance: shall
+    description: The tool shall load and execute from a saved configuration file
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0009
+    title: Export Configuration
+    significance: should
+    description: The tool should export run configs to Maven/Gradle plugin format
+    categories: [compatibility]
+    revision: 0.1.0

@@ -1,0 +1,54 @@
+plugins {
+    id 'java'
+}
+
+allprojects {
+    group = 'dev.atunko'
+    version = '0.1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+        maven {
+            url 'https://repo.gradle.org/gradle/libs-releases'
+            content {
+                includeGroup 'org.gradle'
+            }
+        }
+        maven {
+            url 'https://central.sonatype.com/repository/maven-snapshots/'
+            mavenContent { snapshotsOnly() }
+        }
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+
+    dependencies {
+        // reqstool annotations
+        compileOnly rootProject.libs.reqstool.annotations
+        annotationProcessor rootProject.libs.reqstool.annotations
+        testCompileOnly rootProject.libs.reqstool.annotations
+        testAnnotationProcessor rootProject.libs.reqstool.annotations
+
+        // Testing
+        testImplementation platform(rootProject.libs.junit.bom)
+        testImplementation rootProject.libs.junit.jupiter
+        testImplementation rootProject.libs.junit.jupiter.params
+        testImplementation rootProject.libs.assertj.core
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+        testLogging {
+            events 'passed', 'skipped', 'failed'
+            showStandardStreams = true
+        }
+    }
+}

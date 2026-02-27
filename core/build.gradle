@@ -1,0 +1,28 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    // OpenRewrite BOM for version alignment
+    api platform(rootProject.libs.openrewrite.bom)
+
+    // OpenRewrite core
+    api libs.openrewrite.core
+    api libs.openrewrite.java
+    implementation libs.openrewrite.java21
+    implementation libs.openrewrite.xml
+    implementation libs.openrewrite.yaml
+    implementation libs.openrewrite.json
+    implementation libs.openrewrite.properties
+    implementation libs.openrewrite.maven
+    implementation libs.openrewrite.gradle
+
+    // OpenRewrite recipe modules
+    implementation libs.openrewrite.migrate.java
+    implementation libs.openrewrite.spring
+    implementation libs.openrewrite.static.analysis
+    implementation libs.openrewrite.testing.frameworks
+
+    // Gradle Tooling API for project scanning
+    implementation libs.gradle.tooling.api
+}
