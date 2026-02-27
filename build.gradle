@@ -30,7 +30,6 @@ subprojects {
     apply plugin: 'com.palantir.java-format-spotless'
     apply plugin: 'checkstyle'
     apply plugin: 'net.ltgt.errorprone'
-
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(25)
