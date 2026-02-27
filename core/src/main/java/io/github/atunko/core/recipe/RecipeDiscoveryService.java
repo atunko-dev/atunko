@@ -9,21 +9,13 @@ import org.openrewrite.config.RecipeDescriptor;
 public class RecipeDiscoveryService {
 
     public List<RecipeInfo> discoverAll() {
-        Environment env = Environment.builder()
-            .scanRuntimeClasspath()
-            .build();
+        Environment env = Environment.builder().scanRuntimeClasspath().build();
 
-        return env.listRecipeDescriptors().stream()
-            .map(this::toRecipeInfo)
-            .toList();
+        return env.listRecipeDescriptors().stream().map(this::toRecipeInfo).toList();
     }
 
     private RecipeInfo toRecipeInfo(RecipeDescriptor descriptor) {
         return new RecipeInfo(
-            descriptor.getName(),
-            descriptor.getDisplayName(),
-            descriptor.getDescription(),
-            descriptor.getTags()
-        );
+                descriptor.getName(), descriptor.getDisplayName(), descriptor.getDescription(), descriptor.getTags());
     }
 }

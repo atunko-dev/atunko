@@ -29,8 +29,6 @@ class RecipeDiscoveryServiceTest {
     @Test
     void discoverAll_includesKnownRecipe() {
         List<RecipeInfo> recipes = service.discoverAll();
-        assertThat(recipes)
-            .extracting(RecipeInfo::name)
-            .contains("org.openrewrite.java.RemoveUnusedImports");
+        assertThat(recipes).extracting(RecipeInfo::name).contains("org.openrewrite.java.RemoveUnusedImports");
     }
 }

@@ -21,12 +21,16 @@ atunko/
 ## Build Commands
 
 ```bash
-./gradlew build                    # Full build
+./gradlew build                    # Full build (includes Spotless + Checkstyle + Error Prone)
 ./gradlew test                     # All tests
 ./gradlew :core:test               # Core module tests only
 ./gradlew :app:test                # App module tests only
 ./gradlew :app:run                 # Launch TUI (default)
 ./gradlew :app:run --args="discover"  # Run CLI command
+./gradlew spotlessApply            # Auto-fix formatting (Palantir Java Format)
+./gradlew spotlessCheck            # Check formatting (CI mode — fails on violations)
+./gradlew checkstyleMain           # Run Checkstyle on main source
+./gradlew checkstyleTest           # Run Checkstyle on test source
 ```
 
 ## Development Approach
@@ -38,6 +42,19 @@ atunko/
 - **OpenSpec** links to reqstool — no duplicated requirements or scenarios
   - Spec conventions: `.claude/reqstool-openspec-conventions.md`
 - Tests use `@SVCs` annotations from reqstool to link test methods to verification cases
+
+## Code Quality
+
+Three layers of automated quality checks run on every build:
+
+- **Spotless** + **Palantir Java Format** — code formatting (4-space indent, import ordering, Javadoc formatting)
+  - `spotlessCheck` in CI (fail on violations), `spotlessApply` locally (auto-fix)
+- **Checkstyle** — style & convention enforcement (naming, imports, structure)
+  - Google Java Style base, 120-char lines, formatting-overlap rules disabled
+  - Config: `gradle/checkstyle/checkstyle.xml`, suppressions: `gradle/checkstyle/suppressions.xml`
+- **Error Prone** — compile-time bug detection (runs as javac plugin)
+
+**Before committing:** always run `./gradlew spotlessApply` then `./gradlew build`.
 
 ## Code Conventions
 

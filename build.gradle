@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'com.diffplug.spotless' version '8.2.1' apply false
+    id 'net.ltgt.errorprone' version '5.0.0' apply false
 }
 
 allprojects {
@@ -23,10 +25,42 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'com.diffplug.spotless'
+    apply plugin: 'checkstyle'
+    apply plugin: 'net.ltgt.errorprone'
 
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+
+    // --- Spotless (formatting) ---
+    spotless {
+        java {
+            palantirJavaFormat().formatJavadoc(true)
+            removeUnusedImports()
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+    }
+
+    // --- Checkstyle (style & convention enforcement) ---
+    checkstyle {
+        configFile = rootProject.file('gradle/checkstyle/checkstyle.xml')
+        configProperties = ['suppressionFile': rootProject.file('gradle/checkstyle/suppressions.xml')]
+        maxErrors = 0
+        maxWarnings = 0
+    }
+
+    // --- Error Prone (compile-time bug detection) ---
+    dependencies {
+        errorprone rootProject.libs.errorprone.core
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.errorprone {
+            // Use default checks — no extra config needed
         }
     }
 
