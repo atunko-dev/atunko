@@ -13,6 +13,12 @@ rules:
   proposal:
     - Reference reqstool requirement IDs (CORE_xxxx, CLI_xxxx) when applicable
     - Keep proposals focused on a single capability
+  specs:
+    - "reqstool is SSOT: NEVER duplicate requirement text or GIVEN/WHEN/THEN scenarios"
+    - "Follow conventions in .claude/reqstool-openspec-conventions.md"
+    - "Use ### Requirement: <ID> with SHALL referencing docs/reqstool/requirements.yml"
+    - "Use #### Scenario: <SVC_ID> with SHALL referencing docs/reqstool/software_verification_cases.yml"
+    - "Validate with: openspec validate --all --strict"
   tasks:
     - Each task should be testable independently
     - Include the reqstool SVC IDs that the task covers

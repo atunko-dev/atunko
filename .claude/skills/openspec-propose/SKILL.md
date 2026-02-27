@@ -101,6 +101,9 @@ After completing all artifacts, summarize:
 - **IMPORTANT**: `context` and `rules` are constraints for YOU, not content for the file
   - Do NOT copy `<context>`, `<rules>`, `<project_context>` blocks into the artifact
   - These guide what you write, but should never appear in the output
+- **CRITICAL — specs artifact**: Read `.claude/reqstool-openspec-conventions.md` before creating any
+  spec.md files. reqstool is SSOT — never duplicate requirement text or scenarios. Always validate
+  with `openspec validate --all --strict` after creating specs.
 
 **Guardrails**
 - Create ALL artifacts needed for implementation (as defined by schema's `apply.requires`)

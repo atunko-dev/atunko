@@ -36,6 +36,7 @@ atunko/
   - Requirements: `docs/reqstool/requirements.yml`
   - SVCs: `docs/reqstool/software_verification_cases.yml`
 - **OpenSpec** links to reqstool — no duplicated requirements or scenarios
+  - Spec conventions: `.claude/reqstool-openspec-conventions.md`
 - Tests use `@SVCs` annotations from reqstool to link test methods to verification cases
 
 ## Code Conventions
