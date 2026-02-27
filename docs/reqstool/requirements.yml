@@ -7,8 +7,8 @@ metadata:
 
 implementations:
   local:
-    - path: ../../../core/docs/reqstool
-    - path: ../../../app/docs/reqstool
+    - path: ../../core/docs/reqstool
+    - path: ../../app/docs/reqstool
 
 requirements:
   # CLI requirements
