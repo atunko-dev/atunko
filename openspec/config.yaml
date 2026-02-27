@@ -16,8 +16,9 @@ rules:
   specs:
     - "reqstool is SSOT: NEVER duplicate requirement text or GIVEN/WHEN/THEN scenarios"
     - "Follow conventions in .claude/reqstool-openspec-conventions.md"
-    - "Use ### Requirement: <ID> with SHALL referencing docs/reqstool/requirements.yml"
-    - "Use #### Scenario: <SVC_ID> with SHALL referencing docs/reqstool/software_verification_cases.yml"
+    - "Use ### Requirement: <ID> with 'The system SHALL implement <ID>.'"
+    - "Use #### Scenario: <SVC_ID> with 'The system SHALL pass <SVC_ID>.'"
+    - "IDs only — no file paths. Use reqstool CLI to look up details."
     - "Validate with: openspec validate --all --strict"
   tasks:
     - Each task should be testable independently

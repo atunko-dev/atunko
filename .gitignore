@@ -19,3 +19,6 @@ Thumbs.db
 
 # Runtime
 *.log
+
+# OpenSpec UI local state
+openspec/.openspecui-dashboard-git-refresh.stamp

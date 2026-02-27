@@ -4,7 +4,7 @@
   },
   "theme": "system",
   "codeEditor": {
-    "theme": "github"
+    "theme": "vscode"
   },
   "terminal": {
     "fontSize": 13,
