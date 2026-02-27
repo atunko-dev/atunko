@@ -11,22 +11,21 @@ descriptions or scenario steps.
 Requirements and SVCs are defined in the system-level reqstool files. Subprojects
 (core, app) import them via filters — the actual content lives in the parent.
 
-**To get requirement and SVC details, use the reqstool CLI:**
+**To get requirement and SVC details, use the reqstool CLI.**
+
+Read `.reqstool-ai.yaml` to find the system and module paths, then run:
 
 ```bash
-# For core module requirements/SVCs
-reqstool generate-json local -p core/docs/reqstool
-
-# For app module requirements/SVCs
-reqstool generate-json local -p app/docs/reqstool
+# For a specific module's requirements/SVCs
+reqstool generate-json local -p <module.path>
 
 # For system-level (all requirements/SVCs)
-reqstool generate-json local -p docs/reqstool
+reqstool generate-json local -p <system.path>
 ```
 
 The JSON output contains:
-- `requirements` — keyed by `urn:ID` (e.g., `atunko:CORE_0001`), includes title, description, significance
-- `svcs` — keyed by `urn:SVC_ID` (e.g., `atunko:SVC_CORE_0001`), includes title, description (GIVEN/WHEN/THEN), requirement_ids
+- `requirements` — keyed by `urn:ID` (e.g., `myproject:CORE_0001`), includes title, description, significance
+- `svcs` — keyed by `urn:SVC_ID` (e.g., `myproject:SVC_CORE_0001`), includes title, description (GIVEN/WHEN/THEN), requirement_ids
 - `svcs_from_req` — maps requirement IDs to their SVC IDs
 
 **Do NOT read YAML files directly** — use the CLI. The subproject YAML files only contain

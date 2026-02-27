@@ -1,9 +1,9 @@
 ---
 name: reqstool-sync-filters
 description: Synchronize subproject reqstool filters to include all current requirement and SVC IDs from the system-level files. Use when requirements or SVCs have been added/removed and filters need updating.
-license: MIT
+license: Apache-2.0
 metadata:
-  author: atunko
+  author: reqstool-ai
   version: "1.0"
 ---
 
@@ -11,7 +11,18 @@ Sync subproject filters to match current system-level requirements and SVCs.
 
 ---
 
-**Input**: Optional module name — `core`, `app`, or `all`. Defaults to `all`.
+**Input**: Optional module name or `all`. Defaults to `all`.
+
+**Configuration**
+
+Read `.reqstool-ai.yaml` to determine modules, paths, prefixes, and URN.
+
+The config defines:
+- `urn` — the project URN used in filter keys (e.g., `filters.<urn>.requirement_ids.includes`)
+- `system.path` — path to system-level reqstool directory
+- `modules.<name>.path` — path to each subproject's reqstool directory
+- `modules.<name>.req_prefix` — requirement ID prefix for this module
+- `modules.<name>.svc_prefix` — SVC ID prefix for this module
 
 **Why this is needed**
 
@@ -20,63 +31,59 @@ Subproject `requirements.yml` and `software_verification_cases.yml` files use li
 When new requirements or SVCs are added to the system level, the subproject filters must be updated
 to include them.
 
-**Mapping rules**
-
-| System ID prefix | Target subproject | Filter file |
-|------------------|-------------------|-------------|
-| `CORE_*` | `core/docs/reqstool/requirements.yml` | `filters.atunko.requirement_ids.includes` |
-| `CLI_*` | `app/docs/reqstool/requirements.yml` | `filters.atunko.requirement_ids.includes` |
-| `SVC_CORE_*` | `core/docs/reqstool/software_verification_cases.yml` | `filters.atunko.svc_ids.includes` |
-| `SVC_CLI_*` | `app/docs/reqstool/software_verification_cases.yml` | `filters.atunko.svc_ids.includes` |
-
 **Steps**
 
-1. **Read system-level files**
+1. **Read config**
+
+   Read `.reqstool-ai.yaml`. Build a mapping of prefixes to modules.
+
+2. **Determine which module(s) to sync**
+
+   Accept a module name from config, or `all` (default) for all modules.
+
+3. **Read system-level files**
 
    Read both:
-   - `docs/reqstool/requirements.yml` — extract all requirement IDs
-   - `docs/reqstool/software_verification_cases.yml` — extract all SVC IDs
+   - `<system.path>/requirements.yml` — extract all requirement IDs
+   - `<system.path>/software_verification_cases.yml` — extract all SVC IDs
 
-2. **Group IDs by prefix**
+4. **Group IDs by prefix**
 
-   - `CORE_*` requirements → core module
-   - `CLI_*` requirements → app module
-   - `SVC_CORE_*` SVCs → core module
-   - `SVC_CLI_*` SVCs → app module
+   For each module, match requirement IDs by `req_prefix` and SVC IDs by `svc_prefix`.
 
-3. **Read current subproject filters**
+5. **Read current subproject filters**
 
    For each selected module, read the current filter lists from:
-   - `<module>/docs/reqstool/requirements.yml` → `filters.atunko.requirement_ids.includes`
-   - `<module>/docs/reqstool/software_verification_cases.yml` → `filters.atunko.svc_ids.includes`
+   - `<module.path>/requirements.yml` -> `filters.<urn>.requirement_ids.includes`
+   - `<module.path>/software_verification_cases.yml` -> `filters.<urn>.svc_ids.includes`
 
-4. **Compute diff**
+6. **Compute diff**
 
    For each filter list, determine:
    - **Missing**: IDs in system that are not in the subproject filter (need to add)
    - **Stale**: IDs in the subproject filter that no longer exist in system (need to remove)
 
-5. **If no changes needed**
+7. **If no changes needed**
 
    Report "All filters are in sync." and exit.
 
-6. **Apply updates**
+8. **Apply updates**
 
    For each filter that needs updating, replace the `includes` list with the correct sorted IDs.
    Keep IDs in natural sort order (e.g., CORE_0001 before CORE_0010).
 
-7. **Verify with reqstool**
+9. **Verify with reqstool**
 
-   Run `reqstool status local -p <module>/docs/reqstool` for each updated module.
+   Run `reqstool status local -p <module.path>` for each updated module.
 
-8. **Report**
+10. **Report**
 
-   Show a summary table:
-   ```
-   Module | File                          | Added    | Removed
-   core   | requirements.yml              | CORE_0010 | -
-   core   | software_verification_cases.yml | SVC_CORE_0005 | -
-   ```
+    Show a summary table:
+    ```
+    Module | File                          | Added    | Removed
+    <name> | requirements.yml              | <ID>     | -
+    <name> | software_verification_cases.yml | <ID>   | -
+    ```
 
 **Guardrails**
 - Never modify system-level files — only update subproject filter lists

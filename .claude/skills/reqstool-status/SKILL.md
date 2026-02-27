@@ -1,9 +1,9 @@
 ---
 name: reqstool-status
-description: Show reqstool traceability status for system, core, or app module. Use when the user wants to check requirement coverage, missing implementations, or test status.
-license: MIT
+description: Show reqstool traceability status for system, subproject, or all modules. Use when the user wants to check requirement coverage, missing implementations, or test status.
+license: Apache-2.0
 metadata:
-  author: atunko
+  author: reqstool-ai
   version: "1.0"
 ---
 
@@ -11,27 +11,28 @@ Show reqstool requirements traceability status.
 
 ---
 
-**Input**: Optional module name — `system`, `core`, `app`, or `all`. Defaults to `all`.
+**Input**: Optional module name — `system`, a subproject name, or `all`. Defaults to `all`.
 
-**Paths**
+**Configuration**
 
-| Module | Path |
-|--------|------|
-| system | `docs/reqstool` |
-| core   | `core/docs/reqstool` |
-| app    | `app/docs/reqstool` |
+Read `.reqstool-ai.yaml` to determine modules, paths, and prefixes.
 
 **Steps**
 
-1. **Determine which module(s) to report**
+1. **Read config**
+
+   Read `.reqstool-ai.yaml`. It defines:
+   - `system.path` — path to the system-level reqstool directory
+   - `modules.<name>.path` — path to each subproject's reqstool directory
+
+2. **Determine which module(s) to report**
 
    Parse the argument after the command. Accept:
    - `system` / `sys` — system-level only
-   - `core` — core module only
-   - `app` — app module only
-   - `all` or no argument — all three
+   - A module name from config (e.g., `core`, `app`) — that module only
+   - `all` or no argument — system + all modules
 
-2. **Run reqstool status**
+3. **Run reqstool status**
 
    For each selected module, run:
    ```bash
@@ -40,12 +41,11 @@ Show reqstool requirements traceability status.
 
    If running `all`, run them sequentially with a header before each:
    ```
-   ## System (docs/reqstool)
-   ## Core (core/docs/reqstool)
-   ## App (app/docs/reqstool)
+   ## System (<system.path>)
+   ## <module-name> (<module.path>)
    ```
 
-3. **Summarize results**
+4. **Summarize results**
 
    After running, provide a brief summary:
    - Total requirements per module
@@ -53,7 +53,7 @@ Show reqstool requirements traceability status.
    - How many SVCs have tests vs missing
    - Any manual verification results missing
 
-4. **If reqstool is not installed**
+5. **If reqstool is not installed**
 
    If the command fails with "not found", tell the user:
    ```
