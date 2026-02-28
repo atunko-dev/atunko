@@ -40,6 +40,16 @@ cases:
       THEN compile classpath JAR paths and source directories are returned
     revision: "0.1.0"
 
+  - id: SVC_CORE_0005
+    requirement_ids: ["CORE_0005"]
+    title: Resolve Maven classpath via pom.xml
+    verification: automated-test
+    description: |
+      GIVEN a Maven project with dependencies
+      WHEN the MavenProjectScanner scans the project
+      THEN compile classpath JAR paths and source directories are returned
+    revision: "0.1.0"
+
   - id: SVC_CORE_0007
     requirement_ids: ["CORE_0007"]
     title: Save run configuration

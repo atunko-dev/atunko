@@ -7,6 +7,7 @@ filters:
         - SVC_CORE_0002
         - SVC_CORE_0003
         - SVC_CORE_0004
+        - SVC_CORE_0005
         - SVC_CORE_0007
         - SVC_CORE_0008
 
