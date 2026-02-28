@@ -2,16 +2,25 @@ package io.github.atunkodev.core.recipe;
 
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
-import org.openrewrite.config.Environment;
 import org.openrewrite.config.RecipeDescriptor;
 
 public class RecipeDiscoveryService {
 
+    private final EnvironmentProvider environmentProvider;
+
+    public RecipeDiscoveryService() {
+        this(new EnvironmentProvider());
+    }
+
+    public RecipeDiscoveryService(EnvironmentProvider environmentProvider) {
+        this.environmentProvider = environmentProvider;
+    }
+
     @Requirements({"CORE_0001"})
     public List<RecipeInfo> discoverAll() {
-        Environment env = Environment.builder().scanRuntimeClasspath().build();
-
-        return env.listRecipeDescriptors().stream().map(this::toRecipeInfo).toList();
+        return environmentProvider.get().listRecipeDescriptors().stream()
+                .map(this::toRecipeInfo)
+                .toList();
     }
 
     @Requirements({"CORE_0002"})
