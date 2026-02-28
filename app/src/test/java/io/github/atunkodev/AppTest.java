@@ -2,38 +2,30 @@ package io.github.atunkodev;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import io.github.atunkodev.testing.CommandLineFixture;
 import org.junit.jupiter.api.Test;
-import picocli.CommandLine;
 
 class AppTest {
 
     @Test
     void help_printsUsage() {
-        StringWriter out = new StringWriter();
-        CommandLine cmd = new CommandLine(new App());
-        cmd.setOut(new PrintWriter(out));
+        CommandLineFixture cli = CommandLineFixture.create();
 
-        int exitCode = cmd.execute("--help");
+        int exitCode = cli.execute("--help");
 
         assertThat(exitCode).isZero();
-        String output = out.toString();
-        assertThat(output).contains("atunko");
-        assertThat(output).contains("discover");
-        assertThat(output).contains("run");
+        assertThat(cli.stdout()).contains("atunko");
+        assertThat(cli.stdout()).contains("discover");
+        assertThat(cli.stdout()).contains("run");
     }
 
     @Test
     void noArgs_printsUsage() {
-        StringWriter out = new StringWriter();
-        CommandLine cmd = new CommandLine(new App());
-        cmd.setOut(new PrintWriter(out));
+        CommandLineFixture cli = CommandLineFixture.create();
 
-        int exitCode = cmd.execute();
+        int exitCode = cli.execute();
 
         assertThat(exitCode).isZero();
-        String output = out.toString();
-        assertThat(output).contains("atunko");
+        assertThat(cli.stdout()).contains("atunko");
     }
 }

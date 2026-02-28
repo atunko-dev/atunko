@@ -2,54 +2,42 @@ package io.github.atunkodev.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.github.atunkodev.App;
+import io.github.atunkodev.testing.CommandLineFixture;
 import io.github.reqstool.annotations.SVCs;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import org.junit.jupiter.api.Test;
-import picocli.CommandLine;
 
 class DiscoverCommandTest {
 
     @Test
     @SVCs({"SVC_CLI_0002"})
     void discover_listsAllRecipes() {
-        StringWriter out = new StringWriter();
-        CommandLine cmd = new CommandLine(new App());
-        cmd.setOut(new PrintWriter(out));
+        CommandLineFixture cli = CommandLineFixture.create();
 
-        int exitCode = cmd.execute("discover");
+        int exitCode = cli.execute("discover");
 
         assertThat(exitCode).isZero();
-        String output = out.toString();
-        assertThat(output).contains("recipe");
+        assertThat(cli.stdout()).contains("recipe");
     }
 
     @Test
     @SVCs({"SVC_CLI_0002"})
     void discover_withSearch_filtersRecipes() {
-        StringWriter out = new StringWriter();
-        CommandLine cmd = new CommandLine(new App());
-        cmd.setOut(new PrintWriter(out));
+        CommandLineFixture cli = CommandLineFixture.create();
 
-        int exitCode = cmd.execute("discover", "--search", "unused imports");
+        int exitCode = cli.execute("discover", "--search", "unused imports");
 
         assertThat(exitCode).isZero();
-        String output = out.toString();
-        assertThat(output).containsIgnoringCase("unused");
+        assertThat(cli.stdout()).containsIgnoringCase("unused");
     }
 
     @Test
     @SVCs({"SVC_CLI_0002"})
     void discover_withNoResults_showsMessage() {
-        StringWriter out = new StringWriter();
-        CommandLine cmd = new CommandLine(new App());
-        cmd.setOut(new PrintWriter(out));
+        CommandLineFixture cli = CommandLineFixture.create();
 
-        int exitCode = cmd.execute("discover", "--search", "xyznonexistent999");
+        int exitCode = cli.execute("discover", "--search", "xyznonexistent999");
 
         assertThat(exitCode).isZero();
-        String output = out.toString();
-        assertThat(output).contains("No recipes found");
+        assertThat(cli.stdout()).contains("No recipes found");
     }
 }

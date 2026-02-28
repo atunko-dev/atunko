@@ -2,16 +2,13 @@ package io.github.atunkodev.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.github.atunkodev.App;
+import io.github.atunkodev.testing.CommandLineFixture;
 import io.github.reqstool.annotations.SVCs;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import picocli.CommandLine;
 
 class RunCommandTest {
 
@@ -35,50 +32,35 @@ class RunCommandTest {
     @SVCs({"SVC_CLI_0003"})
     void run_withValidRecipe_reportsChanges() throws IOException {
         Path workDir = copyFixtureToTemp();
+        CommandLineFixture cli = CommandLineFixture.create();
 
-        StringWriter out = new StringWriter();
-        StringWriter err = new StringWriter();
-        CommandLine cmd = new CommandLine(new App());
-        cmd.setOut(new PrintWriter(out));
-        cmd.setErr(new PrintWriter(err));
-        cmd.setExecutionExceptionHandler(new ErrorHandler());
-
-        int exitCode = cmd.execute(
+        int exitCode = cli.execute(
                 "run", "-r", "org.openrewrite.java.RemoveUnusedImports", "--project-dir", workDir.toString());
 
-        assertThat(exitCode).as("stderr: %s, stdout: %s", err, out).isZero();
+        assertThat(exitCode)
+                .as("stderr: %s, stdout: %s", cli.stderr(), cli.stdout())
+                .isZero();
     }
 
     @Test
     @SVCs({"SVC_CLI_0003"})
     void run_withInvalidRecipe_reportsError() throws IOException {
         Path workDir = copyFixtureToTemp();
+        CommandLineFixture cli = CommandLineFixture.create();
 
-        StringWriter out = new StringWriter();
-        StringWriter err = new StringWriter();
-        CommandLine cmd = new CommandLine(new App());
-        cmd.setOut(new PrintWriter(out));
-        cmd.setErr(new PrintWriter(err));
-        cmd.setExecutionExceptionHandler(new ErrorHandler());
-
-        int exitCode = cmd.execute("run", "-r", "nonexistent.recipe", "--project-dir", workDir.toString());
+        int exitCode = cli.execute("run", "-r", "nonexistent.recipe", "--project-dir", workDir.toString());
 
         assertThat(exitCode).isNotZero();
-        String output = err.toString() + out.toString();
+        String output = cli.stderr() + cli.stdout();
         assertThat(output).containsIgnoringCase("error");
     }
 
     @Test
     @SVCs({"SVC_CLI_0003"})
     void run_withMissingRequiredOptions_fails() {
-        StringWriter out = new StringWriter();
-        StringWriter err = new StringWriter();
-        CommandLine cmd = new CommandLine(new App());
-        cmd.setOut(new PrintWriter(out));
-        cmd.setErr(new PrintWriter(err));
-        cmd.setExecutionExceptionHandler(new ErrorHandler());
+        CommandLineFixture cli = CommandLineFixture.create();
 
-        int exitCode = cmd.execute("run");
+        int exitCode = cli.execute("run");
 
         assertThat(exitCode).isNotZero();
     }
