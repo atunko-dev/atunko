@@ -20,9 +20,45 @@ requirements:
     revision: 0.1.0
 
   - id: CLI_0002
-    title: CLI Recipe Discovery
+    title: CLI Recipe Listing
     significance: shall
-    description: The tool shall list and search available recipes via CLI subcommand
+    description: The tool shall list all available recipes via CLI subcommand, with selectable output format and sort order
+    categories: [functional-suitability]
+    revision: 0.2.0
+
+  - id: CLI_0002.1
+    title: List — Text Format
+    significance: shall
+    description: The list subcommand shall display recipes in human-readable text format
+    references:
+      requirement_ids: ["CLI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0002.2
+    title: List — JSON Format
+    significance: shall
+    description: The list subcommand shall display recipes in JSON format
+    references:
+      requirement_ids: ["CLI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0002.3
+    title: List — Sort by Name
+    significance: shall
+    description: The list subcommand shall support sorting recipes alphabetically by name
+    references:
+      requirement_ids: ["CLI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0002.4
+    title: List — Sort by Tags
+    significance: shall
+    description: The list subcommand shall support sorting recipes by first tag, then by name
+    references:
+      requirement_ids: ["CLI_0002"]
     categories: [functional-suitability]
     revision: 0.1.0
 
@@ -30,6 +66,58 @@ requirements:
     title: CLI Recipe Execution
     significance: shall
     description: The tool shall execute recipes via CLI subcommand
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0004
+    title: CLI Recipe Search
+    significance: shall
+    description: The tool shall search recipes by keyword via CLI subcommand, with selectable output format, sort order, and field filter
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0004.1
+    title: Search — Text Format
+    significance: shall
+    description: The search subcommand shall display matching recipes in human-readable text format
+    references:
+      requirement_ids: ["CLI_0004"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0004.2
+    title: Search — JSON Format
+    significance: shall
+    description: The search subcommand shall display matching recipes in JSON format
+    references:
+      requirement_ids: ["CLI_0004"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0004.3
+    title: Search — Sort by Name
+    significance: shall
+    description: The search subcommand shall support sorting matching recipes alphabetically by name
+    references:
+      requirement_ids: ["CLI_0004"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0004.4
+    title: Search — Sort by Tags
+    significance: shall
+    description: The search subcommand shall support sorting matching recipes by first tag, then by name
+    references:
+      requirement_ids: ["CLI_0004"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0004.5
+    title: Search — Field Filter
+    significance: shall
+    description: The search subcommand shall support filtering which recipe fields (name, displayName, description, tags) the query matches against
+    references:
+      requirement_ids: ["CLI_0004"]
     categories: [functional-suitability]
     revision: 0.1.0
 

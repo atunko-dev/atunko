@@ -83,12 +83,112 @@ cases:
 
   - id: SVC_CLI_0002
     requirement_ids: ["CLI_0002"]
-    title: List and search recipes via CLI
+    title: List recipes via CLI
     verification: automated-test
     description: |
-      GIVEN the tool has recipe modules on its classpath
-      WHEN the user runs `atunko discover` or `atunko discover --search <query>`
-      THEN available recipes are listed, optionally filtered by the search query
+      GIVEN recipes on classpath
+      WHEN user runs `atunko list`
+      THEN all recipes are listed with selectable format and sort order
+    revision: "0.2.0"
+
+  - id: SVC_CLI_0002.1
+    requirement_ids: ["CLI_0002.1"]
+    title: List recipes — text output
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko list --format text`
+      THEN all recipes are listed as human-readable text with name and description
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0002.2
+    requirement_ids: ["CLI_0002.2"]
+    title: List recipes — JSON output
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko list --format json`
+      THEN output is a valid JSON array of recipe objects
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0002.3
+    requirement_ids: ["CLI_0002.3"]
+    title: List recipes — sorted by name
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko list --sort name`
+      THEN recipes are listed in alphabetical order by name
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0002.4
+    requirement_ids: ["CLI_0002.4"]
+    title: List recipes — sorted by tags
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko list --sort tags`
+      THEN recipes are listed sorted by first tag alphabetically, then by name
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0004
+    requirement_ids: ["CLI_0004"]
+    title: Search recipes via CLI
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko search <query>`
+      THEN matching recipes are returned with selectable format, sort order, and field filter
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0004.1
+    requirement_ids: ["CLI_0004.1"]
+    title: Search recipes — text output
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko search <query> --format text`
+      THEN only matching recipes are listed as human-readable text
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0004.2
+    requirement_ids: ["CLI_0004.2"]
+    title: Search recipes — JSON output
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko search <query> --format json`
+      THEN output is a filtered JSON array of recipe objects
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0004.3
+    requirement_ids: ["CLI_0004.3"]
+    title: Search recipes — sorted by name
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko search <query> --sort name`
+      THEN matching recipes are listed in alphabetical order by name
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0004.4
+    requirement_ids: ["CLI_0004.4"]
+    title: Search recipes — sorted by tags
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko search <query> --sort tags`
+      THEN matching recipes are listed sorted by first tag alphabetically, then by name
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0004.5
+    requirement_ids: ["CLI_0004.5"]
+    title: Search recipes — filter by field
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko search <query> --field tags`
+      THEN only recipes matching the query in the specified field are returned
     revision: "0.1.0"
 
   - id: SVC_CLI_0003
