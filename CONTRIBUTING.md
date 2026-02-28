@@ -42,18 +42,18 @@ Three layers of automated checks run on every build:
 ```
 atunko/
 ├── app/          # Application module — Picocli CLI + TamboUI TUI entry point
-│                 # Packages: io.github.atunko.cli, io.github.atunko.tui
+│                 # Packages: io.github.atunkodev.cli, io.github.atunkodev.tui
 ├── core/         # Core engine module — no UI dependencies
-│                 # Package: io.github.atunko.core.{engine,recipe,project,config,result}
+│                 # Package: io.github.atunkodev.core.{engine,recipe,project,config,result}
 ├── docs/
 │   └── reqstool/ # Requirements traceability (SSOT)
 └── openspec/     # Spec-driven development (links to reqstool)
 ```
 
 - Java 25, Gradle 9.x (Groovy DSL)
-- Package root: `io.github.atunko` (app), `io.github.atunko.core` (core)
+- Package root: `io.github.atunkodev` (app), `io.github.atunkodev.core` (core)
 - `java-library` plugin in core (exposes API via `api` configuration)
-- `application` plugin in app (main class: `io.github.atunko.App`)
+- `application` plugin in app (main class: `io.github.atunkodev.App`)
 
 ## Commit Conventions
 

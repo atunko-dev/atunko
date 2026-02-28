@@ -10,9 +10,9 @@ execution, and saveable run configurations.
 ```
 atunko/
 ├── app/          # Application module — Picocli CLI + TamboUI TUI entry point
-│                 # Package: io.github.atunko.cli, io.github.atunko.tui
+│                 # Package: io.github.atunkodev.cli, io.github.atunkodev.tui
 ├── core/         # Core engine module — no UI dependencies
-│                 # Package: io.github.atunko.core.{engine,recipe,project,config,result}
+│                 # Package: io.github.atunkodev.core.{engine,recipe,project,config,result}
 ├── docs/
 │   └── reqstool/ # Requirements traceability (SSOT)
 └── openspec/     # Spec-driven development (links to reqstool, no duplication)
@@ -59,9 +59,9 @@ Three layers of automated quality checks run on every build:
 ## Code Conventions
 
 - Java 25, Gradle 9.3.1 (Groovy DSL)
-- Package root: `io.github.atunko` (app), `io.github.atunko.core` (core)
+- Package root: `io.github.atunkodev` (app), `io.github.atunkodev.core` (core)
 - Use `java-library` plugin in core (exposes API via `api` configuration)
-- Use `application` plugin in app (main class: `io.github.atunko.App`)
+- Use `application` plugin in app (main class: `io.github.atunkodev.App`)
 - Conventional commits for all changes
 
 ## Key Dependencies

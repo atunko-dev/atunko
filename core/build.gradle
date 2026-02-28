@@ -23,6 +23,10 @@ dependencies {
     implementation libs.openrewrite.static.analysis
     implementation libs.openrewrite.testing.frameworks
 
+    // Jackson YAML for run configuration (explicit — also available transitively via OpenRewrite)
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+
     // Gradle Tooling API for project scanning
     implementation libs.gradle.tooling.api
 }

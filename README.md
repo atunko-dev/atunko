@@ -50,9 +50,6 @@ java -jar app/build/libs/atunko.jar discover --search "unused imports"
 ```bash
 # Run a recipe against a project
 java -jar app/build/libs/atunko.jar run -r org.openrewrite.java.RemoveUnusedImports --project-dir /path/to/project
-
-# Run a Spring Boot migration recipe
-java -jar app/build/libs/atunko.jar run -r org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0 --project-dir /path/to/project
 ```
 
 Options:
