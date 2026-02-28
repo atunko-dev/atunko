@@ -2,6 +2,7 @@ package io.github.atunkodev.testing;
 
 import io.github.atunkodev.App;
 import io.github.atunkodev.cli.ErrorHandler;
+import io.github.atunkodev.cli.ServiceFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import picocli.CommandLine;
@@ -12,7 +13,7 @@ public record CommandLineFixture(CommandLine cmd, StringWriter out, StringWriter
     public static CommandLineFixture create() {
         StringWriter out = new StringWriter();
         StringWriter err = new StringWriter();
-        CommandLine cmd = new CommandLine(new App());
+        CommandLine cmd = new CommandLine(new App(), new ServiceFactory());
         cmd.setOut(new PrintWriter(out));
         cmd.setErr(new PrintWriter(err));
         cmd.setExecutionExceptionHandler(new ErrorHandler());

@@ -22,11 +22,20 @@ public class DiscoverCommand implements Runnable {
     @Spec
     private CommandSpec spec;
 
+    private final RecipeDiscoveryService service;
+
+    public DiscoverCommand() {
+        this(new RecipeDiscoveryService());
+    }
+
+    public DiscoverCommand(RecipeDiscoveryService service) {
+        this.service = service;
+    }
+
     @Override
     @Requirements({"CLI_0002"})
     public void run() {
         PrintWriter out = spec.commandLine().getOut();
-        RecipeDiscoveryService service = new RecipeDiscoveryService();
 
         List<RecipeInfo> recipes;
         if (search != null && !search.isBlank()) {
