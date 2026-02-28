@@ -1,6 +1,7 @@
 package io.github.atunko;
 
 import io.github.atunko.cli.DiscoverCommand;
+import io.github.atunko.cli.RunCommand;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -8,7 +9,7 @@ import picocli.CommandLine.Command;
         name = "atunko",
         description = "OpenRewrite recipe discovery, execution, and configuration",
         mixinStandardHelpOptions = true,
-        subcommands = {DiscoverCommand.class})
+        subcommands = {DiscoverCommand.class, RunCommand.class})
 public class App implements Runnable {
 
     @Override

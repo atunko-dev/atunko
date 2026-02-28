@@ -1,5 +1,5 @@
 = atunko
-:toc:
+:description: An open-source TUI + CLI tool for OpenRewrite
 
 **atunkọ** (Yoruba) — _the act of rewriting/rebuilding_, from *atun* (again) + *kọ* (to write/build)
 
@@ -9,6 +9,13 @@ execution, and saveable run configurations — all from the terminal.
 
 NOTE: "OpenRewrite" is a registered trademark of Moderne, Inc. This project is not affiliated
 with or endorsed by Moderne.
+
+== Features
+
+* **Recipe Discovery** — Browse and search all available OpenRewrite recipes
+* **Recipe Execution** — Run recipes against your project from the command line
+* **Run Configurations** — Save and load recipe setups as portable `.atunko.yml` files
+* **Project Scanning** — Gradle and Maven project support for classpath resolution
 
 == Quick Start
 
@@ -26,16 +33,4 @@ with or endorsed by Moderne.
 ./gradlew :app:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
 ----
 
-== Architecture
-
-[source]
-----
-atunko/
-├── app/     # CLI (Picocli) + TUI (TamboUI) entry point
-├── core/    # Core engine — recipe discovery, execution, project scanning
-└── docs/    # reqstool requirements (SSOT)
-----
-
-== License
-
-Apache License 2.0. See link:LICENSE[LICENSE].
+See xref:cli.adoc[CLI Usage] for full command reference.
