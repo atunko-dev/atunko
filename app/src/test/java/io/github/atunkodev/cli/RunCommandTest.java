@@ -41,6 +41,7 @@ class RunCommandTest {
         CommandLine cmd = new CommandLine(new App());
         cmd.setOut(new PrintWriter(out));
         cmd.setErr(new PrintWriter(err));
+        cmd.setExecutionExceptionHandler(new ErrorHandler());
 
         int exitCode = cmd.execute(
                 "run", "-r", "org.openrewrite.java.RemoveUnusedImports", "--project-dir", workDir.toString());
@@ -58,6 +59,7 @@ class RunCommandTest {
         CommandLine cmd = new CommandLine(new App());
         cmd.setOut(new PrintWriter(out));
         cmd.setErr(new PrintWriter(err));
+        cmd.setExecutionExceptionHandler(new ErrorHandler());
 
         int exitCode = cmd.execute("run", "-r", "nonexistent.recipe", "--project-dir", workDir.toString());
 
@@ -74,6 +76,7 @@ class RunCommandTest {
         CommandLine cmd = new CommandLine(new App());
         cmd.setOut(new PrintWriter(out));
         cmd.setErr(new PrintWriter(err));
+        cmd.setExecutionExceptionHandler(new ErrorHandler());
 
         int exitCode = cmd.execute("run");
 

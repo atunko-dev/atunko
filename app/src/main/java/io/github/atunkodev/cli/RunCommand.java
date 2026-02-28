@@ -6,6 +6,7 @@ import io.github.atunkodev.core.engine.RecipeExecutionEngine;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -37,57 +38,61 @@ public class RunCommand implements Runnable {
     @Requirements({"CLI_0003"})
     public void run() {
         PrintWriter out = spec.commandLine().getOut();
-        PrintWriter err = spec.commandLine().getErr();
+        List<SourceFile> sources = parseJavaSources(projectDir);
 
-        try {
-            List<SourceFile> sources = parseJavaSources(projectDir);
-
-            if (sources.isEmpty()) {
-                out.println("No Java source files found in " + projectDir);
-                out.flush();
-                return;
-            }
-
-            RecipeExecutionEngine engine = new RecipeExecutionEngine();
-            ExecutionResult result = engine.execute(recipe, sources);
-
-            if (result.changes().isEmpty()) {
-                out.println("No changes produced by recipe: " + recipe);
-            } else {
-                Path absoluteDir = projectDir.toAbsolutePath().normalize();
-                for (FileChange change : result.changes()) {
-                    if (change.after() != null) {
-                        Files.writeString(absoluteDir.resolve(change.path()), change.after());
-                    } else {
-                        Files.deleteIfExists(absoluteDir.resolve(change.path()));
-                    }
-                    out.println("Changed: " + change.path());
-                }
-                out.println("\n" + result.changes().size() + " file(s) changed.");
-            }
+        if (sources.isEmpty()) {
+            out.println("No Java source files found in " + projectDir);
             out.flush();
-        } catch (Exception e) {
-            err.println("Error: " + e.getMessage());
-            err.flush();
-            throw new picocli.CommandLine.ExecutionException(spec.commandLine(), e.getMessage(), e);
+            return;
+        }
+
+        RecipeExecutionEngine engine = new RecipeExecutionEngine();
+        ExecutionResult result = engine.execute(recipe, sources);
+
+        if (result.changes().isEmpty()) {
+            out.println("No changes produced by recipe: " + recipe);
+        } else {
+            Path absoluteDir = projectDir.toAbsolutePath().normalize();
+            for (FileChange change : result.changes()) {
+                applyChange(absoluteDir, change);
+                out.println("Changed: " + change.path());
+            }
+            out.println("\n" + result.changes().size() + " file(s) changed.");
+        }
+        out.flush();
+    }
+
+    private void applyChange(Path absoluteDir, FileChange change) {
+        try {
+            if (change.after() != null) {
+                Files.writeString(absoluteDir.resolve(change.path()), change.after());
+            } else {
+                Files.deleteIfExists(absoluteDir.resolve(change.path()));
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
-    private List<SourceFile> parseJavaSources(Path dir) throws IOException {
+    private List<SourceFile> parseJavaSources(Path dir) {
         Path absoluteDir = dir.toAbsolutePath().normalize();
 
         if (!Files.isDirectory(absoluteDir)) {
             throw new IllegalArgumentException("Not a valid directory: " + absoluteDir);
         }
 
-        List<Path> javaFiles;
-        try (Stream<Path> walk = Files.walk(absoluteDir)) {
-            javaFiles = walk.filter(p -> p.toString().endsWith(".java")).toList();
-        }
+        try {
+            List<Path> javaFiles;
+            try (Stream<Path> walk = Files.walk(absoluteDir)) {
+                javaFiles = walk.filter(p -> p.toString().endsWith(".java")).toList();
+            }
 
-        return JavaParser.fromJavaVersion()
-                .build()
-                .parse(javaFiles, absoluteDir, new InMemoryExecutionContext())
-                .toList();
+            return JavaParser.fromJavaVersion()
+                    .build()
+                    .parse(javaFiles, absoluteDir, new InMemoryExecutionContext())
+                    .toList();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

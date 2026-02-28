@@ -5,7 +5,6 @@ import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.reqstool.annotations.Requirements;
 import java.io.PrintWriter;
 import java.util.List;
-import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
@@ -27,31 +26,23 @@ public class DiscoverCommand implements Runnable {
     @Requirements({"CLI_0002"})
     public void run() {
         PrintWriter out = spec.commandLine().getOut();
-        PrintWriter err = spec.commandLine().getErr();
+        RecipeDiscoveryService service = new RecipeDiscoveryService();
 
-        try {
-            RecipeDiscoveryService service = new RecipeDiscoveryService();
-
-            List<RecipeInfo> recipes;
-            if (search != null && !search.isBlank()) {
-                recipes = service.search(search);
-            } else {
-                recipes = service.discoverAll();
-            }
-
-            if (recipes.isEmpty()) {
-                out.println("No recipes found.");
-            } else {
-                for (RecipeInfo recipe : recipes) {
-                    out.println(recipe.name() + " - " + recipe.description());
-                }
-                out.println("\n" + recipes.size() + " recipe(s) found.");
-            }
-            out.flush();
-        } catch (Exception e) {
-            err.println("Error: " + e.getMessage());
-            err.flush();
-            throw new CommandLine.ExecutionException(spec.commandLine(), e.getMessage(), e);
+        List<RecipeInfo> recipes;
+        if (search != null && !search.isBlank()) {
+            recipes = service.search(search);
+        } else {
+            recipes = service.discoverAll();
         }
+
+        if (recipes.isEmpty()) {
+            out.println("No recipes found.");
+        } else {
+            for (RecipeInfo recipe : recipes) {
+                out.println(recipe.name() + " - " + recipe.description());
+            }
+            out.println("\n" + recipes.size() + " recipe(s) found.");
+        }
+        out.flush();
     }
 }

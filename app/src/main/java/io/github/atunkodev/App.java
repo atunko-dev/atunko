@@ -1,6 +1,7 @@
 package io.github.atunkodev;
 
 import io.github.atunkodev.cli.DiscoverCommand;
+import io.github.atunkodev.cli.ErrorHandler;
 import io.github.atunkodev.cli.RunCommand;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -24,7 +25,9 @@ public class App implements Runnable {
     }
 
     public static void main(String[] args) {
-        int exitCode = new CommandLine(new App()).execute(args);
+        int exitCode = new CommandLine(new App())
+                .setExecutionExceptionHandler(new ErrorHandler())
+                .execute(args);
         System.exit(exitCode);
     }
 }
