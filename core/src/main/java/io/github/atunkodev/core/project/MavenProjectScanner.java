@@ -48,28 +48,32 @@ public class MavenProjectScanner {
                 pb.redirectErrorStream(true);
 
                 Process process = pb.start();
-                process.getInputStream().transferTo(OutputStream.nullOutputStream());
-                boolean finished = process.waitFor(TIMEOUT_MINUTES, TimeUnit.MINUTES);
+                try {
+                    process.getInputStream().transferTo(OutputStream.nullOutputStream());
+                    boolean finished = process.waitFor(TIMEOUT_MINUTES, TimeUnit.MINUTES);
 
-                if (!finished) {
+                    if (!finished) {
+                        throw new RuntimeException(
+                                "Maven dependency:build-classpath timed out after " + TIMEOUT_MINUTES + " minutes");
+                    }
+
+                    int exitCode = process.exitValue();
+                    if (exitCode != 0) {
+                        throw new RuntimeException(
+                                "Maven dependency:build-classpath failed with exit code " + exitCode);
+                    }
+
+                    String classpathStr = Files.readString(outputFile).strip();
+                    if (classpathStr.isEmpty()) {
+                        return List.of();
+                    }
+
+                    return Arrays.stream(classpathStr.split(System.getProperty("path.separator")))
+                            .map(Path::of)
+                            .toList();
+                } finally {
                     process.destroyForcibly();
-                    throw new RuntimeException(
-                            "Maven dependency:build-classpath timed out after " + TIMEOUT_MINUTES + " minutes");
                 }
-
-                int exitCode = process.exitValue();
-                if (exitCode != 0) {
-                    throw new RuntimeException("Maven dependency:build-classpath failed with exit code " + exitCode);
-                }
-
-                String classpathStr = Files.readString(outputFile).strip();
-                if (classpathStr.isEmpty()) {
-                    return List.of();
-                }
-
-                return Arrays.stream(classpathStr.split(System.getProperty("path.separator")))
-                        .map(Path::of)
-                        .toList();
             } finally {
                 Files.deleteIfExists(outputFile);
             }
