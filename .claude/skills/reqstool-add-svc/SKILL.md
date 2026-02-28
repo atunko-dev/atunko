@@ -49,10 +49,20 @@ The config defines:
 
 4. **Determine the next SVC ID**
 
-   Read `<system.path>/software_verification_cases.yml` and find the highest existing SVC ID
-   with the relevant `svc_prefix`. The SVC ID typically mirrors the requirement number:
+   Read `<system.path>/software_verification_cases.yml` and find existing SVC IDs
+   with the relevant `svc_prefix`. The SVC ID mirrors the requirement ID structure:
+
+   **For non-decomposed requirements** (no dot in requirement ID):
    - For `CORE_0005` with `svc_prefix: SVC_CORE_` -> try `SVC_CORE_0005` first
    - If that exists, use the next available number in the sequence
+
+   **For child requirements** (dot notation, e.g., `CLI_0004.1`):
+   - Mirror the requirement ID: `SVC_CLI_0004.1`
+   - If that exists (multiple SVCs per requirement), append a letter: `SVC_CLI_0004.1a`
+
+   **For parent requirements** (when children exist):
+   - Use the base ID: `SVC_CLI_0004` (mirrors the parent requirement)
+   - See `.claude/reqstool-decomposition-conventions.md` for parent SVC conventions
 
 5. **Add the SVC to system-level file**
 
@@ -100,7 +110,7 @@ The config defines:
    Show the user:
    - The new SVC ID, linked requirement, and verification type
    - Which files were modified
-   - For automated-test SVCs, remind: "Add `@SVCs({"<SVC_ID>"})` annotation to the test method."
+   - For automated-test SVCs, remind: "Add `@SVCs({"<SVC_ID>"})` annotation to the test method/function (as close to the implementation as possible — see `.claude/reqstool-annotation-conventions.md`)."
 
 **Guardrails**
 - Validate that the linked requirement ID exists in `<system.path>/requirements.yml`
