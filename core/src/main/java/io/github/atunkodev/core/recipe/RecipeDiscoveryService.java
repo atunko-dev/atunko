@@ -2,6 +2,8 @@ package io.github.atunkodev.core.recipe;
 
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import org.openrewrite.config.RecipeDescriptor;
 
 public class RecipeDiscoveryService {
@@ -25,26 +27,37 @@ public class RecipeDiscoveryService {
 
     @Requirements({"CORE_0002"})
     public List<RecipeInfo> search(String query) {
+        return search(query, Set.of(RecipeField.values()));
+    }
+
+    @Requirements({"CORE_0002"})
+    public List<RecipeInfo> search(String query, Set<RecipeField> fields) {
         if (query == null || query.isBlank()) {
             return discoverAll();
         }
-        String lowerQuery = query.toLowerCase();
+        String lowerQuery = query.toLowerCase(Locale.ROOT);
         return discoverAll().stream()
-                .filter(recipe -> matches(recipe, lowerQuery))
+                .filter(recipe -> matches(recipe, lowerQuery, fields))
                 .toList();
     }
 
-    private boolean matches(RecipeInfo recipe, String lowerQuery) {
-        if (recipe.name().toLowerCase().contains(lowerQuery)) {
+    private boolean matches(RecipeInfo recipe, String lowerQuery, Set<RecipeField> fields) {
+        if (fields.contains(RecipeField.NAME)
+                && recipe.name().toLowerCase(Locale.ROOT).contains(lowerQuery)) {
             return true;
         }
-        if (recipe.displayName().toLowerCase().contains(lowerQuery)) {
+        if (fields.contains(RecipeField.DISPLAY_NAME)
+                && recipe.displayName().toLowerCase(Locale.ROOT).contains(lowerQuery)) {
             return true;
         }
-        if (recipe.description() != null && recipe.description().toLowerCase().contains(lowerQuery)) {
+        if (fields.contains(RecipeField.DESCRIPTION)
+                && recipe.description() != null
+                && recipe.description().toLowerCase(Locale.ROOT).contains(lowerQuery)) {
             return true;
         }
-        return recipe.tags().stream().anyMatch(tag -> tag.toLowerCase().contains(lowerQuery));
+        return fields.contains(RecipeField.TAGS)
+                && recipe.tags().stream()
+                        .anyMatch(tag -> tag.toLowerCase(Locale.ROOT).contains(lowerQuery));
     }
 
     private RecipeInfo toRecipeInfo(RecipeDescriptor descriptor) {

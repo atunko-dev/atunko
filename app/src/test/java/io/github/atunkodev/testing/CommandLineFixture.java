@@ -14,6 +14,7 @@ public record CommandLineFixture(CommandLine cmd, StringWriter out, StringWriter
         StringWriter out = new StringWriter();
         StringWriter err = new StringWriter();
         CommandLine cmd = new CommandLine(new App(), new ServiceFactory());
+        cmd.setCaseInsensitiveEnumValuesAllowed(true);
         cmd.setOut(new PrintWriter(out));
         cmd.setErr(new PrintWriter(err));
         cmd.setExecutionExceptionHandler(new ErrorHandler());

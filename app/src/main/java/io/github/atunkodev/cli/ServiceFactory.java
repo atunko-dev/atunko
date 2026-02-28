@@ -18,8 +18,11 @@ public class ServiceFactory implements CommandLine.IFactory {
 
     @Override
     public <K> K create(Class<K> cls) throws Exception {
-        if (cls == DiscoverCommand.class) {
-            return cls.cast(new DiscoverCommand(new RecipeDiscoveryService(environmentProvider)));
+        if (cls == ListCommand.class) {
+            return cls.cast(new ListCommand(new RecipeDiscoveryService(environmentProvider)));
+        }
+        if (cls == SearchCommand.class) {
+            return cls.cast(new SearchCommand(new RecipeDiscoveryService(environmentProvider)));
         }
         if (cls == RunCommand.class) {
             return cls.cast(new RunCommand(

@@ -1,8 +1,9 @@
 package io.github.atunkodev;
 
-import io.github.atunkodev.cli.DiscoverCommand;
 import io.github.atunkodev.cli.ErrorHandler;
+import io.github.atunkodev.cli.ListCommand;
 import io.github.atunkodev.cli.RunCommand;
+import io.github.atunkodev.cli.SearchCommand;
 import io.github.atunkodev.cli.ServiceFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -13,7 +14,7 @@ import picocli.CommandLine.Spec;
         name = "atunko",
         description = "OpenRewrite recipe discovery, execution, and configuration",
         mixinStandardHelpOptions = true,
-        subcommands = {DiscoverCommand.class, RunCommand.class})
+        subcommands = {ListCommand.class, SearchCommand.class, RunCommand.class})
 public class App implements Runnable {
 
     @Spec
@@ -27,6 +28,7 @@ public class App implements Runnable {
 
     public static void main(String[] args) {
         int exitCode = new CommandLine(new App(), new ServiceFactory())
+                .setCaseInsensitiveEnumValuesAllowed(true)
                 .setExecutionExceptionHandler(new ErrorHandler())
                 .execute(args);
         System.exit(exitCode);
