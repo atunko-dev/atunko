@@ -4,5 +4,7 @@ filters:
     svc_ids:
       includes:
         - SVC_CLI_0001
+        - SVC_CLI_0002
+        - SVC_CLI_0003
 
 cases: []

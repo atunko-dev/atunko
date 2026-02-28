@@ -80,3 +80,23 @@ cases:
       THEN the TamboUI main dashboard is displayed
     instructions: "Run `atunko` and verify the TUI dashboard appears"
     revision: "0.1.0"
+
+  - id: SVC_CLI_0002
+    requirement_ids: ["CLI_0002"]
+    title: List and search recipes via CLI
+    verification: automated-test
+    description: |
+      GIVEN the tool has recipe modules on its classpath
+      WHEN the user runs `atunko discover` or `atunko discover --search <query>`
+      THEN available recipes are listed, optionally filtered by the search query
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0003
+    requirement_ids: ["CLI_0003"]
+    title: Execute recipe via CLI
+    verification: automated-test
+    description: |
+      GIVEN a project directory with Java sources
+      WHEN the user runs `atunko run -r <recipe> --project-dir <path>`
+      THEN the recipe is executed against the project and results are reported
+    revision: "0.1.0"
