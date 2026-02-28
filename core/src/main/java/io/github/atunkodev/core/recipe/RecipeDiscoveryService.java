@@ -8,6 +8,8 @@ import org.openrewrite.config.RecipeDescriptor;
 
 public class RecipeDiscoveryService {
 
+    private static final Set<RecipeField> ALL_FIELDS = Set.of(RecipeField.values());
+
     private final EnvironmentProvider environmentProvider;
 
     public RecipeDiscoveryService() {
@@ -27,7 +29,7 @@ public class RecipeDiscoveryService {
 
     @Requirements({"CORE_0002"})
     public List<RecipeInfo> search(String query) {
-        return search(query, Set.of(RecipeField.values()));
+        return search(query, ALL_FIELDS);
     }
 
     @Requirements({"CORE_0002"})

@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.atunkodev.testing.CommandLineFixture;
 import io.github.reqstool.annotations.SVCs;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -62,16 +61,7 @@ class SearchCommandTest {
         int exitCode = cli.execute("search", "java", "--sort", "name");
 
         assertThat(exitCode).isZero();
-        String[] lines = cli.stdout().split("\n");
-        // Filter to recipe lines: start with a qualified name and contain " - "
-        List<String> recipeLines = java.util.Arrays.stream(lines)
-                .filter(l -> l.matches("[a-zA-Z]\\S* - .*"))
-                .toList();
-        assertThat(recipeLines).hasSizeGreaterThan(1);
-        for (int i = 1; i < recipeLines.size(); i++) {
-            assertThat(recipeLines.get(i).toLowerCase(Locale.ROOT))
-                    .isGreaterThanOrEqualTo(recipeLines.get(i - 1).toLowerCase(Locale.ROOT));
-        }
+        CommandLineFixture.assertRecipeLinesAreSorted(cli.stdout());
     }
 
     @Test
