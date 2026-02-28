@@ -20,11 +20,42 @@ with or endorsed by Moderne.
 # Launch TUI
 ./gradlew :app:run
 
-# CLI commands
+# Discover recipes
 ./gradlew :app:run --args="discover"
-./gradlew :app:run --args="discover --search 'spring boot'"
+
+# Run a recipe
 ./gradlew :app:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
 ----
+
+== CLI Commands
+
+=== `discover` — List and search recipes
+
+[source,bash]
+----
+# List all available recipes
+atunko discover
+
+# Search for recipes by keyword
+atunko discover --search "spring boot"
+atunko discover --search "unused imports"
+----
+
+=== `run` — Execute a recipe
+
+[source,bash]
+----
+# Run a recipe against a project
+atunko run -r org.openrewrite.java.RemoveUnusedImports --project-dir .
+
+# Run a Spring Boot migration recipe
+atunko run -r org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0 --project-dir /path/to/project
+----
+
+Options:
+
+* `-r`, `--recipe` — Fully qualified recipe name (required)
+* `--project-dir` — Path to the project directory (required)
 
 == Architecture
 
@@ -33,7 +64,7 @@ with or endorsed by Moderne.
 atunko/
 ├── app/     # CLI (Picocli) + TUI (TamboUI) entry point
 ├── core/    # Core engine — recipe discovery, execution, project scanning
-└── docs/    # reqstool requirements (SSOT)
+└── docs/    # reqstool requirements (SSOT), Antora documentation
 ----
 
 == License
