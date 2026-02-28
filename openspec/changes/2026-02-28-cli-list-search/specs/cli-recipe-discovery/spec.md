@@ -2,7 +2,7 @@
 
 List and search recipes via `atunko list` and `atunko search` CLI subcommands with format, sort, and field options.
 
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: CLI_0002
 The system SHALL implement CLI_0002.
@@ -33,6 +33,8 @@ The system SHALL implement CLI_0002.4.
 
 #### Scenario: SVC_CLI_0002.4
 The system SHALL pass SVC_CLI_0002.4.
+
+## ADDED Requirements
 
 ### Requirement: CLI_0004
 The system SHALL implement CLI_0004.
