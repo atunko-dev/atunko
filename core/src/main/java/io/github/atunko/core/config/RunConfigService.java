@@ -23,4 +23,9 @@ public class RunConfigService {
     public void save(RunConfig config, Path file) throws IOException {
         yamlMapper.writeValue(file.toFile(), config);
     }
+
+    @Requirements({"CORE_0008"})
+    public RunConfig load(Path file) throws IOException {
+        return yamlMapper.readValue(file.toFile(), RunConfig.class);
+    }
 }

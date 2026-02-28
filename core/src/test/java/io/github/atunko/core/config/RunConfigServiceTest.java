@@ -1,6 +1,7 @@
 package io.github.atunko.core.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.reqstool.annotations.SVCs;
 import java.io.IOException;
@@ -58,5 +59,35 @@ class RunConfigServiceTest {
         String content = Files.readString(file);
         assertThat(content).doesNotContain("old content");
         assertThat(content).contains("org.openrewrite.java.cleanup.RemoveUnusedImports");
+    }
+
+    @Test
+    @SVCs({"SVC_CORE_0008"})
+    void load_readsYamlFile() throws IOException {
+        RunConfig original = new RunConfig(
+                List.of("org.openrewrite.java.cleanup.RemoveUnusedImports", "org.openrewrite.java.format.AutoFormat"));
+
+        Path file = tempDir.resolve(".atunko.yml");
+        service.save(original, file);
+
+        RunConfig loaded = service.load(file);
+
+        assertThat(loaded.recipes()).containsExactlyElementsOf(original.recipes());
+    }
+
+    @Test
+    @SVCs({"SVC_CORE_0008"})
+    void load_nonExistentFile_throws() {
+        assertThatThrownBy(() -> service.load(Path.of("/nonexistent/.atunko.yml")))
+                .isInstanceOf(IOException.class);
+    }
+
+    @Test
+    @SVCs({"SVC_CORE_0008"})
+    void load_invalidYaml_throws() throws IOException {
+        Path file = tempDir.resolve(".atunko.yml");
+        Files.writeString(file, "not: [valid: yaml: for: runconfig");
+
+        assertThatThrownBy(() -> service.load(file)).isInstanceOf(Exception.class);
     }
 }
