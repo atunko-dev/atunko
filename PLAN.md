@@ -65,7 +65,7 @@ atunko/
 | License | Apache 2.0 | Matches OpenRewrite, reqstool, Picocli. Patent grant. Java ecosystem standard |
 | Build tool | Gradle (Groovy DSL) | Java 25, familiar, good OpenRewrite support |
 | CLI framework | Picocli | Industry standard, TamboUI integration, GraalVM ready |
-| TUI framework | TamboUI | Modern Java TUI, CSS styling, Picocli integration, MIT license |
+| TUI framework | TamboUI | Modern Java TUI https://github.com/tamboui, CSS styling, Picocli integration, MIT license |
 | Core UI | TUI-first | Most differentiated, developer-native, CLI comes free via Picocli |
 | Web UI | Vaadin (future Phase 3) | Separate module, added later |
 | Spec workflow | OpenSpec | Spec-driven dev with AI assistants, links to reqstool (no duplication) |
@@ -177,7 +177,7 @@ requirements:
   - id: CLI_0001
     title: TUI Launch
     significance: shall
-    description: The tool shall launch an interactive TUI when invoked without subcommands
+    description: The tool shall provide an interactive TUI via CLI subcommand
     categories: [interaction-capability]
     revision: 0.1.0
 
@@ -325,13 +325,12 @@ cases:
 
   - id: SVC_CLI_0001
     requirement_ids: ["CLI_0001"]
-    title: Launch TUI by default
-    verification: manual-test
+    title: Launch TUI via subcommand
+    verification: automated-test
     description: |
-      GIVEN the user runs `atunko` with no subcommand
+      GIVEN the user runs `atunko tui`
       WHEN the application starts
-      THEN the TamboUI main dashboard is displayed
-    instructions: "Run `atunko` and verify the TUI dashboard appears"
+      THEN the TUI controller is initialized and launched
     revision: "0.1.0"
 ```
 
@@ -425,7 +424,8 @@ core/src/main/java/dev/atunko/core/config/
 ### 1.6 CLI Commands (Picocli)
 
 ```bash
-atunko                                     # Launches TUI (default)
+atunko                                     # Prints help/usage
+atunko tui                                 # Launches interactive TUI
 atunko discover                            # List all available recipes
 atunko discover --search "spring boot 3"   # Search recipes
 atunko info <recipe-name>                  # Show recipe details and options
@@ -483,7 +483,22 @@ Recipe Browser → Recipe Execution → "Run `git diff` to review" → Save as c
 
 - Add `web` module with Vaadin + Spring Boot
 - Reuse `core` module services
-- Launch via `atunko ui`
+- Launch via `atunko webui`
+
+---
+
+## Roadmap Items
+
+Ideas and features for future consideration, not yet assigned to a phase.
+
+- **CSS theming for TUI** — Support TamboUI CSS stylesheets for customizable TUI themes
+- **Mouse support for TUI** — Enable mouse interactions (click, scroll) in TUI screens
+- **GraalVM native image** — Compile to native executable for instant startup
+  (requires TamboUI + OpenRewrite compatibility investigation)
+- **Recipe option editing in TUI** — Allow editing recipe options interactively
+  (requires core module support for option mutation on RecipeDescriptor)
+- **JBang support** — Distribute atunko as a JBang script for zero-install usage
+  (`jbang atunko@atunko-dev tui`)
 
 ---
 

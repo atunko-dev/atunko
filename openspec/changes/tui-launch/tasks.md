@@ -50,12 +50,14 @@
 - [ ] 7.4 Implement TagBrowserView — tag list with recipe filtering
 - [ ] 7.5 Implement ExecutionResultsView — file change list with before/after preview
 - [ ] 7.6 Wire event handlers — keyboard events update TuiController state
-- [ ] 7.7 Update ServiceFactory to create AtunkoTui with all dependencies
-- [ ] 7.8 Update App.run() to launch AtunkoTui instead of printing usage
+- [ ] 7.7 Create TuiCommand (Picocli @Command) that launches AtunkoTui
+- [ ] 7.8 Update ServiceFactory to create TuiCommand with all dependencies
+- [ ] 7.9 Register TuiCommand as subcommand in App (alongside list, search, run)
 
 ## 8. Verification
 
 - [ ] 8.1 Run `./gradlew build` — all tests pass, Spotless + Checkstyle + Error Prone clean
-- [ ] 8.2 Run `./gradlew :app:run` — TUI launches (not usage text)
-- [ ] 8.3 Run `./gradlew :app:run --args="list"` — CLI still works
-- [ ] 8.4 Run `openspec validate --all --strict` — specs valid
+- [ ] 8.2 Run `./gradlew :app:run --args="tui"` — TUI launches
+- [ ] 8.3 Run `./gradlew :app:run` — prints help (default unchanged)
+- [ ] 8.4 Run `./gradlew :app:run --args="list"` — CLI still works
+- [ ] 8.5 Run `openspec validate --all --strict` — specs valid

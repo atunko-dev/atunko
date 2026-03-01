@@ -1,10 +1,12 @@
 ## Context
 
 The CLI is fully implemented with `list`, `search`, and `run` subcommands. When `atunko` is
-invoked without subcommands, `App.run()` prints usage text. CLI_0001 requires launching an
-interactive TUI instead. The core module provides all necessary services (`RecipeDiscoveryService`,
-`RecipeExecutionEngine`, `RunConfigService`, `JavaSourceParser`, `ChangeApplier`). TamboUI
-dependencies are already on the classpath.
+invoked without subcommands, `App.run()` prints usage text. CLI_0001 requires an interactive
+TUI accessible via `atunko tui` subcommand. The default (no subcommand) remains printing help,
+keeping the door open for future UI subcommands (e.g., `atunko webui`). The core module
+provides all necessary services (`RecipeDiscoveryService`, `RecipeExecutionEngine`,
+`RunConfigService`, `JavaSourceParser`, `ChangeApplier`). TamboUI dependencies are already
+on the classpath.
 
 ## Goals / Non-Goals
 
@@ -48,16 +50,18 @@ based on current screen.
 simplest approach that allows type-safe navigation. A back-stack list is unnecessary since
 all screens except BROWSER are reachable from BROWSER and return to it.
 
-### 3. Extend ToolkitApp, wire via ServiceFactory
+### 3. TuiCommand subcommand, wire via ServiceFactory
 
-**Choice**: `AtunkoTui extends ToolkitApp` is the TUI entry point. `ServiceFactory` creates
-it with the shared `RecipeDiscoveryService`, `RecipeExecutionEngine`, etc. `App.run()` creates
-and starts `AtunkoTui` instead of printing usage.
+**Choice**: `TuiCommand` is a Picocli `@Command` subcommand registered alongside `list`,
+`search`, `run`. It creates `AtunkoTui extends ToolkitApp` and starts the TUI event loop.
+`ServiceFactory` creates `TuiCommand` with the shared services. `App.run()` remains unchanged
+(prints usage/help).
 
-**Rationale**: `ToolkitApp` provides the event loop and rendering lifecycle. Using `ServiceFactory`
-for wiring keeps the existing Picocli factory pattern and avoids duplicating service construction.
-Alternative: `TuiCommand extends TuiCommand` with Picocli integration — rejected because the
-TUI is the default behavior, not a subcommand.
+**Rationale**: Making TUI a subcommand (`atunko tui`) keeps the default behavior as help text,
+which is standard CLI convention. It also allows adding future UI subcommands (e.g.,
+`atunko webui`) without needing to change the default. `ToolkitApp` provides the event loop
+and rendering lifecycle. Alternative: TUI as default behavior — rejected because it would
+need to be changed if a webui is added later.
 
 ### 4. Reuse SortOrder enum from cli package
 

@@ -16,8 +16,8 @@ requirements:
     title: TUI Launch
     significance: shall
     description: >-
-      The tool shall launch an interactive TUI when invoked without subcommands,
-      providing recipe browsing, search, selection, configuration, and execution
+      The tool shall provide an interactive TUI via CLI subcommand,
+      with recipe browsing, search, selection, configuration, and execution
     categories: [interaction-capability]
     revision: 0.2.0
 

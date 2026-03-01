@@ -1,14 +1,15 @@
 ## Why
 
-When `atunko` is invoked without subcommands, it currently prints usage text. The CLI
-(`list`, `search`, `run`) is implemented, but the primary interaction mode — an interactive
-TUI for recipe browsing, selection, configuration, and execution — is missing. This is the
-core differentiator from the existing `rewriteDiscover`/`rewriteRun` Gradle tasks: a rich,
-interactive terminal experience (CLI_0001).
+The CLI (`list`, `search`, `run`) is implemented, but the primary interaction mode — an
+interactive TUI for recipe browsing, selection, configuration, and execution — is missing.
+This is the core differentiator from the existing `rewriteDiscover`/`rewriteRun` Gradle
+tasks: a rich, interactive terminal experience (CLI_0001).
 
 ## What Changes
 
-- Replace the default "print usage" behavior with TUI launch when no subcommand is given
+- Add `tui` subcommand (`atunko tui`) that launches the interactive TUI
+- Default behavior (no subcommand) remains printing usage/help — keeps the door open for
+  adding other UI subcommands (e.g., `atunko webui`) without breaking the default
 - Add interactive recipe browser with scrollable table, detail panel, and search filtering
 - Add recipe detail view, multi-select, sorting, and option configuration
 - Add dry-run preview, recipe execution with results display, and run config save
@@ -29,8 +30,8 @@ _(none — CLI subcommands are unchanged)_
 ## Impact
 
 - **Code**: New `io.github.atunkodev.tui` package in `app` module with TUI controller,
-  views, and screen management. `App.run()` changes from printing usage to launching TUI.
-  `ServiceFactory` updated to wire TUI dependencies.
+  views, and screen management. New `TuiCommand` Picocli subcommand registered alongside
+  `list`, `search`, `run`. `ServiceFactory` updated to wire TUI dependencies.
 - **Dependencies**: TamboUI (`tamboui-toolkit`, `tamboui-jline3-backend`, `tamboui-picocli`)
   already on classpath — no new dependencies needed.
 - **Reused services**: `RecipeDiscoveryService`, `RecipeExecutionEngine`, `ChangeApplier`,

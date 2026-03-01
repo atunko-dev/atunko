@@ -72,10 +72,10 @@ cases:
 
   - id: SVC_CLI_0001
     requirement_ids: ["CLI_0001"]
-    title: Launch TUI by default
+    title: Launch TUI via subcommand
     verification: automated-test
     description: |
-      GIVEN the user runs `atunko` with no subcommand
+      GIVEN the user runs `atunko tui`
       WHEN the application starts
       THEN the TUI controller is initialized and launched
     revision: "0.2.0"
