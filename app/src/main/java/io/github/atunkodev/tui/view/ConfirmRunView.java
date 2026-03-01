@@ -14,9 +14,9 @@ import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.TuiController;
+import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Requirements({"CLI_0001.14"})
@@ -25,10 +25,9 @@ public final class ConfirmRunView {
     private ConfirmRunView() {}
 
     public static Element render(TuiController controller) {
-        List<String> recipes = controller.runOrder();
+        List<DisplayRow> displayRows = controller.runDisplayRows();
         Set<String> selected = controller.selectedRecipes();
-        Set<String> expanded = controller.runExpandedRecipes();
-        boolean hasRecipes = !recipes.isEmpty();
+        boolean hasRecipes = !displayRows.isEmpty();
         String projectPath =
                 controller.projectDir().toAbsolutePath().normalize().toString();
 
@@ -37,7 +36,7 @@ public final class ConfirmRunView {
             centerContent = column(
                     row(text("Project: ").bold(), text(projectPath)),
                     text(""),
-                    renderRecipeList(controller, recipes, selected, expanded));
+                    renderRecipeList(controller, displayRows, selected));
         } else {
             centerContent = column(
                     text(""),
@@ -45,7 +44,10 @@ public final class ConfirmRunView {
                     text(" Use Space to select recipes, then press r to run."));
         }
 
-        long selectedCount = recipes.stream().filter(selected::contains).count();
+        long selectedCount = displayRows.stream()
+                .filter(r -> selected.contains(r.recipe().name()))
+                .count();
+        long totalCount = displayRows.size();
         String footer = hasRecipes
                 ? " \u2191\u2193:nav +/-:reorder Space:toggle a:sel all/none \u2192:expand \u2190:collapse f:flatten"
                         + " r:run d:dry-run Esc:back"
@@ -58,7 +60,7 @@ public final class ConfirmRunView {
                                                 .fg(Color.WHITE)
                                                 .bg(Color.BLUE),
                                         spacer(),
-                                        text(selectedCount + "/" + recipes.size() + " selected ")
+                                        text(selectedCount + "/" + totalCount + " selected ")
                                                 .fg(Color.LIGHT_GREEN)),
                                 Constraint.length(1))
                         .center(centerContent)
@@ -70,42 +72,36 @@ public final class ConfirmRunView {
     }
 
     private static Element renderRecipeList(
-            TuiController controller, List<String> recipes, Set<String> selected, Set<String> expanded) {
+            TuiController controller, List<DisplayRow> displayRows, Set<String> selected) {
         var recipeList =
                 list().highlightStyle(Style.EMPTY.fg(Color.WHITE).bg(Color.BLUE).bold());
 
-        for (int i = 0; i < recipes.size(); i++) {
-            String recipeName = recipes.get(i);
-            boolean isSelected = selected.contains(recipeName);
-            Optional<RecipeInfo> recipeInfo = controller.findRecipe(recipeName);
-            boolean isComposite = recipeInfo.map(RecipeInfo::isComposite).orElse(false);
-            boolean isExpanded = expanded.contains(recipeName);
+        int parentIndex = 0;
+        for (DisplayRow displayRow : displayRows) {
+            RecipeInfo r = displayRow.recipe();
+            boolean isSelected = selected.contains(r.name());
+            String displayName = BrowserView.cleanDisplayName(r.displayName());
 
-            String displayName = recipeInfo
-                    .map(r -> BrowserView.cleanDisplayName(r.displayName()))
-                    .orElse(recipeName);
-
-            var number = text(String.format("%2d. ", i + 1)).bold().fg(Color.LIGHT_YELLOW);
-            var checkbox = isSelected
-                    ? text("[x] ").fg(Color.LIGHT_GREEN)
-                    : text("[ ] ").dim();
-
-            String compositeIndicator = isComposite ? (isExpanded ? "\u25bc " : "\u25b6 ") : "  ";
-            var indicator = isComposite ? text(compositeIndicator).fg(Color.LIGHT_CYAN) : text(compositeIndicator);
-            var nameElement = isSelected ? text(displayName) : text(displayName).dim();
-
-            recipeList.add(row(number, checkbox, indicator, nameElement));
-
-            // Render expanded sub-recipes
-            if (isExpanded && isComposite) {
-                recipeInfo.ifPresent(info -> {
-                    for (RecipeInfo sub : info.recipeList()) {
-                        recipeList.add(row(
-                                text("          "),
-                                text(BrowserView.cleanDisplayName(sub.displayName()))
-                                        .dim()));
-                    }
-                });
+            if (displayRow.isSubRecipe()) {
+                String prefix = isSelected ? "     [x] " : "     [ ] ";
+                var prefixEl = isSelected
+                        ? text(prefix).fg(Color.LIGHT_GREEN)
+                        : text(prefix).dim();
+                var nameElement =
+                        isSelected ? text(displayName) : text(displayName).dim();
+                recipeList.add(row(prefixEl, nameElement));
+            } else {
+                parentIndex++;
+                boolean isExpanded = controller.runExpandedRecipes().contains(r.name());
+                String check = isSelected ? "[x] " : "[ ] ";
+                String indicator = r.isComposite() ? (isExpanded ? "\u25bc " : "\u25b6 ") : "  ";
+                String prefix = String.format("%2d. %s%s", parentIndex, check, indicator);
+                var prefixEl = isSelected
+                        ? text(prefix).fg(Color.LIGHT_GREEN)
+                        : text(prefix).dim();
+                var nameElement =
+                        isSelected ? text(displayName) : text(displayName).dim();
+                recipeList.add(row(prefixEl, nameElement));
             }
         }
 

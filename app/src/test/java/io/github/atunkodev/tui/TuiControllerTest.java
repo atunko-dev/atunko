@@ -8,6 +8,7 @@ import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.recipe.RecipeInfo;
+import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Path;
 import java.util.List;
@@ -528,8 +529,9 @@ class TuiControllerTest {
     void flattenRunRecipe_replacesCompositeWithSubRecipes() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.moveDown(); // highlight Composite
-        controller.toggleSelection(); // select Composite
+        controller.toggleSelection(); // select Composite (+ subs via propagation)
         controller.openConfirmRun();
+        // runOrder has only top-level: [Composite] (sub-recipes not in top-level list)
 
         controller.flattenRunRecipe(); // flatten Composite at index 0
 
@@ -574,5 +576,209 @@ class TuiControllerTest {
         controller.collapseRunRecipe();
 
         assertThat(controller.runExpandedRecipes()).doesNotContain("org.test.Composite");
+    }
+
+    // --- Display Rows (flat list model) ---
+
+    @Test
+    @SVCs({"SVC_CLI_0001.13"})
+    void displayRows_withoutExpansion_containsOnlyParentRows() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+
+        List<DisplayRow> rows = controller.displayRows();
+
+        assertThat(rows).hasSize(3);
+        assertThat(rows).allMatch(r -> !r.isSubRecipe());
+        assertThat(rows)
+                .extracting(r -> r.recipe().name())
+                .containsExactly("org.test.Alpha", "org.test.Composite", "org.test.Gamma");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.13"})
+    void displayRows_withExpansion_includesSubRecipeRows() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+
+        List<DisplayRow> rows = controller.displayRows();
+
+        assertThat(rows).hasSize(5);
+        assertThat(rows.get(0).recipe().name()).isEqualTo("org.test.Alpha");
+        assertThat(rows.get(0).isSubRecipe()).isFalse();
+        assertThat(rows.get(1).recipe().name()).isEqualTo("org.test.Composite");
+        assertThat(rows.get(1).isSubRecipe()).isFalse();
+        assertThat(rows.get(2).recipe().name()).isEqualTo("org.test.Sub1");
+        assertThat(rows.get(2).isSubRecipe()).isTrue();
+        assertThat(rows.get(2).parentName()).isEqualTo("org.test.Composite");
+        assertThat(rows.get(3).recipe().name()).isEqualTo("org.test.Sub2");
+        assertThat(rows.get(3).isSubRecipe()).isTrue();
+        assertThat(rows.get(4).recipe().name()).isEqualTo("org.test.Gamma");
+        assertThat(rows.get(4).isSubRecipe()).isFalse();
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.12"})
+    void moveDown_navigatesExpandedDisplayRows() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+
+        controller.moveDown(); // → Composite (index 1)
+        controller.moveDown(); // → Sub1 (index 2)
+        controller.moveDown(); // → Sub2 (index 3)
+        controller.moveDown(); // → Gamma (index 4)
+
+        assertThat(controller.highlightedIndex()).isEqualTo(4);
+        assertThat(controller.highlightedRecipe()).isPresent();
+        assertThat(controller.highlightedRecipe().get().name()).isEqualTo("org.test.Gamma");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.12"})
+    void moveUp_navigatesExpandedDisplayRows() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+
+        controller.moveUp(); // wraps to Gamma (index 4)
+
+        assertThat(controller.highlightedIndex()).isEqualTo(4);
+        assertThat(controller.highlightedRecipe()).isPresent();
+        assertThat(controller.highlightedRecipe().get().name()).isEqualTo("org.test.Gamma");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.13"})
+    void highlightedDisplayRow_returnsCorrectRow() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+        controller.moveDown(); // Composite
+        controller.moveDown(); // Sub1
+
+        assertThat(controller.highlightedDisplayRow()).isPresent();
+        DisplayRow row = controller.highlightedDisplayRow().get();
+        assertThat(row.recipe().name()).isEqualTo("org.test.Sub1");
+        assertThat(row.isSubRecipe()).isTrue();
+        assertThat(row.parentName()).isEqualTo("org.test.Composite");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.13"})
+    void collapseRecipe_clampsHighlightIndex() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+        // Navigate to Sub2 (index 3)
+        controller.moveDown(); // 1 - Composite
+        controller.moveDown(); // 2 - Sub1
+        controller.moveDown(); // 3 - Sub2
+
+        controller.collapseRecipe("org.test.Composite");
+
+        // After collapse, only 3 rows (Alpha, Composite, Gamma) — index clamped to 2
+        assertThat(controller.highlightedIndex())
+                .isLessThan(controller.displayRows().size());
+    }
+
+    // --- Parent ↔ child selection propagation ---
+
+    @Test
+    @SVCs({"SVC_CLI_0001.5"})
+    void toggleSelection_selectingParentComposite_selectsAllSubRecipes() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+        controller.moveDown(); // highlight Composite (index 1)
+
+        controller.toggleSelection();
+
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder("org.test.Composite", "org.test.Sub1", "org.test.Sub2");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.5"})
+    void toggleSelection_deselectingParentComposite_deselectsAllSubRecipes() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+        controller.moveDown(); // highlight Composite
+        controller.toggleSelection(); // select parent + children
+
+        controller.toggleSelection(); // deselect parent + children
+
+        assertThat(controller.selectedRecipes()).isEmpty();
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.5"})
+    void toggleSelection_selectingSubRecipe_doesNotSelectParent() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+        controller.moveDown(); // Composite
+        controller.moveDown(); // Sub1
+
+        controller.toggleSelection();
+
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Sub1");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.5"})
+    void toggleSelection_deselectingSubRecipe_doesNotDeselectParent() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+        controller.moveDown(); // Composite
+        controller.toggleSelection(); // select parent + all children
+        controller.moveDown(); // Sub1
+
+        controller.toggleSelection(); // deselect Sub1 only
+
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Composite", "org.test.Sub2");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.5"})
+    void cycleSelection_includesSubRecipesOfExpandedComposites() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+
+        controller.cycleSelection();
+
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder(
+                        "org.test.Alpha", "org.test.Composite", "org.test.Sub1", "org.test.Sub2", "org.test.Gamma");
+    }
+
+    // --- Run dialog display rows ---
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void runDisplayRows_withExpandedComposite_includesSubRecipes() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown(); // highlight Composite
+        controller.toggleSelection(); // select Composite (+ subs)
+        controller.openConfirmRun();
+        controller.expandRunRecipe(); // expand Composite in run dialog
+
+        List<DisplayRow> rows = controller.runDisplayRows();
+
+        assertThat(rows).hasSize(3);
+        assertThat(rows.get(0).recipe().name()).isEqualTo("org.test.Composite");
+        assertThat(rows.get(0).isSubRecipe()).isFalse();
+        assertThat(rows.get(1).recipe().name()).isEqualTo("org.test.Sub1");
+        assertThat(rows.get(1).isSubRecipe()).isTrue();
+        assertThat(rows.get(2).recipe().name()).isEqualTo("org.test.Sub2");
+        assertThat(rows.get(2).isSubRecipe()).isTrue();
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void moveRunHighlightDown_navigatesExpandedRunDisplayRows() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown(); // highlight Composite
+        controller.toggleSelection(); // select Composite (+ subs)
+        controller.openConfirmRun();
+        controller.expandRunRecipe();
+
+        controller.moveRunHighlightDown(); // Sub1 (index 1)
+        controller.moveRunHighlightDown(); // Sub2 (index 2)
+
+        assertThat(controller.runHighlightIndex()).isEqualTo(2);
     }
 }

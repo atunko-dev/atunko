@@ -21,6 +21,7 @@ import io.github.atunkodev.cli.SortOrder;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.AtunkoTui;
 import io.github.atunkodev.tui.TuiController;
+import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 
@@ -32,12 +33,12 @@ public final class BrowserView {
     private BrowserView() {}
 
     public static Element render(TuiController controller, AtunkoTui app) {
-        List<RecipeInfo> recipes = controller.recipes();
+        List<DisplayRow> displayRows = controller.displayRows();
 
         return column(dock().top(renderHeader(controller), Constraint.length(3))
-                        .center(row(renderRecipeList(controller, recipes), renderDetailPanel(controller))
+                        .center(row(renderRecipeList(controller, displayRows), renderDetailPanel(controller))
                                 .constraint(Constraint.fill()))
-                        .bottom(renderStatusBar(controller, recipes), Constraint.length(1))
+                        .bottom(renderStatusBar(controller, displayRows), Constraint.length(1))
                         .constraint(Constraint.fill()))
                 .id("browser")
                 .focusable()
@@ -102,17 +103,22 @@ public final class BrowserView {
             return EventResult.HANDLED;
         }
         if (event.isRight() || event.isChar('e')) {
-            controller.highlightedRecipe().ifPresent(recipe -> {
-                if (recipe.isComposite()) {
-                    controller.expandRecipe(recipe.name());
+            controller.highlightedDisplayRow().ifPresent(row -> {
+                if (!row.isSubRecipe() && row.recipe().isComposite()) {
+                    controller.expandRecipe(row.recipe().name());
                 }
             });
             return EventResult.HANDLED;
         }
         if (event.isLeft() || event.isChar('c')) {
-            controller.highlightedRecipe().ifPresent(recipe -> {
-                if (controller.isExpanded(recipe.name())) {
-                    controller.collapseRecipe(recipe.name());
+            controller.highlightedDisplayRow().ifPresent(row -> {
+                if (row.isSubRecipe()) {
+                    // Collapse parent when on a sub-recipe
+                    if (row.parentName() != null) {
+                        controller.collapseRecipe(row.parentName());
+                    }
+                } else if (controller.isExpanded(row.recipe().name())) {
+                    controller.collapseRecipe(row.recipe().name());
                 }
             });
             return EventResult.HANDLED;
@@ -163,30 +169,31 @@ public final class BrowserView {
                         .selected(controller.sortOrder() == SortOrder.NAME ? 0 : 1));
     }
 
-    private static Element renderRecipeList(TuiController controller, List<RecipeInfo> recipes) {
+    private static Element renderRecipeList(TuiController controller, List<DisplayRow> displayRows) {
         var recipeList =
                 list().highlightStyle(Style.EMPTY.fg(Color.WHITE).bg(Color.BLUE).bold());
-        for (RecipeInfo r : recipes) {
+        for (DisplayRow row : displayRows) {
+            RecipeInfo r = row.recipe();
             boolean selected = controller.selectedRecipes().contains(r.name());
-            boolean expanded = controller.isExpanded(r.name());
-            var checkbox =
-                    selected ? text("[x] ").fg(Color.LIGHT_GREEN) : text("[ ] ").dim();
-            String compositeIndicator = r.isComposite() ? (expanded ? "\u25bc " : "\u25b6 ") : "  ";
-            var indicator = r.isComposite() ? text(compositeIndicator).fg(Color.LIGHT_CYAN) : text(compositeIndicator);
-            var name = text(cleanDisplayName(r.displayName()));
-            if (r.tags().isEmpty()) {
-                recipeList.add(row(checkbox, indicator, name));
+            if (row.isSubRecipe()) {
+                String prefix = selected ? "  [x] " : "  [ ] ";
+                var prefixEl = selected
+                        ? text(prefix).fg(Color.LIGHT_GREEN)
+                        : text(prefix).dim();
+                recipeList.add(row(prefixEl, text(cleanDisplayName(r.displayName()))));
             } else {
-                var tags = text("  " + String.join(", ", r.tags())).dim();
-                recipeList.add(row(checkbox, indicator, name, spacer(), tags));
-            }
-
-            // Render expanded sub-recipes
-            if (expanded && r.isComposite()) {
-                for (RecipeInfo sub : r.recipeList()) {
-                    recipeList.add(row(
-                            text("      "),
-                            text(cleanDisplayName(sub.displayName())).dim()));
+                boolean expanded = controller.isExpanded(r.name());
+                String check = selected ? "[x] " : "[ ] ";
+                String indicator = r.isComposite() ? (expanded ? "\u25bc " : "\u25b6 ") : "  ";
+                var prefixEl = selected
+                        ? text(check + indicator).fg(Color.LIGHT_GREEN)
+                        : text(check + indicator).dim();
+                var name = text(cleanDisplayName(r.displayName()));
+                if (r.tags().isEmpty()) {
+                    recipeList.add(row(prefixEl, name));
+                } else {
+                    var tags = text("  " + String.join(", ", r.tags())).dim();
+                    recipeList.add(row(prefixEl, name, spacer(), tags));
                 }
             }
         }
@@ -235,9 +242,10 @@ public final class BrowserView {
                         .constraint(Constraint.fill(1)));
     }
 
-    private static Element renderStatusBar(TuiController controller, List<RecipeInfo> recipes) {
+    private static Element renderStatusBar(TuiController controller, List<DisplayRow> displayRows) {
         int selected = controller.selectedRecipes().size();
-        String status = recipes.size() + " recipes"
+        long parentCount = displayRows.stream().filter(r -> !r.isSubRecipe()).count();
+        String status = parentCount + " recipes"
                 + " | " + selected + " selected | \u2191\u2193:nav Space:sel a:sel all/none r:run Enter:detail"
                 + " \u2192:expand \u2190:collapse t:tags s:sort /:search Esc:reset q:quit";
         return text(" " + status).fg(Color.WHITE).bg(Color.indexed(236));

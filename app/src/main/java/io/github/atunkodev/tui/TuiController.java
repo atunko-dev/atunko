@@ -29,6 +29,8 @@ import org.openrewrite.SourceFile;
 @Requirements({"CLI_0001"})
 public class TuiController {
 
+    public record DisplayRow(RecipeInfo recipe, boolean isSubRecipe, String parentName) {}
+
     private static final Logger LOG = Logger.getLogger(TuiController.class.getName());
 
     private final List<RecipeInfo> allRecipes;
@@ -128,6 +130,14 @@ public class TuiController {
     @Requirements({"CLI_0001.13"})
     public void collapseRecipe(String recipeName) {
         expandedRecipes.remove(recipeName);
+        clampHighlightIndex();
+    }
+
+    private void clampHighlightIndex() {
+        List<DisplayRow> rows = displayRows();
+        if (!rows.isEmpty() && highlightedIndex >= rows.size()) {
+            highlightedIndex = rows.size() - 1;
+        }
     }
 
     public boolean isExpanded(String recipeName) {
@@ -136,6 +146,28 @@ public class TuiController {
 
     public Optional<RecipeInfo> findRecipe(String name) {
         return allRecipes.stream().filter(r -> r.name().equals(name)).findFirst();
+    }
+
+    @Requirements({"CLI_0001.12", "CLI_0001.13"})
+    public List<DisplayRow> displayRows() {
+        List<DisplayRow> rows = new ArrayList<>();
+        for (RecipeInfo r : recipes()) {
+            rows.add(new DisplayRow(r, false, null));
+            if (isExpanded(r.name()) && r.isComposite()) {
+                for (RecipeInfo sub : r.recipeList()) {
+                    rows.add(new DisplayRow(sub, true, r.name()));
+                }
+            }
+        }
+        return List.copyOf(rows);
+    }
+
+    public Optional<DisplayRow> highlightedDisplayRow() {
+        List<DisplayRow> rows = displayRows();
+        if (rows.isEmpty() || highlightedIndex >= rows.size()) {
+            return Optional.empty();
+        }
+        return Optional.of(rows.get(highlightedIndex));
     }
 
     // --- Search ---
@@ -161,28 +193,24 @@ public class TuiController {
     }
 
     public Optional<RecipeInfo> highlightedRecipe() {
-        List<RecipeInfo> visible = recipes();
-        if (visible.isEmpty() || highlightedIndex >= visible.size()) {
-            return Optional.empty();
-        }
-        return Optional.of(visible.get(highlightedIndex));
+        return highlightedDisplayRow().map(DisplayRow::recipe);
     }
 
     // --- Navigation ---
 
     @Requirements({"CLI_0001.12"})
     public void moveDown() {
-        List<RecipeInfo> visible = recipes();
-        if (!visible.isEmpty()) {
-            highlightedIndex = (highlightedIndex + 1) % visible.size();
+        List<DisplayRow> rows = displayRows();
+        if (!rows.isEmpty()) {
+            highlightedIndex = (highlightedIndex + 1) % rows.size();
         }
     }
 
     @Requirements({"CLI_0001.12"})
     public void moveUp() {
-        List<RecipeInfo> visible = recipes();
-        if (!visible.isEmpty()) {
-            highlightedIndex = (highlightedIndex - 1 + visible.size()) % visible.size();
+        List<DisplayRow> rows = displayRows();
+        if (!rows.isEmpty()) {
+            highlightedIndex = (highlightedIndex - 1 + rows.size()) % rows.size();
         }
     }
 
@@ -190,16 +218,26 @@ public class TuiController {
 
     @Requirements({"CLI_0001.5"})
     public void toggleSelection() {
-        highlightedRecipe().ifPresent(recipe -> {
-            if (!selectedRecipes.remove(recipe.name())) {
+        highlightedDisplayRow().ifPresent(row -> {
+            RecipeInfo recipe = row.recipe();
+            if (selectedRecipes.contains(recipe.name())) {
+                selectedRecipes.remove(recipe.name());
+                if (!row.isSubRecipe() && recipe.isComposite()) {
+                    recipe.recipeList().forEach(sub -> selectedRecipes.remove(sub.name()));
+                }
+            } else {
                 selectedRecipes.add(recipe.name());
+                if (!row.isSubRecipe() && recipe.isComposite()) {
+                    recipe.recipeList().forEach(sub -> selectedRecipes.add(sub.name()));
+                }
             }
         });
     }
 
     @Requirements({"CLI_0001.5"})
     public void cycleSelection() {
-        Set<String> visibleNames = recipes().stream().map(RecipeInfo::name).collect(Collectors.toSet());
+        Set<String> visibleNames =
+                displayRows().stream().map(r -> r.recipe().name()).collect(Collectors.toSet());
         boolean allSelected = visibleNames.stream().allMatch(selectedRecipes::contains);
         if (allSelected) {
             selectedRecipes.clear();
@@ -267,7 +305,12 @@ public class TuiController {
 
     @Requirements({"CLI_0001.14"})
     public void openConfirmRun() {
-        runOrder = new ArrayList<>(selectedRecipes);
+        // Only include top-level selected recipes in run order (not sub-recipe names).
+        // Sub-recipe selection state is maintained in selectedRecipes for display/toggle.
+        Set<String> topLevelNames = recipes().stream().map(RecipeInfo::name).collect(Collectors.toSet());
+        runOrder = selectedRecipes.stream()
+                .filter(topLevelNames::contains)
+                .collect(Collectors.toCollection(ArrayList::new));
         runHighlightIndex = 0;
         runExpandedRecipes.clear();
         currentScreen = Screen.CONFIRM_RUN;
@@ -275,39 +318,91 @@ public class TuiController {
     }
 
     @Requirements({"CLI_0001.14"})
+    public List<DisplayRow> runDisplayRows() {
+        List<DisplayRow> rows = new ArrayList<>();
+        for (String recipeName : runOrder) {
+            Optional<RecipeInfo> info = findRecipe(recipeName);
+            RecipeInfo recipe = info.orElse(new RecipeInfo(recipeName, recipeName, null, Set.of()));
+            rows.add(new DisplayRow(recipe, false, null));
+            if (runExpandedRecipes.contains(recipeName) && recipe.isComposite()) {
+                for (RecipeInfo sub : recipe.recipeList()) {
+                    rows.add(new DisplayRow(sub, true, recipeName));
+                }
+            }
+        }
+        return List.copyOf(rows);
+    }
+
+    @Requirements({"CLI_0001.14"})
     public void moveRunHighlightUp() {
-        if (!runOrder.isEmpty()) {
-            runHighlightIndex = (runHighlightIndex - 1 + runOrder.size()) % runOrder.size();
+        List<DisplayRow> rows = runDisplayRows();
+        if (!rows.isEmpty()) {
+            runHighlightIndex = (runHighlightIndex - 1 + rows.size()) % rows.size();
         }
     }
 
     @Requirements({"CLI_0001.14"})
     public void moveRunHighlightDown() {
-        if (!runOrder.isEmpty()) {
-            runHighlightIndex = (runHighlightIndex + 1) % runOrder.size();
+        List<DisplayRow> rows = runDisplayRows();
+        if (!rows.isEmpty()) {
+            runHighlightIndex = (runHighlightIndex + 1) % rows.size();
         }
     }
 
     @Requirements({"CLI_0001.14"})
     public void moveRunRecipeUp() {
-        if (runHighlightIndex > 0) {
-            Collections.swap(runOrder, runHighlightIndex, runHighlightIndex - 1);
-            runHighlightIndex--;
+        List<DisplayRow> rows = runDisplayRows();
+        if (rows.isEmpty() || runHighlightIndex >= rows.size()) {
+            return;
+        }
+        DisplayRow row = rows.get(runHighlightIndex);
+        if (row.isSubRecipe()) {
+            return;
+        }
+        int orderIndex = runOrder.indexOf(row.recipe().name());
+        if (orderIndex > 0) {
+            Collections.swap(runOrder, orderIndex, orderIndex - 1);
+            // Adjust highlight to follow the swapped item in display rows
+            List<DisplayRow> newRows = runDisplayRows();
+            for (int i = 0; i < newRows.size(); i++) {
+                if (newRows.get(i).recipe().name().equals(row.recipe().name())
+                        && !newRows.get(i).isSubRecipe()) {
+                    runHighlightIndex = i;
+                    break;
+                }
+            }
         }
     }
 
     @Requirements({"CLI_0001.14"})
     public void moveRunRecipeDown() {
-        if (runHighlightIndex < runOrder.size() - 1) {
-            Collections.swap(runOrder, runHighlightIndex, runHighlightIndex + 1);
-            runHighlightIndex++;
+        List<DisplayRow> rows = runDisplayRows();
+        if (rows.isEmpty() || runHighlightIndex >= rows.size()) {
+            return;
+        }
+        DisplayRow row = rows.get(runHighlightIndex);
+        if (row.isSubRecipe()) {
+            return;
+        }
+        int orderIndex = runOrder.indexOf(row.recipe().name());
+        if (orderIndex >= 0 && orderIndex < runOrder.size() - 1) {
+            Collections.swap(runOrder, orderIndex, orderIndex + 1);
+            List<DisplayRow> newRows = runDisplayRows();
+            for (int i = 0; i < newRows.size(); i++) {
+                if (newRows.get(i).recipe().name().equals(row.recipe().name())
+                        && !newRows.get(i).isSubRecipe()) {
+                    runHighlightIndex = i;
+                    break;
+                }
+            }
         }
     }
 
     @Requirements({"CLI_0001.14"})
     public void toggleRunRecipe() {
-        if (!runOrder.isEmpty()) {
-            String name = runOrder.get(runHighlightIndex);
+        List<DisplayRow> rows = runDisplayRows();
+        if (!rows.isEmpty() && runHighlightIndex < rows.size()) {
+            String name = rows.get(runHighlightIndex).recipe().name();
             if (!selectedRecipes.remove(name)) {
                 selectedRecipes.add(name);
             }
@@ -316,43 +411,63 @@ public class TuiController {
 
     @Requirements({"CLI_0001.14"})
     public void cycleRunSelection() {
-        boolean allSelected = runOrder.stream().allMatch(selectedRecipes::contains);
+        Set<String> allRunNames =
+                runDisplayRows().stream().map(r -> r.recipe().name()).collect(Collectors.toSet());
+        boolean allSelected = allRunNames.stream().allMatch(selectedRecipes::contains);
         if (allSelected) {
-            runOrder.forEach(selectedRecipes::remove);
+            allRunNames.forEach(selectedRecipes::remove);
         } else {
-            selectedRecipes.addAll(runOrder);
+            selectedRecipes.addAll(allRunNames);
         }
     }
 
     @Requirements({"CLI_0001.14"})
     public void expandRunRecipe() {
-        if (!runOrder.isEmpty()) {
-            String name = runOrder.get(runHighlightIndex);
-            runExpandedRecipes.add(name);
+        List<DisplayRow> rows = runDisplayRows();
+        if (!rows.isEmpty() && runHighlightIndex < rows.size()) {
+            DisplayRow row = rows.get(runHighlightIndex);
+            if (!row.isSubRecipe()) {
+                runExpandedRecipes.add(row.recipe().name());
+            }
         }
     }
 
     @Requirements({"CLI_0001.14"})
     public void collapseRunRecipe() {
-        if (!runOrder.isEmpty()) {
-            String name = runOrder.get(runHighlightIndex);
+        List<DisplayRow> rows = runDisplayRows();
+        if (!rows.isEmpty() && runHighlightIndex < rows.size()) {
+            DisplayRow row = rows.get(runHighlightIndex);
+            String name = row.isSubRecipe() ? row.parentName() : row.recipe().name();
             runExpandedRecipes.remove(name);
+            clampRunHighlightIndex();
+        }
+    }
+
+    private void clampRunHighlightIndex() {
+        List<DisplayRow> rows = runDisplayRows();
+        if (!rows.isEmpty() && runHighlightIndex >= rows.size()) {
+            runHighlightIndex = rows.size() - 1;
         }
     }
 
     @Requirements({"CLI_0001.14"})
     public void flattenRunRecipe() {
-        if (runOrder.isEmpty()) {
+        List<DisplayRow> rows = runDisplayRows();
+        if (rows.isEmpty() || runHighlightIndex >= rows.size()) {
             return;
         }
-        String name = runOrder.get(runHighlightIndex);
+        DisplayRow row = rows.get(runHighlightIndex);
+        if (row.isSubRecipe()) {
+            return;
+        }
+        String name = row.recipe().name();
         Optional<RecipeInfo> recipe = findRecipe(name);
         if (recipe.isPresent() && recipe.get().isComposite()) {
-            runOrder.remove(runHighlightIndex);
+            int orderIndex = runOrder.indexOf(name);
+            runOrder.remove(orderIndex);
             List<String> subNames =
                     recipe.get().recipeList().stream().map(RecipeInfo::name).toList();
-            runOrder.addAll(runHighlightIndex, subNames);
-            // Update selection: add sub-recipes if parent was selected
+            runOrder.addAll(orderIndex, subNames);
             if (selectedRecipes.remove(name)) {
                 selectedRecipes.addAll(subNames);
             }
