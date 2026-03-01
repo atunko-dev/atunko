@@ -12,6 +12,7 @@ import static dev.tamboui.toolkit.Toolkit.text;
 import static dev.tamboui.toolkit.Toolkit.textInput;
 
 import dev.tamboui.layout.Constraint;
+import dev.tamboui.style.Color;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.widgets.input.TextInputState;
@@ -63,6 +64,7 @@ public final class BrowserView {
             return EventResult.HANDLED;
         }
         if (handleTextInputKey(SEARCH_STATE, event)) {
+            controller.setSearchQuery(SEARCH_STATE.text());
             return EventResult.HANDLED;
         }
         return EventResult.UNHANDLED;
@@ -86,12 +88,29 @@ public final class BrowserView {
             controller.toggleSelection();
             return EventResult.HANDLED;
         }
+        if (event.isChar('a')) {
+            controller.selectAllVisible();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('A')) {
+            controller.deselectAll();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('r')) {
+            controller.openConfirmRun();
+            return EventResult.HANDLED;
+        }
         if (event.isChar('t')) {
             controller.openTagBrowser();
             return EventResult.HANDLED;
         }
         if (event.isQuit() || event.isChar('q')) {
             app.requestQuit();
+            return EventResult.HANDLED;
+        }
+        if (event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
+            SEARCH_STATE.clear();
+            controller.clearFilters();
             return EventResult.HANDLED;
         }
         if (event.isChar('/')) {
@@ -106,9 +125,18 @@ public final class BrowserView {
     }
 
     private static Element renderHeader(TuiController controller) {
-        SEARCH_STATE.setText(controller.searchQuery());
+        if (!controller.isSearchMode()) {
+            SEARCH_STATE.setText(controller.searchQuery());
+        }
+        var headerLabel = controller.isSearchMode()
+                ? text(" SEARCH").bold().fg(Color.LIGHT_YELLOW)
+                : text(" atunko").bold().fg(Color.LIGHT_CYAN);
+        var tagIndicator = controller.tagFilter().isEmpty()
+                ? spacer()
+                : text(" tag:" + controller.tagFilter() + " ").fg(Color.LIGHT_CYAN);
         return row(
-                text(" atunko").bold().cyan(),
+                headerLabel,
+                tagIndicator,
                 spacer(),
                 textInput(SEARCH_STATE)
                         .placeholder("Search recipes...")
@@ -122,16 +150,21 @@ public final class BrowserView {
     }
 
     private static Element renderRecipeList(TuiController controller, List<RecipeInfo> recipes) {
-        var listItems = recipes.stream()
-                .map(r -> {
-                    boolean selected = controller.selectedRecipes().contains(r.name());
-                    String prefix = selected ? "[x] " : "[ ] ";
-                    String tags = r.tags().isEmpty() ? "" : " [" + String.join(", ", r.tags()) + "]";
-                    return prefix + r.displayName() + tags;
-                })
-                .toList();
+        var recipeList = list().highlightColor(Color.LIGHT_CYAN);
+        for (RecipeInfo r : recipes) {
+            boolean selected = controller.selectedRecipes().contains(r.name());
+            var checkbox =
+                    selected ? text("[x] ").fg(Color.LIGHT_GREEN) : text("[ ] ").dim();
+            var name = text(r.displayName());
+            if (r.tags().isEmpty()) {
+                recipeList.add(row(checkbox, name));
+            } else {
+                var tags = text("  " + String.join(", ", r.tags())).dim();
+                recipeList.add(row(checkbox, name, spacer(), tags));
+            }
+        }
 
-        return list(listItems)
+        return recipeList
                 .selected(controller.highlightedIndex())
                 .title("Recipes")
                 .rounded()
@@ -145,16 +178,18 @@ public final class BrowserView {
                 .map(recipe -> (Element) panel(
                                 "Detail",
                                 column(
-                                        text(recipe.displayName()).bold(),
+                                        text(recipe.displayName()).bold().fg(Color.LIGHT_CYAN),
                                         text(""),
                                         text(recipe.name()).dim(),
                                         text(""),
                                         text(recipe.description() != null ? recipe.description() : ""),
                                         text(""),
-                                        text("Tags: "
-                                                + (recipe.tags().isEmpty()
-                                                        ? "none"
-                                                        : String.join(", ", recipe.tags())))))
+                                        row(
+                                                text("Tags: ").bold(),
+                                                text(recipe.tags().isEmpty()
+                                                                ? "none"
+                                                                : String.join(", ", recipe.tags()))
+                                                        .fg(Color.LIGHT_CYAN))))
                         .rounded()
                         .constraint(Constraint.fill(1)))
                 .orElse(panel("Detail", text("No recipe selected")).rounded().constraint(Constraint.fill(1)));
@@ -163,8 +198,8 @@ public final class BrowserView {
     private static Element renderStatusBar(TuiController controller, List<RecipeInfo> recipes) {
         int selected = controller.selectedRecipes().size();
         String status = recipes.size() + " recipes"
-                + (selected > 0 ? " | " + selected + " selected" : "")
-                + " | ↑↓:navigate Space:select Enter:detail t:tags q:quit /:search ←→:sort";
+                + " | " + selected + " selected"
+                + " | ↑↓:nav Space:sel a:all A:none r:run Enter:detail t:tags /:search Esc:reset q:quit";
         return text(" " + status).dim();
     }
 }

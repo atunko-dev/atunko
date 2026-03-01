@@ -3,6 +3,7 @@ package io.github.atunkodev.tui;
 import dev.tamboui.toolkit.app.ToolkitApp;
 import dev.tamboui.toolkit.element.Element;
 import io.github.atunkodev.tui.view.BrowserView;
+import io.github.atunkodev.tui.view.ConfirmRunView;
 import io.github.atunkodev.tui.view.DetailView;
 import io.github.atunkodev.tui.view.ExecutionResultsView;
 import io.github.atunkodev.tui.view.TagBrowserView;
@@ -24,7 +25,7 @@ public class AtunkoTui extends ToolkitApp {
             case DETAIL -> DetailView.render(controller);
             case TAG_BROWSER -> TagBrowserView.render(controller);
             case EXECUTION_RESULTS -> ExecutionResultsView.render(controller);
-            case RUN_CONFIG -> BrowserView.render(controller, this);
+            case CONFIRM_RUN -> ConfirmRunView.render(controller);
         };
     }
 

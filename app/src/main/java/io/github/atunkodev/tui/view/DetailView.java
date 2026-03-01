@@ -8,6 +8,7 @@ import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
 
 import dev.tamboui.layout.Constraint;
+import dev.tamboui.style.Color;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import io.github.atunkodev.core.recipe.RecipeInfo;
@@ -28,28 +29,30 @@ public final class DetailView {
 
     private static Element renderRecipeDetail(TuiController controller, RecipeInfo recipe) {
         boolean selected = controller.selectedRecipes().contains(recipe.name());
-        String selectionStatus = selected ? "Selected" : "Not selected";
+        var selectionLabel = selected
+                ? text("Selected ").fg(Color.LIGHT_GREEN)
+                : text("Not selected ").dim();
 
         return column(dock().top(
                                 row(
-                                        text(" " + recipe.displayName()).bold().cyan(),
+                                        text(" " + recipe.displayName()).bold().fg(Color.LIGHT_CYAN),
                                         spacer(),
-                                        text(selectionStatus + " ").dim()),
+                                        selectionLabel),
                                 Constraint.length(1))
                         .center(panel(
                                         "Recipe Detail",
                                         column(
-                                                text("Name: " + recipe.name()),
-                                                text("Display Name: " + recipe.displayName()),
+                                                row(text("Name: ").bold(), text(recipe.name())),
+                                                row(text("Display Name: ").bold(), text(recipe.displayName())),
                                                 text(""),
                                                 text("Description:").bold(),
                                                 text(recipe.description() != null ? recipe.description() : "(none)"),
                                                 text(""),
                                                 text("Tags:").bold(),
-                                                text(
-                                                        recipe.tags().isEmpty()
+                                                text(recipe.tags().isEmpty()
                                                                 ? "(none)"
-                                                                : String.join(", ", recipe.tags()))))
+                                                                : String.join(", ", recipe.tags()))
+                                                        .fg(Color.LIGHT_CYAN)))
                                 .rounded())
                         .bottom(text(" Esc/q:back Space:toggle selection").dim(), Constraint.length(1))
                         .constraint(Constraint.fill()))

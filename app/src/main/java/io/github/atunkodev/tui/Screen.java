@@ -4,6 +4,6 @@ public enum Screen {
     BROWSER,
     DETAIL,
     TAG_BROWSER,
-    RUN_CONFIG,
+    CONFIRM_RUN,
     EXECUTION_RESULTS
 }

@@ -41,8 +41,9 @@ The fat JAR is produced at `app/build/libs/atunko.jar`.
 java -jar app/build/libs/atunko.jar tui
 ```
 
-Key bindings: `↑↓` navigate, `Enter` open detail, `Space` toggle selection,
-`t` tag browser, `/` search, `←→` sort order, `q` quit.
+Key bindings: `↑↓` navigate, `Enter` detail, `Space` select, `a` select all,
+`A` deselect all, `r` run, `t` tags, `/` search, `Esc` reset filters,
+`←→` sort order, `q` quit.
 
 ### List recipes
 

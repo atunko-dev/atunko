@@ -8,6 +8,7 @@ import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
 
 import dev.tamboui.layout.Constraint;
+import dev.tamboui.style.Color;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import io.github.atunkodev.core.engine.ExecutionResult;
@@ -36,12 +37,11 @@ public final class ExecutionResultsView {
 
         String summary = changes.size() + " file(s) " + (controller.lastRunWasDryRun() ? "would change" : "changed");
 
-        return column(dock().top(
-                                row(
-                                        text(" " + title).bold().cyan(),
-                                        spacer(),
-                                        text(summary + " ").dim()),
-                                Constraint.length(1))
+        var titleElement = controller.lastRunWasDryRun()
+                ? text(" " + title).bold().fg(Color.LIGHT_YELLOW)
+                : text(" " + title).bold().fg(Color.LIGHT_GREEN);
+
+        return column(dock().top(row(titleElement, spacer(), text(summary + " ").bold()), Constraint.length(1))
                         .center(list(items).title("Changed Files").rounded().autoScroll())
                         .bottom(text(" Esc/q:back").dim(), Constraint.length(1))
                         .constraint(Constraint.fill()))

@@ -3,7 +3,11 @@ package io.github.atunkodev.tui;
 import io.github.atunkodev.cli.SortOrder;
 import io.github.atunkodev.core.config.RunConfig;
 import io.github.atunkodev.core.config.RunConfigService;
+import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.ExecutionResult;
+import io.github.atunkodev.core.engine.FileChange;
+import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.project.JavaSourceParser;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
@@ -15,12 +19,17 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import org.openrewrite.SourceFile;
 
 @Requirements({"CLI_0001"})
 public class TuiController {
 
     private final List<RecipeInfo> allRecipes;
     private final RunConfigService runConfigService;
+    private final RecipeExecutionEngine engine;
+    private final JavaSourceParser sourceParser;
+    private final ChangeApplier changeApplier;
+    private final Path projectDir;
     private Screen currentScreen = Screen.BROWSER;
     private String searchQuery = "";
     private SortOrder sortOrder = SortOrder.NAME;
@@ -36,8 +45,22 @@ public class TuiController {
     }
 
     public TuiController(List<RecipeInfo> allRecipes, RunConfigService runConfigService) {
+        this(allRecipes, runConfigService, null, null, null, Path.of("."));
+    }
+
+    public TuiController(
+            List<RecipeInfo> allRecipes,
+            RunConfigService runConfigService,
+            RecipeExecutionEngine engine,
+            JavaSourceParser sourceParser,
+            ChangeApplier changeApplier,
+            Path projectDir) {
         this.allRecipes = List.copyOf(allRecipes);
         this.runConfigService = runConfigService;
+        this.engine = engine;
+        this.sourceParser = sourceParser;
+        this.changeApplier = changeApplier;
+        this.projectDir = projectDir;
     }
 
     public Screen currentScreen() {
@@ -65,6 +88,10 @@ public class TuiController {
         List<RecipeInfo> sorted = new ArrayList<>(filtered);
         sorted.sort(sortOrder.comparator());
         return List.copyOf(sorted);
+    }
+
+    public String tagFilter() {
+        return tagFilter;
     }
 
     public boolean isSearchMode() {
@@ -124,6 +151,16 @@ public class TuiController {
         });
     }
 
+    @Requirements({"CLI_0001.5"})
+    public void selectAllVisible() {
+        recipes().forEach(r -> selectedRecipes.add(r.name()));
+    }
+
+    @Requirements({"CLI_0001.5"})
+    public void deselectAll() {
+        selectedRecipes.clear();
+    }
+
     @Requirements({"CLI_0001.4"})
     public void openDetail() {
         currentScreen = Screen.DETAIL;
@@ -158,6 +195,12 @@ public class TuiController {
         this.highlightedIndex = 0;
     }
 
+    public void clearFilters() {
+        this.searchQuery = "";
+        this.tagFilter = "";
+        this.highlightedIndex = 0;
+    }
+
     public Optional<ExecutionResult> executionResult() {
         return Optional.ofNullable(executionResult);
     }
@@ -178,6 +221,36 @@ public class TuiController {
         this.executionResult = result;
         this.lastRunWasDryRun = false;
         this.currentScreen = Screen.EXECUTION_RESULTS;
+    }
+
+    public Path projectDir() {
+        return projectDir;
+    }
+
+    public void openConfirmRun() {
+        currentScreen = Screen.CONFIRM_RUN;
+    }
+
+    @Requirements({"CLI_0001.8", "CLI_0001.9"})
+    public void runSelectedRecipes(boolean dryRun) {
+        if (engine == null || sourceParser == null) {
+            return;
+        }
+        List<SourceFile> sources = sourceParser.parse(projectDir);
+        List<FileChange> allChanges = new ArrayList<>();
+        for (String recipeName : selectedRecipes) {
+            ExecutionResult result = engine.execute(recipeName, sources);
+            allChanges.addAll(result.changes());
+        }
+        ExecutionResult combined = new ExecutionResult(allChanges);
+        if (!dryRun && changeApplier != null) {
+            changeApplier.apply(projectDir, combined.changes());
+        }
+        if (dryRun) {
+            showDryRunResult(combined);
+        } else {
+            showExecutionResult(combined);
+        }
     }
 
     @Requirements({"CLI_0001.10"})

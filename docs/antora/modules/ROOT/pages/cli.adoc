@@ -17,6 +17,16 @@ atunko tui
 atunko        # same as above — tui is the default
 ----
 
+==== Options
+
+[cols="1,3"]
+|===
+| Option | Description
+
+| `--project-dir <path>`
+| Project directory for recipe execution (default: `.`)
+|===
+
 ==== Key bindings
 
 [cols="1,3"]
@@ -32,11 +42,23 @@ atunko        # same as above — tui is the default
 | `Space`
 | Toggle recipe selection
 
+| `a`
+| Select all visible recipes
+
+| `A`
+| Deselect all recipes
+
+| `r`
+| Open run confirmation screen
+
 | `t`
 | Open tag browser
 
 | `/`
 | Enter search mode (type query, `Enter` to apply, `Esc` to cancel)
+
+| `Esc`
+| Clear search and tag filters (reset to full list)
 
 | `←` / `→`
 | Toggle sort order (name / tags)
