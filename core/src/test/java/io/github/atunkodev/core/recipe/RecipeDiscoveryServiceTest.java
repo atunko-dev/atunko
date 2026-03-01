@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.reqstool.annotations.SVCs;
 import java.util.List;
+import java.util.Locale;
 import org.junit.jupiter.api.Test;
 
 class RecipeDiscoveryServiceTest {
@@ -71,8 +72,8 @@ class RecipeDiscoveryServiceTest {
         List<RecipeInfo> tagResults = service.search("java");
         assertThat(tagResults).isNotEmpty();
         assertThat(tagResults)
-                .anyMatch(recipe ->
-                        recipe.tags().stream().anyMatch(tag -> tag.toLowerCase().contains("java")));
+                .anyMatch(recipe -> recipe.tags().stream()
+                        .anyMatch(tag -> tag.toLowerCase(Locale.ROOT).contains("java")));
     }
 
     @Test

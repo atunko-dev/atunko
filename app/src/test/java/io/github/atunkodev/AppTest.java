@@ -15,7 +15,8 @@ class AppTest {
 
         assertThat(exitCode).isZero();
         assertThat(cli.stdout()).contains("atunko");
-        assertThat(cli.stdout()).contains("discover");
+        assertThat(cli.stdout()).contains("list");
+        assertThat(cli.stdout()).contains("search");
         assertThat(cli.stdout()).contains("run");
     }
 
