@@ -70,7 +70,8 @@ Three layers of automated quality checks run on every build:
 - **Picocli** (`4.7.7`) — CLI framework
 - **TamboUI** (`0.2.0-SNAPSHOT`) — TUI framework (snapshot from Sonatype)
   - Docs: https://tamboui.dev/docs/main
-  - Canonical pattern: `.id("x").focusable().onKeyEvent(handler)` on outermost element per screen
+  - Canonical pattern: `column(dock()...).id("x").focusable().onKeyEvent(handler)` — wrap dock in column
+  - DockElement extends StyledElement (not ContainerElement) — does NOT support focus/key events directly
   - Single handler per screen, not per widget — inner widgets should NOT be focusable
   - Character input: use `Toolkit.handleTextInputKey(state, event)` manually in the handler
   - GitHub discussions: https://github.com/tamboui/tamboui/discussions

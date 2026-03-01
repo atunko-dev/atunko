@@ -1,5 +1,6 @@
 package io.github.atunkodev.tui.view;
 
+import static dev.tamboui.toolkit.Toolkit.column;
 import static dev.tamboui.toolkit.Toolkit.dock;
 import static dev.tamboui.toolkit.Toolkit.list;
 import static dev.tamboui.toolkit.Toolkit.text;
@@ -21,9 +22,17 @@ public final class TagBrowserView {
     public static Element render(TuiController controller) {
         List<String> tags = controller.allTags();
 
-        return dock().top(text(" Tag Browser").bold().cyan(), Constraint.length(1))
-                .center(list(tags).selected(tagIndex).title("Tags").rounded().autoScroll())
-                .bottom(text(" ↑↓:navigate Enter:filter by tag Esc/q:back").dim(), Constraint.length(1))
+        return column(dock().top(text(" Tag Browser").bold().cyan(), Constraint.length(1))
+                        .center(list(tags)
+                                .selected(tagIndex)
+                                .title("Tags")
+                                .rounded()
+                                .autoScroll())
+                        .bottom(
+                                text(" ↑↓:navigate Enter:filter by tag Esc/q:back")
+                                        .dim(),
+                                Constraint.length(1))
+                        .constraint(Constraint.fill()))
                 .id("tag-browser")
                 .focusable()
                 .onKeyEvent(event -> {

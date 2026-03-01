@@ -30,25 +30,29 @@ public final class DetailView {
         boolean selected = controller.selectedRecipes().contains(recipe.name());
         String selectionStatus = selected ? "Selected" : "Not selected";
 
-        return dock().top(
-                        row(
-                                text(" " + recipe.displayName()).bold().cyan(),
-                                spacer(),
-                                text(selectionStatus + " ").dim()),
-                        Constraint.length(1))
-                .center(panel(
-                                "Recipe Detail",
-                                column(
-                                        text("Name: " + recipe.name()),
-                                        text("Display Name: " + recipe.displayName()),
-                                        text(""),
-                                        text("Description:").bold(),
-                                        text(recipe.description() != null ? recipe.description() : "(none)"),
-                                        text(""),
-                                        text("Tags:").bold(),
-                                        text(recipe.tags().isEmpty() ? "(none)" : String.join(", ", recipe.tags()))))
-                        .rounded())
-                .bottom(text(" Esc/q:back Space:toggle selection").dim(), Constraint.length(1))
+        return column(dock().top(
+                                row(
+                                        text(" " + recipe.displayName()).bold().cyan(),
+                                        spacer(),
+                                        text(selectionStatus + " ").dim()),
+                                Constraint.length(1))
+                        .center(panel(
+                                        "Recipe Detail",
+                                        column(
+                                                text("Name: " + recipe.name()),
+                                                text("Display Name: " + recipe.displayName()),
+                                                text(""),
+                                                text("Description:").bold(),
+                                                text(recipe.description() != null ? recipe.description() : "(none)"),
+                                                text(""),
+                                                text("Tags:").bold(),
+                                                text(
+                                                        recipe.tags().isEmpty()
+                                                                ? "(none)"
+                                                                : String.join(", ", recipe.tags()))))
+                                .rounded())
+                        .bottom(text(" Esc/q:back Space:toggle selection").dim(), Constraint.length(1))
+                        .constraint(Constraint.fill()))
                 .id("detail")
                 .focusable()
                 .onKeyEvent(event -> {

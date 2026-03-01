@@ -32,10 +32,11 @@ public final class BrowserView {
     public static Element render(TuiController controller, AtunkoTui app) {
         List<RecipeInfo> recipes = controller.recipes();
 
-        return dock().top(renderHeader(controller), Constraint.length(3))
-                .center(row(renderRecipeList(controller, recipes), renderDetailPanel(controller))
+        return column(dock().top(renderHeader(controller), Constraint.length(3))
+                        .center(row(renderRecipeList(controller, recipes), renderDetailPanel(controller))
+                                .constraint(Constraint.fill()))
+                        .bottom(renderStatusBar(controller, recipes), Constraint.length(1))
                         .constraint(Constraint.fill()))
-                .bottom(renderStatusBar(controller, recipes), Constraint.length(1))
                 .id("browser")
                 .focusable()
                 .onKeyEvent(event -> handleKeyEvent(controller, app, event));

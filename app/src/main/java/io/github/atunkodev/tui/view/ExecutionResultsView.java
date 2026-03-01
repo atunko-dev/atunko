@@ -1,5 +1,6 @@
 package io.github.atunkodev.tui.view;
 
+import static dev.tamboui.toolkit.Toolkit.column;
 import static dev.tamboui.toolkit.Toolkit.dock;
 import static dev.tamboui.toolkit.Toolkit.list;
 import static dev.tamboui.toolkit.Toolkit.row;
@@ -35,14 +36,15 @@ public final class ExecutionResultsView {
 
         String summary = changes.size() + " file(s) " + (controller.lastRunWasDryRun() ? "would change" : "changed");
 
-        return dock().top(
-                        row(
-                                text(" " + title).bold().cyan(),
-                                spacer(),
-                                text(summary + " ").dim()),
-                        Constraint.length(1))
-                .center(list(items).title("Changed Files").rounded().autoScroll())
-                .bottom(text(" Esc/q:back").dim(), Constraint.length(1))
+        return column(dock().top(
+                                row(
+                                        text(" " + title).bold().cyan(),
+                                        spacer(),
+                                        text(summary + " ").dim()),
+                                Constraint.length(1))
+                        .center(list(items).title("Changed Files").rounded().autoScroll())
+                        .bottom(text(" Esc/q:back").dim(), Constraint.length(1))
+                        .constraint(Constraint.fill()))
                 .id("execution-results")
                 .focusable()
                 .onKeyEvent(event -> {
