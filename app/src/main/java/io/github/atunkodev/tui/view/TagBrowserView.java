@@ -7,6 +7,7 @@ import static dev.tamboui.toolkit.Toolkit.text;
 
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.style.Color;
+import dev.tamboui.style.Style;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import io.github.atunkodev.tui.TuiController;
@@ -23,16 +24,21 @@ public final class TagBrowserView {
     public static Element render(TuiController controller) {
         List<String> tags = controller.allTags();
 
-        return column(dock().top(text(" Tag Browser").bold().fg(Color.LIGHT_CYAN), Constraint.length(1))
+        return column(dock().top(text(" Tag Browser ").bold().fg(Color.WHITE).bg(Color.BLUE), Constraint.length(1))
                         .center(list(tags)
                                 .selected(tagIndex)
-                                .highlightColor(Color.LIGHT_CYAN)
+                                .highlightStyle(Style.EMPTY
+                                        .fg(Color.WHITE)
+                                        .bg(Color.BLUE)
+                                        .bold())
                                 .title("Tags")
                                 .rounded()
+                                .borderColor(Color.LIGHT_CYAN)
                                 .autoScroll())
                         .bottom(
-                                text(" ↑↓:navigate Enter:filter by tag Esc/q:back")
-                                        .dim(),
+                                text(" \u2191\u2193:navigate Enter:filter by tag Esc/q:back")
+                                        .fg(Color.WHITE)
+                                        .bg(Color.indexed(236)),
                                 Constraint.length(1))
                         .constraint(Constraint.fill()))
                 .id("tag-browser")

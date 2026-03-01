@@ -13,6 +13,7 @@ import static dev.tamboui.toolkit.Toolkit.textInput;
 
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.style.Color;
+import dev.tamboui.style.Style;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.widgets.input.TextInputState;
@@ -23,7 +24,7 @@ import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 
-@Requirements({"CLI_0001.1", "CLI_0001.2"})
+@Requirements({"CLI_0001.1", "CLI_0001.2", "CLI_0001.13"})
 public final class BrowserView {
 
     private static final TextInputState SEARCH_STATE = new TextInputState();
@@ -89,11 +90,7 @@ public final class BrowserView {
             return EventResult.HANDLED;
         }
         if (event.isChar('a')) {
-            controller.selectAllVisible();
-            return EventResult.HANDLED;
-        }
-        if (event.isChar('A')) {
-            controller.deselectAll();
+            controller.cycleSelection();
             return EventResult.HANDLED;
         }
         if (event.isChar('r')) {
@@ -102,6 +99,22 @@ public final class BrowserView {
         }
         if (event.isChar('t')) {
             controller.openTagBrowser();
+            return EventResult.HANDLED;
+        }
+        if (event.isRight() || event.isChar('e')) {
+            controller.highlightedRecipe().ifPresent(recipe -> {
+                if (recipe.isComposite()) {
+                    controller.expandRecipe(recipe.name());
+                }
+            });
+            return EventResult.HANDLED;
+        }
+        if (event.isLeft() || event.isChar('c')) {
+            controller.highlightedRecipe().ifPresent(recipe -> {
+                if (controller.isExpanded(recipe.name())) {
+                    controller.collapseRecipe(recipe.name());
+                }
+            });
             return EventResult.HANDLED;
         }
         if (event.isQuit() || event.isChar('q')) {
@@ -117,7 +130,7 @@ public final class BrowserView {
             controller.enterSearchMode();
             return EventResult.HANDLED;
         }
-        if (event.isLeft() || event.isRight()) {
+        if (event.isChar('s')) {
             controller.setSortOrder(controller.sortOrder() == SortOrder.NAME ? SortOrder.TAGS : SortOrder.NAME);
             return EventResult.HANDLED;
         }
@@ -129,13 +142,14 @@ public final class BrowserView {
             SEARCH_STATE.setText(controller.searchQuery());
         }
         var headerLabel = controller.isSearchMode()
-                ? text(" SEARCH").bold().fg(Color.LIGHT_YELLOW)
-                : text(" atunko").bold().fg(Color.LIGHT_CYAN);
+                ? text(" SEARCH ").bold().fg(Color.BLACK).bg(Color.LIGHT_YELLOW)
+                : text(" atunko ").bold().fg(Color.WHITE).bg(Color.BLUE);
         var tagIndicator = controller.tagFilter().isEmpty()
                 ? spacer()
-                : text(" tag:" + controller.tagFilter() + " ").fg(Color.LIGHT_CYAN);
+                : text(" tag:" + controller.tagFilter() + " ").fg(Color.BLACK).bg(Color.LIGHT_CYAN);
         return row(
                 headerLabel,
+                text(" "),
                 tagIndicator,
                 spacer(),
                 textInput(SEARCH_STATE)
@@ -150,17 +164,30 @@ public final class BrowserView {
     }
 
     private static Element renderRecipeList(TuiController controller, List<RecipeInfo> recipes) {
-        var recipeList = list().highlightColor(Color.LIGHT_CYAN);
+        var recipeList =
+                list().highlightStyle(Style.EMPTY.fg(Color.WHITE).bg(Color.BLUE).bold());
         for (RecipeInfo r : recipes) {
             boolean selected = controller.selectedRecipes().contains(r.name());
+            boolean expanded = controller.isExpanded(r.name());
             var checkbox =
                     selected ? text("[x] ").fg(Color.LIGHT_GREEN) : text("[ ] ").dim();
-            var name = text(r.displayName());
+            String compositeIndicator = r.isComposite() ? (expanded ? "\u25bc " : "\u25b6 ") : "  ";
+            var indicator = r.isComposite() ? text(compositeIndicator).fg(Color.LIGHT_CYAN) : text(compositeIndicator);
+            var name = text(cleanDisplayName(r.displayName()));
             if (r.tags().isEmpty()) {
-                recipeList.add(row(checkbox, name));
+                recipeList.add(row(checkbox, indicator, name));
             } else {
                 var tags = text("  " + String.join(", ", r.tags())).dim();
-                recipeList.add(row(checkbox, name, spacer(), tags));
+                recipeList.add(row(checkbox, indicator, name, spacer(), tags));
+            }
+
+            // Render expanded sub-recipes
+            if (expanded && r.isComposite()) {
+                for (RecipeInfo sub : r.recipeList()) {
+                    recipeList.add(row(
+                            text("      "),
+                            text(cleanDisplayName(sub.displayName())).dim()));
+                }
             }
         }
 
@@ -168,6 +195,7 @@ public final class BrowserView {
                 .selected(controller.highlightedIndex())
                 .title("Recipes")
                 .rounded()
+                .borderColor(Color.LIGHT_CYAN)
                 .autoScroll()
                 .constraint(Constraint.fill(2));
     }
@@ -178,7 +206,9 @@ public final class BrowserView {
                 .map(recipe -> (Element) panel(
                                 "Detail",
                                 column(
-                                        text(recipe.displayName()).bold().fg(Color.LIGHT_CYAN),
+                                        text(cleanDisplayName(recipe.displayName()))
+                                                .bold()
+                                                .fg(Color.LIGHT_CYAN),
                                         text(""),
                                         text(recipe.name()).dim(),
                                         text(""),
@@ -189,17 +219,31 @@ public final class BrowserView {
                                                 text(recipe.tags().isEmpty()
                                                                 ? "none"
                                                                 : String.join(", ", recipe.tags()))
-                                                        .fg(Color.LIGHT_CYAN))))
+                                                        .fg(Color.LIGHT_CYAN)),
+                                        recipe.isComposite()
+                                                ? text("Composite: "
+                                                                + recipe.recipeList()
+                                                                        .size() + " sub-recipes")
+                                                        .fg(Color.LIGHT_CYAN)
+                                                : text("")))
                         .rounded()
+                        .borderColor(Color.LIGHT_CYAN)
                         .constraint(Constraint.fill(1)))
-                .orElse(panel("Detail", text("No recipe selected")).rounded().constraint(Constraint.fill(1)));
+                .orElse(panel("Detail", text("No recipe selected"))
+                        .rounded()
+                        .borderColor(Color.LIGHT_CYAN)
+                        .constraint(Constraint.fill(1)));
     }
 
     private static Element renderStatusBar(TuiController controller, List<RecipeInfo> recipes) {
         int selected = controller.selectedRecipes().size();
         String status = recipes.size() + " recipes"
-                + " | " + selected + " selected"
-                + " | ↑↓:nav Space:sel a:all A:none r:run Enter:detail t:tags /:search Esc:reset q:quit";
-        return text(" " + status).dim();
+                + " | " + selected + " selected | \u2191\u2193:nav Space:sel a:sel all/none r:run Enter:detail"
+                + " \u2192:expand \u2190:collapse t:tags s:sort /:search Esc:reset q:quit";
+        return text(" " + status).fg(Color.WHITE).bg(Color.indexed(236));
+    }
+
+    static String cleanDisplayName(String text) {
+        return text.replace("`", "");
     }
 }

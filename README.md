@@ -39,11 +39,48 @@ The fat JAR is produced at `app/build/libs/atunko.jar`.
 ```bash
 # Launch the interactive recipe browser (default command)
 java -jar app/build/libs/atunko.jar tui
+
+# Launch with debug logging to a file
+java -jar app/build/libs/atunko.jar tui --log-file tui.log
 ```
 
-Key bindings: `↑↓` navigate, `Enter` detail, `Space` select, `a` select all,
-`A` deselect all, `r` run, `t` tags, `/` search, `Esc` reset filters,
-`←→` sort order, `q` quit.
+Options: `--log-file <path>` — write TUI debug output to a file (useful for troubleshooting).
+
+Key bindings:
+
+| Key | Action |
+|-----|--------|
+| `↑`/`↓` | Navigate recipe list |
+| `Enter` | Open recipe detail |
+| `Space` | Toggle selection |
+| `a` | Cycle selection (none → all → none) |
+| `r` | Open run dialog with selected recipes |
+| `t` | Open tag browser |
+| `/` | Search recipes |
+| `→`/`e` | Expand composite recipe |
+| `←`/`c` | Collapse composite recipe |
+| `s` | Toggle sort order |
+| `Esc` | Reset filters / go back |
+| `q` | Quit |
+
+**Run dialog** (`r` from browser):
+
+| Key | Action |
+|-----|--------|
+| `↑`/`↓` | Navigate run list |
+| `Space`/`Enter` | Toggle individual recipe |
+| `a` | Cycle selection (all/none) |
+| `+`/`-` | Reorder recipes (move up/down) |
+| `→`/`e` | Expand composite recipe |
+| `←`/`c` | Collapse composite recipe |
+| `f` | Flatten composite (replace with sub-recipes) |
+| `r` | Run selected recipes |
+| `d` | Dry-run (preview changes) |
+| `Esc`/`q` | Back |
+
+**Composite recipes:** Recipes containing sub-recipes are marked with `▶` in the
+browser. Expand them to see their sub-recipes, or flatten them in the run dialog
+to run sub-recipes individually.
 
 ### List recipes
 
@@ -80,7 +117,9 @@ java -jar app/build/libs/atunko.jar run -r org.openrewrite.java.RemoveUnusedImpo
 Options:
 
 - `-r`, `--recipe` — Fully qualified recipe name (required)
-- `--project-dir` — Path to the project directory (required)
+- `--project-dir` — Path to the project directory (required). Uses the Gradle Tooling
+  API to resolve source dirs, resource dirs, test dirs, and compile classpath for each
+  module. Supports `build.gradle`, `build.gradle.kts`, and multi-module projects.
 
 ### Development shortcut
 

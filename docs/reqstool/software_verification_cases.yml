@@ -10,6 +10,16 @@ cases:
       THEN all recipes from all modules are returned with name and description
     revision: "0.1.0"
 
+  - id: SVC_CORE_0001.1
+    requirement_ids: ["CORE_0001.1"]
+    title: Discover composite recipe structure
+    verification: automated-test
+    description: |
+      GIVEN the classpath contains composite OpenRewrite recipes
+      WHEN the RecipeDiscoveryService discovers recipes
+      THEN composite recipes expose their sub-recipe list via recipeList
+    revision: "0.1.0"
+
   - id: SVC_CORE_0002
     requirement_ids: ["CORE_0002"]
     title: Search recipes by keyword
@@ -28,6 +38,16 @@ cases:
       GIVEN a Gradle project with Java sources
       WHEN the user runs RemoveUnusedImports recipe
       THEN unused imports are removed from all Java files
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0003.1
+    requirement_ids: ["CORE_0003.1"]
+    title: Parse multi-file-type project sources
+    verification: automated-test
+    description: |
+      GIVEN a project with Java, XML, YAML, JSON, and properties files
+      WHEN the ProjectSourceParser parses the project
+      THEN all file types are parsed into OpenRewrite SourceFile objects
     revision: "0.1.0"
 
   - id: SVC_CORE_0004
@@ -198,6 +218,36 @@ cases:
       GIVEN the TUI is displayed
       WHEN the user uses arrow keys, Tab, Enter, and shortcut keys
       THEN focus moves between elements and actions are triggered as expected
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0001.13
+    requirement_ids: ["CLI_0001.13"]
+    title: Browse composite recipes with expand/collapse
+    verification: automated-test
+    description: |
+      GIVEN the TUI displays composite recipes
+      WHEN the user expands a composite recipe
+      THEN the sub-recipes are displayed below the parent with collapse support
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0001.14
+    requirement_ids: ["CLI_0001.14"]
+    title: Run dialog with reorder and toggle
+    verification: automated-test
+    description: |
+      GIVEN the run dialog is open with selected recipes
+      WHEN the user reorders, toggles, or cycles selection
+      THEN the execution order and selection state update accordingly
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0001.15
+    requirement_ids: ["CLI_0001.15"]
+    title: Debug logging to file
+    verification: automated-test
+    description: |
+      GIVEN the TUI is launched with --log-file option
+      WHEN TUI actions are performed
+      THEN debug output is written to the specified log file
     revision: "0.1.0"
 
   - id: SVC_CLI_0002

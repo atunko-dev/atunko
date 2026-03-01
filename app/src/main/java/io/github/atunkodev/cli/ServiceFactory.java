@@ -3,7 +3,9 @@ package io.github.atunkodev.cli;
 import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.project.GradleProjectScanner;
 import io.github.atunkodev.core.project.JavaSourceParser;
+import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.recipe.EnvironmentProvider;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.atunkodev.tui.TuiCommand;
@@ -36,7 +38,8 @@ public class ServiceFactory implements CommandLine.IFactory {
                     discoveryService,
                     new RunConfigService(),
                     new RecipeExecutionEngine(environmentProvider),
-                    new JavaSourceParser(),
+                    new GradleProjectScanner(),
+                    new ProjectSourceParser(),
                     new ChangeApplier()));
         }
         return defaultFactory.create(cls);

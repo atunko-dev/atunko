@@ -7,27 +7,35 @@ import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
-import io.github.atunkodev.core.project.JavaSourceParser;
+import io.github.atunkodev.core.project.GradleProjectScanner;
+import io.github.atunkodev.core.project.ProjectInfo;
+import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.openrewrite.SourceFile;
 
 @Requirements({"CLI_0001"})
 public class TuiController {
 
+    private static final Logger LOG = Logger.getLogger(TuiController.class.getName());
+
     private final List<RecipeInfo> allRecipes;
     private final RunConfigService runConfigService;
     private final RecipeExecutionEngine engine;
-    private final JavaSourceParser sourceParser;
+    private final GradleProjectScanner projectScanner;
+    private final ProjectSourceParser sourceParser;
     private final ChangeApplier changeApplier;
     private final Path projectDir;
     private Screen currentScreen = Screen.BROWSER;
@@ -39,25 +47,33 @@ public class TuiController {
     private boolean searchMode;
     private ExecutionResult executionResult;
     private boolean lastRunWasDryRun;
+    private final Set<String> expandedRecipes = new LinkedHashSet<>();
+
+    // Run dialog state
+    private List<String> runOrder = new ArrayList<>();
+    private int runHighlightIndex;
+    private final Set<String> runExpandedRecipes = new LinkedHashSet<>();
 
     public TuiController(List<RecipeInfo> allRecipes) {
         this(allRecipes, new RunConfigService());
     }
 
     public TuiController(List<RecipeInfo> allRecipes, RunConfigService runConfigService) {
-        this(allRecipes, runConfigService, null, null, null, Path.of("."));
+        this(allRecipes, runConfigService, null, null, null, null, Path.of("."));
     }
 
     public TuiController(
             List<RecipeInfo> allRecipes,
             RunConfigService runConfigService,
             RecipeExecutionEngine engine,
-            JavaSourceParser sourceParser,
+            GradleProjectScanner projectScanner,
+            ProjectSourceParser sourceParser,
             ChangeApplier changeApplier,
             Path projectDir) {
         this.allRecipes = List.copyOf(allRecipes);
         this.runConfigService = runConfigService;
         this.engine = engine;
+        this.projectScanner = projectScanner;
         this.sourceParser = sourceParser;
         this.changeApplier = changeApplier;
         this.projectDir = projectDir;
@@ -98,6 +114,32 @@ public class TuiController {
         return searchMode;
     }
 
+    // --- Expanded recipes (browser) ---
+
+    public Set<String> expandedRecipes() {
+        return Set.copyOf(expandedRecipes);
+    }
+
+    @Requirements({"CLI_0001.13"})
+    public void expandRecipe(String recipeName) {
+        expandedRecipes.add(recipeName);
+    }
+
+    @Requirements({"CLI_0001.13"})
+    public void collapseRecipe(String recipeName) {
+        expandedRecipes.remove(recipeName);
+    }
+
+    public boolean isExpanded(String recipeName) {
+        return expandedRecipes.contains(recipeName);
+    }
+
+    public Optional<RecipeInfo> findRecipe(String name) {
+        return allRecipes.stream().filter(r -> r.name().equals(name)).findFirst();
+    }
+
+    // --- Search ---
+
     @Requirements({"CLI_0001.3"})
     public void enterSearchMode() {
         this.searchMode = true;
@@ -126,6 +168,8 @@ public class TuiController {
         return Optional.of(visible.get(highlightedIndex));
     }
 
+    // --- Navigation ---
+
     @Requirements({"CLI_0001.12"})
     public void moveDown() {
         List<RecipeInfo> visible = recipes();
@@ -142,6 +186,8 @@ public class TuiController {
         }
     }
 
+    // --- Selection ---
+
     @Requirements({"CLI_0001.5"})
     public void toggleSelection() {
         highlightedRecipe().ifPresent(recipe -> {
@@ -152,14 +198,18 @@ public class TuiController {
     }
 
     @Requirements({"CLI_0001.5"})
-    public void selectAllVisible() {
-        recipes().forEach(r -> selectedRecipes.add(r.name()));
+    public void cycleSelection() {
+        Set<String> visibleNames = recipes().stream().map(RecipeInfo::name).collect(Collectors.toSet());
+        boolean allSelected = visibleNames.stream().allMatch(selectedRecipes::contains);
+        if (allSelected) {
+            selectedRecipes.clear();
+        } else {
+            selectedRecipes.addAll(visibleNames);
+        }
+        LOG.fine(() -> "Cycle selection: " + selectedRecipes.size() + " selected");
     }
 
-    @Requirements({"CLI_0001.5"})
-    public void deselectAll() {
-        selectedRecipes.clear();
-    }
+    // --- Screen navigation ---
 
     @Requirements({"CLI_0001.4"})
     public void openDetail() {
@@ -201,6 +251,117 @@ public class TuiController {
         this.highlightedIndex = 0;
     }
 
+    // --- Run dialog ---
+
+    public List<String> runOrder() {
+        return List.copyOf(runOrder);
+    }
+
+    public int runHighlightIndex() {
+        return runHighlightIndex;
+    }
+
+    public Set<String> runExpandedRecipes() {
+        return Set.copyOf(runExpandedRecipes);
+    }
+
+    @Requirements({"CLI_0001.14"})
+    public void openConfirmRun() {
+        runOrder = new ArrayList<>(selectedRecipes);
+        runHighlightIndex = 0;
+        runExpandedRecipes.clear();
+        currentScreen = Screen.CONFIRM_RUN;
+        LOG.fine(() -> "Opened run dialog with " + runOrder.size() + " recipes");
+    }
+
+    @Requirements({"CLI_0001.14"})
+    public void moveRunHighlightUp() {
+        if (!runOrder.isEmpty()) {
+            runHighlightIndex = (runHighlightIndex - 1 + runOrder.size()) % runOrder.size();
+        }
+    }
+
+    @Requirements({"CLI_0001.14"})
+    public void moveRunHighlightDown() {
+        if (!runOrder.isEmpty()) {
+            runHighlightIndex = (runHighlightIndex + 1) % runOrder.size();
+        }
+    }
+
+    @Requirements({"CLI_0001.14"})
+    public void moveRunRecipeUp() {
+        if (runHighlightIndex > 0) {
+            Collections.swap(runOrder, runHighlightIndex, runHighlightIndex - 1);
+            runHighlightIndex--;
+        }
+    }
+
+    @Requirements({"CLI_0001.14"})
+    public void moveRunRecipeDown() {
+        if (runHighlightIndex < runOrder.size() - 1) {
+            Collections.swap(runOrder, runHighlightIndex, runHighlightIndex + 1);
+            runHighlightIndex++;
+        }
+    }
+
+    @Requirements({"CLI_0001.14"})
+    public void toggleRunRecipe() {
+        if (!runOrder.isEmpty()) {
+            String name = runOrder.get(runHighlightIndex);
+            if (!selectedRecipes.remove(name)) {
+                selectedRecipes.add(name);
+            }
+        }
+    }
+
+    @Requirements({"CLI_0001.14"})
+    public void cycleRunSelection() {
+        boolean allSelected = runOrder.stream().allMatch(selectedRecipes::contains);
+        if (allSelected) {
+            runOrder.forEach(selectedRecipes::remove);
+        } else {
+            selectedRecipes.addAll(runOrder);
+        }
+    }
+
+    @Requirements({"CLI_0001.14"})
+    public void expandRunRecipe() {
+        if (!runOrder.isEmpty()) {
+            String name = runOrder.get(runHighlightIndex);
+            runExpandedRecipes.add(name);
+        }
+    }
+
+    @Requirements({"CLI_0001.14"})
+    public void collapseRunRecipe() {
+        if (!runOrder.isEmpty()) {
+            String name = runOrder.get(runHighlightIndex);
+            runExpandedRecipes.remove(name);
+        }
+    }
+
+    @Requirements({"CLI_0001.14"})
+    public void flattenRunRecipe() {
+        if (runOrder.isEmpty()) {
+            return;
+        }
+        String name = runOrder.get(runHighlightIndex);
+        Optional<RecipeInfo> recipe = findRecipe(name);
+        if (recipe.isPresent() && recipe.get().isComposite()) {
+            runOrder.remove(runHighlightIndex);
+            List<String> subNames =
+                    recipe.get().recipeList().stream().map(RecipeInfo::name).toList();
+            runOrder.addAll(runHighlightIndex, subNames);
+            // Update selection: add sub-recipes if parent was selected
+            if (selectedRecipes.remove(name)) {
+                selectedRecipes.addAll(subNames);
+            }
+            runExpandedRecipes.remove(name);
+        }
+    }
+
+    // --- Execution ---
+
     public Optional<ExecutionResult> executionResult() {
         return Optional.ofNullable(executionResult);
     }
@@ -227,18 +388,27 @@ public class TuiController {
         return projectDir;
     }
 
-    public void openConfirmRun() {
-        currentScreen = Screen.CONFIRM_RUN;
-    }
-
     @Requirements({"CLI_0001.8", "CLI_0001.9"})
     public void runSelectedRecipes(boolean dryRun) {
         if (engine == null || sourceParser == null) {
             return;
         }
-        List<SourceFile> sources = sourceParser.parse(projectDir);
+        LOG.fine(() -> "Running " + (dryRun ? "dry-run" : "execution") + " for " + runOrder.size() + " recipes");
+
+        List<SourceFile> sources;
+        if (projectScanner != null) {
+            ProjectInfo projectInfo = projectScanner.scan(projectDir);
+            sources = sourceParser.parse(projectInfo);
+        } else {
+            sources = sourceParser.parse(new ProjectInfo(List.of(), List.of(projectDir)));
+        }
+
+        // Use runOrder filtered to selected recipes, preserving user-defined execution order
+        List<String> recipesToRun =
+                runOrder.stream().filter(selectedRecipes::contains).toList();
+
         List<FileChange> allChanges = new ArrayList<>();
-        for (String recipeName : selectedRecipes) {
+        for (String recipeName : recipesToRun) {
             ExecutionResult result = engine.execute(recipeName, sources);
             allChanges.addAll(result.changes());
         }

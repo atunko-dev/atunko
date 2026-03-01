@@ -129,6 +129,35 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: CLI_0001.13
+    title: TUI — Composite Recipe Browsing
+    significance: shall
+    description: The TUI shall support browsing composite recipes with expand/collapse and destructive flatten
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0001.14
+    title: TUI — Run Dialog
+    significance: shall
+    description: >-
+      The TUI shall provide a navigable, reorderable recipe execution list with
+      individual toggle, cycle selection, and composite expand/collapse/flatten
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0001.15
+    title: TUI — Debug Logging
+    significance: shall
+    description: The TUI shall support writing debug output to a log file via --log-file option
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   # CLI requirements — list/search/run
   - id: CLI_0002
     title: CLI Recipe Listing
@@ -240,6 +269,15 @@ requirements:
     categories: [functional-suitability]
     revision: 0.1.0
 
+  - id: CORE_0001.1
+    title: Composite Recipe Discovery
+    significance: shall
+    description: The engine shall expose composite recipe structure (recipeList with sub-recipes)
+    references:
+      requirement_ids: ["CORE_0001"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
   - id: CORE_0002
     title: Recipe Search
     significance: shall
@@ -254,10 +292,23 @@ requirements:
     categories: [functional-suitability]
     revision: 0.1.0
 
+  - id: CORE_0003.1
+    title: Multi-File-Type Parsing
+    significance: shall
+    description: >-
+      The engine shall parse all OpenRewrite-supported file types (Java, XML, YAML,
+      JSON, properties) from project source and resource directories
+    references:
+      requirement_ids: ["CORE_0003"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
   - id: CORE_0004
     title: Gradle Project Support
     significance: shall
-    description: The core engine shall resolve classpaths and source dirs for Gradle projects via Tooling API
+    description: >-
+      The core engine shall resolve classpaths, source dirs, resource dirs, and test dirs
+      for Gradle projects via Tooling API
     categories: [functional-suitability]
     revision: 0.1.0
 

@@ -21,8 +21,9 @@ tasks: a rich, interactive terminal experience (CLI_0001).
 
 ### New Capabilities
 - `tui-launch`: Interactive TUI application — recipe browsing, search, selection,
-  configuration, execution, tag browsing, and keyboard navigation
-  (CLI_0001, CLI_0001.1–CLI_0001.12)
+  configuration, execution, tag browsing, keyboard navigation, composite recipe
+  browsing, navigable run dialog, and debug logging
+  (CLI_0001, CLI_0001.1–CLI_0001.15)
 
 ### Modified Capabilities
 _(none — CLI subcommands are unchanged)_

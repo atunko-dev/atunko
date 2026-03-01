@@ -25,7 +25,15 @@ class TuiControllerTest {
     private static final RecipeInfo GAMMA =
             new RecipeInfo("org.test.Gamma", "Gamma Recipe", "Third recipe", Set.of("java"));
 
+    private static final RecipeInfo SUB_1 =
+            new RecipeInfo("org.test.Sub1", "Sub Recipe 1", "First sub-recipe", Set.of("java"));
+    private static final RecipeInfo SUB_2 =
+            new RecipeInfo("org.test.Sub2", "Sub Recipe 2", "Second sub-recipe", Set.of("java"));
+    private static final RecipeInfo COMPOSITE = new RecipeInfo(
+            "org.test.Composite", "Composite Recipe", "A composite recipe", Set.of("java"), List.of(SUB_1, SUB_2));
+
     private static final List<RecipeInfo> RECIPES = List.of(ALPHA, BETA, GAMMA);
+    private static final List<RecipeInfo> RECIPES_WITH_COMPOSITE = List.of(ALPHA, COMPOSITE, GAMMA);
 
     @Test
     @SVCs({"SVC_CLI_0001"})
@@ -325,5 +333,246 @@ class TuiControllerTest {
 
         RunConfig loaded = service.load(configFile);
         assertThat(loaded.recipes()).containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
+    }
+
+    // --- Cycle Selection ---
+
+    @Test
+    @SVCs({"SVC_CLI_0001.5"})
+    void cycleSelection_selectsAllWhenNoneSelected() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.cycleSelection();
+
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta", "org.test.Gamma");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.5"})
+    void cycleSelection_clearsWhenAllSelected() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.cycleSelection(); // select all
+
+        controller.cycleSelection(); // deselect all
+
+        assertThat(controller.selectedRecipes()).isEmpty();
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.5"})
+    void cycleSelection_selectsAllWhenPartiallySelected() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // select Alpha only
+
+        controller.cycleSelection(); // should select all since not all are selected
+
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta", "org.test.Gamma");
+    }
+
+    // --- Composite Recipe Browsing ---
+
+    @Test
+    @SVCs({"SVC_CLI_0001.13"})
+    void expandRecipe_addsToExpandedSet() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+
+        controller.expandRecipe("org.test.Composite");
+
+        assertThat(controller.isExpanded("org.test.Composite")).isTrue();
+        assertThat(controller.expandedRecipes()).contains("org.test.Composite");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.13"})
+    void collapseRecipe_removesFromExpandedSet() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+
+        controller.collapseRecipe("org.test.Composite");
+
+        assertThat(controller.isExpanded("org.test.Composite")).isFalse();
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.13"})
+    void findRecipe_returnsCompositeWithSubRecipes() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+
+        assertThat(controller.findRecipe("org.test.Composite")).isPresent();
+        assertThat(controller.findRecipe("org.test.Composite").get().isComposite())
+                .isTrue();
+        assertThat(controller.findRecipe("org.test.Composite").get().recipeList())
+                .hasSize(2);
+    }
+
+    // --- Run Dialog ---
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void openConfirmRun_initializesRunOrderFromSelection() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // select Alpha
+        controller.moveDown();
+        controller.toggleSelection(); // select Beta
+
+        controller.openConfirmRun();
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.CONFIRM_RUN);
+        assertThat(controller.runOrder()).containsExactly("org.test.Alpha", "org.test.Beta");
+        assertThat(controller.runHighlightIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void moveRunHighlightDown_navigatesRunList() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection();
+        controller.moveDown();
+        controller.toggleSelection();
+        controller.openConfirmRun();
+
+        controller.moveRunHighlightDown();
+
+        assertThat(controller.runHighlightIndex()).isEqualTo(1);
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void moveRunHighlightUp_wrapsAround() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection();
+        controller.moveDown();
+        controller.toggleSelection();
+        controller.openConfirmRun();
+
+        controller.moveRunHighlightUp(); // wraps to end
+
+        assertThat(controller.runHighlightIndex()).isEqualTo(1);
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void moveRunRecipeDown_reordersRecipes() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // select Alpha
+        controller.moveDown();
+        controller.toggleSelection(); // select Beta
+        controller.moveDown();
+        controller.toggleSelection(); // select Gamma
+        controller.openConfirmRun();
+
+        controller.moveRunRecipeDown(); // move Alpha down
+
+        assertThat(controller.runOrder()).containsExactly("org.test.Beta", "org.test.Alpha", "org.test.Gamma");
+        assertThat(controller.runHighlightIndex()).isEqualTo(1);
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void moveRunRecipeUp_reordersRecipes() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection();
+        controller.moveDown();
+        controller.toggleSelection();
+        controller.moveDown();
+        controller.toggleSelection();
+        controller.openConfirmRun();
+        controller.moveRunHighlightDown(); // highlight Beta
+
+        controller.moveRunRecipeUp(); // move Beta up
+
+        assertThat(controller.runOrder()).containsExactly("org.test.Beta", "org.test.Alpha", "org.test.Gamma");
+        assertThat(controller.runHighlightIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void toggleRunRecipe_togglesIndividualRecipeSelection() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection();
+        controller.moveDown();
+        controller.toggleSelection();
+        controller.openConfirmRun();
+
+        controller.toggleRunRecipe(); // deselect Alpha
+
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Beta");
+
+        controller.toggleRunRecipe(); // reselect Alpha
+
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void cycleRunSelection_cyclesAllNone() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection();
+        controller.moveDown();
+        controller.toggleSelection();
+        controller.openConfirmRun();
+
+        controller.cycleRunSelection(); // already all selected → deselect all
+
+        assertThat(controller.selectedRecipes()).isEmpty();
+
+        controller.cycleRunSelection(); // none selected → select all in run order
+
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void flattenRunRecipe_replacesCompositeWithSubRecipes() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown(); // highlight Composite
+        controller.toggleSelection(); // select Composite
+        controller.openConfirmRun();
+
+        controller.flattenRunRecipe(); // flatten Composite at index 0
+
+        assertThat(controller.runOrder()).containsExactly("org.test.Sub1", "org.test.Sub2");
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Sub1", "org.test.Sub2");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void flattenRunRecipe_nonComposite_doesNothing() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // select Alpha
+        controller.openConfirmRun();
+
+        controller.flattenRunRecipe();
+
+        assertThat(controller.runOrder()).containsExactly("org.test.Alpha");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void expandRunRecipe_addsToRunExpandedSet() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown(); // highlight Composite
+        controller.toggleSelection();
+        controller.openConfirmRun();
+
+        controller.expandRunRecipe();
+
+        assertThat(controller.runExpandedRecipes()).contains("org.test.Composite");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.14"})
+    void collapseRunRecipe_removesFromRunExpandedSet() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown();
+        controller.toggleSelection();
+        controller.openConfirmRun();
+        controller.expandRunRecipe();
+
+        controller.collapseRunRecipe();
+
+        assertThat(controller.runExpandedRecipes()).doesNotContain("org.test.Composite");
     }
 }

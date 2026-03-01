@@ -63,7 +63,14 @@ public class RecipeDiscoveryService {
     }
 
     private RecipeInfo toRecipeInfo(RecipeDescriptor descriptor) {
+        List<RecipeInfo> subRecipes = descriptor.getRecipeList() != null
+                ? descriptor.getRecipeList().stream().map(this::toRecipeInfo).toList()
+                : List.of();
         return new RecipeInfo(
-                descriptor.getName(), descriptor.getDisplayName(), descriptor.getDescription(), descriptor.getTags());
+                descriptor.getName(),
+                descriptor.getDisplayName(),
+                descriptor.getDescription(),
+                descriptor.getTags(),
+                subRecipes);
     }
 }

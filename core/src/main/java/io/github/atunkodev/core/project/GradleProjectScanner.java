@@ -37,13 +37,16 @@ public class GradleProjectScanner {
 
             List<Path> classpath = new ArrayList<>();
             List<Path> sourceDirs = new ArrayList<>();
+            List<Path> resourceDirs = new ArrayList<>();
+            List<Path> testSourceDirs = new ArrayList<>();
+            List<Path> testResourceDirs = new ArrayList<>();
 
             for (IdeaModule module : ideaProject.getModules()) {
                 classpath.addAll(resolveClasspath(module));
-                sourceDirs.addAll(resolveSourceDirs(module));
+                resolveDirectories(module, sourceDirs, resourceDirs, testSourceDirs, testResourceDirs);
             }
 
-            return new ProjectInfo(classpath, sourceDirs);
+            return new ProjectInfo(classpath, sourceDirs, resourceDirs, testSourceDirs, testResourceDirs);
         }
     }
 
@@ -57,13 +60,25 @@ public class GradleProjectScanner {
         return classpath;
     }
 
-    private List<Path> resolveSourceDirs(IdeaModule module) {
-        List<Path> sourceDirs = new ArrayList<>();
-        for (IdeaContentRoot contentRoot : module.getContentRoots()) {
-            for (IdeaSourceDirectory sourceDir : contentRoot.getSourceDirectories()) {
-                sourceDirs.add(sourceDir.getDirectory().toPath());
+    private void resolveDirectories(
+            IdeaModule module,
+            List<Path> sourceDirs,
+            List<Path> resourceDirs,
+            List<Path> testSourceDirs,
+            List<Path> testResourceDirs) {
+        for (IdeaContentRoot root : module.getContentRoots()) {
+            for (IdeaSourceDirectory d : root.getSourceDirectories()) {
+                sourceDirs.add(d.getDirectory().toPath());
+            }
+            for (IdeaSourceDirectory d : root.getTestDirectories()) {
+                testSourceDirs.add(d.getDirectory().toPath());
+            }
+            for (IdeaSourceDirectory d : root.getResourceDirectories()) {
+                resourceDirs.add(d.getDirectory().toPath());
+            }
+            for (IdeaSourceDirectory d : root.getTestResourceDirectories()) {
+                testResourceDirs.add(d.getDirectory().toPath());
             }
         }
-        return sourceDirs;
     }
 }

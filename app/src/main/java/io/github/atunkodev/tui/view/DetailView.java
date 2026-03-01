@@ -33,28 +33,44 @@ public final class DetailView {
                 ? text("Selected ").fg(Color.LIGHT_GREEN)
                 : text("Not selected ").dim();
 
+        var detailContent = column(
+                row(text("Name: ").bold(), text(recipe.name())),
+                row(text("Display Name: ").bold(), text(BrowserView.cleanDisplayName(recipe.displayName()))),
+                text(""),
+                text("Description:").bold(),
+                text(recipe.description() != null ? recipe.description() : "(none)"),
+                text(""),
+                text("Tags:").bold(),
+                text(recipe.tags().isEmpty() ? "(none)" : String.join(", ", recipe.tags()))
+                        .fg(Color.LIGHT_CYAN));
+
+        if (recipe.isComposite()) {
+            detailContent.add(text(""));
+            detailContent.add(text("Recipe List:").bold());
+            int index = 1;
+            for (RecipeInfo sub : recipe.recipeList()) {
+                detailContent.add(row(
+                        text("  " + index + ". ").fg(Color.LIGHT_YELLOW),
+                        text(BrowserView.cleanDisplayName(sub.displayName())).fg(Color.LIGHT_CYAN)));
+                index++;
+            }
+        }
+
         return column(dock().top(
                                 row(
-                                        text(" " + recipe.displayName()).bold().fg(Color.LIGHT_CYAN),
+                                        text(" " + BrowserView.cleanDisplayName(recipe.displayName()))
+                                                .bold()
+                                                .fg(Color.WHITE)
+                                                .bg(Color.BLUE),
                                         spacer(),
                                         selectionLabel),
                                 Constraint.length(1))
-                        .center(panel(
-                                        "Recipe Detail",
-                                        column(
-                                                row(text("Name: ").bold(), text(recipe.name())),
-                                                row(text("Display Name: ").bold(), text(recipe.displayName())),
-                                                text(""),
-                                                text("Description:").bold(),
-                                                text(recipe.description() != null ? recipe.description() : "(none)"),
-                                                text(""),
-                                                text("Tags:").bold(),
-                                                text(recipe.tags().isEmpty()
-                                                                ? "(none)"
-                                                                : String.join(", ", recipe.tags()))
-                                                        .fg(Color.LIGHT_CYAN)))
-                                .rounded())
-                        .bottom(text(" Esc/q:back Space:toggle selection").dim(), Constraint.length(1))
+                        .center(panel("Recipe Detail", detailContent).rounded().borderColor(Color.LIGHT_CYAN))
+                        .bottom(
+                                text(" Esc/q:back Space:toggle selection")
+                                        .fg(Color.WHITE)
+                                        .bg(Color.indexed(236)),
+                                Constraint.length(1))
                         .constraint(Constraint.fill()))
                 .id("detail")
                 .focusable()

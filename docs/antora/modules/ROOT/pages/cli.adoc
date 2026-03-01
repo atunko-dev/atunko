@@ -24,10 +24,14 @@ atunko        # same as above — tui is the default
 | Option | Description
 
 | `--project-dir <path>`
-| Project directory for recipe execution (default: `.`)
+| Project directory for recipe execution (default: `.`). Uses the Gradle Tooling API to
+resolve source dirs, resource dirs, test dirs, and compile classpath for each module.
+
+| `--log-file <path>`
+| Write TUI debug output to a file (useful for troubleshooting)
 |===
 
-==== Key bindings
+==== Browser key bindings
 
 [cols="1,3"]
 |===
@@ -43,13 +47,10 @@ atunko        # same as above — tui is the default
 | Toggle recipe selection
 
 | `a`
-| Select all visible recipes
-
-| `A`
-| Deselect all recipes
+| Cycle selection (none → all → none)
 
 | `r`
-| Open run confirmation screen
+| Open run dialog with selected recipes
 
 | `t`
 | Open tag browser
@@ -57,15 +58,66 @@ atunko        # same as above — tui is the default
 | `/`
 | Enter search mode (type query, `Enter` to apply, `Esc` to cancel)
 
+| `→` / `e`
+| Expand composite recipe (show sub-recipes)
+
+| `←` / `c`
+| Collapse composite recipe
+
+| `s`
+| Toggle sort order (name / tags)
+
 | `Esc`
 | Clear search and tag filters (reset to full list)
-
-| `←` / `→`
-| Toggle sort order (name / tags)
 
 | `q`
 | Quit
 |===
+
+==== Run dialog key bindings
+
+The run dialog opens when you press `r` from the browser with selected recipes.
+
+[cols="1,3"]
+|===
+| Key | Action
+
+| `↑` / `↓`
+| Navigate run list
+
+| `Space` / `Enter`
+| Toggle individual recipe on/off
+
+| `a`
+| Cycle selection (all/none)
+
+| `+` / `-`
+| Reorder recipes (move highlighted recipe up/down)
+
+| `→` / `e`
+| Expand composite recipe
+
+| `←` / `c`
+| Collapse composite recipe
+
+| `f`
+| Flatten composite (replace with individual sub-recipes)
+
+| `r`
+| Run selected recipes (apply changes)
+
+| `d`
+| Dry-run (preview changes without applying)
+
+| `Esc` / `q`
+| Back to browser
+|===
+
+==== Composite recipes
+
+Recipes that contain sub-recipes are marked with `▶` in the browser.
+Use `→`/`e` to expand and see their sub-recipes, `←`/`c` to collapse.
+In the run dialog, `f` flattens a composite into its individual sub-recipes.
 
 === `list` — List all recipes
 

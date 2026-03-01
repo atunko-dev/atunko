@@ -16,6 +16,9 @@ filters:
         - SVC_CLI_0001.10
         - SVC_CLI_0001.11
         - SVC_CLI_0001.12
+        - SVC_CLI_0001.13
+        - SVC_CLI_0001.14
+        - SVC_CLI_0001.15
         - SVC_CLI_0002
         - SVC_CLI_0002.1
         - SVC_CLI_0002.2

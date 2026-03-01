@@ -77,3 +77,21 @@ The system SHALL implement CLI_0001.12.
 
 #### Scenario: SVC_CLI_0001.12
 The system SHALL pass SVC_CLI_0001.12.
+
+### Requirement: CLI_0001.13
+The system SHALL implement CLI_0001.13.
+
+#### Scenario: SVC_CLI_0001.13
+The system SHALL pass SVC_CLI_0001.13.
+
+### Requirement: CLI_0001.14
+The system SHALL implement CLI_0001.14.
+
+#### Scenario: SVC_CLI_0001.14
+The system SHALL pass SVC_CLI_0001.14.
+
+### Requirement: CLI_0001.15
+The system SHALL implement CLI_0001.15.
+
+#### Scenario: SVC_CLI_0001.15
+The system SHALL pass SVC_CLI_0001.15.

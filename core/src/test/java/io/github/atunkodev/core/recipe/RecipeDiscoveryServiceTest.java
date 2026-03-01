@@ -91,4 +91,31 @@ class RecipeDiscoveryServiceTest {
         assertThat(service.search("")).isEqualTo(all);
         assertThat(service.search("   ")).isEqualTo(all);
     }
+
+    @Test
+    @SVCs({"SVC_CORE_0001.1"})
+    void discoverAll_compositeRecipesExposeSubRecipes() {
+        List<RecipeInfo> recipes = service.discoverAll();
+
+        List<RecipeInfo> composites =
+                recipes.stream().filter(RecipeInfo::isComposite).toList();
+        assertThat(composites).isNotEmpty();
+        assertThat(composites).allSatisfy(recipe -> {
+            assertThat(recipe.recipeList()).isNotEmpty();
+            assertThat(recipe.recipeList())
+                    .allSatisfy(sub -> assertThat(sub.name()).isNotBlank());
+        });
+    }
+
+    @Test
+    @SVCs({"SVC_CORE_0001.1"})
+    void discoverAll_nonCompositeRecipesHaveEmptyRecipeList() {
+        List<RecipeInfo> recipes = service.discoverAll();
+
+        List<RecipeInfo> nonComposites =
+                recipes.stream().filter(r -> !r.isComposite()).toList();
+        assertThat(nonComposites).isNotEmpty();
+        assertThat(nonComposites)
+                .allSatisfy(recipe -> assertThat(recipe.recipeList()).isEmpty());
+    }
 }

@@ -13,8 +13,10 @@ filters:
     requirement_ids:
       includes:
         - CORE_0001
+        - CORE_0001.1
         - CORE_0002
         - CORE_0003
+        - CORE_0003.1
         - CORE_0004
         - CORE_0005
         - CORE_0006

@@ -2,20 +2,37 @@ package io.github.atunkodev.tui;
 
 import dev.tamboui.toolkit.app.ToolkitApp;
 import dev.tamboui.toolkit.element.Element;
+import dev.tamboui.tui.TuiConfig;
+import dev.tamboui.tui.error.ErrorAction;
 import io.github.atunkodev.tui.view.BrowserView;
 import io.github.atunkodev.tui.view.ConfirmRunView;
 import io.github.atunkodev.tui.view.DetailView;
 import io.github.atunkodev.tui.view.ExecutionResultsView;
 import io.github.atunkodev.tui.view.TagBrowserView;
 import io.github.reqstool.annotations.Requirements;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
-@Requirements({"CLI_0001"})
+@Requirements({"CLI_0001", "CLI_0001.15"})
 public class AtunkoTui extends ToolkitApp {
 
     private final TuiController controller;
+    private final Path logFile;
 
     public AtunkoTui(TuiController controller) {
+        this(controller, null);
+    }
+
+    public AtunkoTui(TuiController controller, Path logFile) {
         this.controller = controller;
+        this.logFile = logFile;
+        if (logFile != null) {
+            configureLogging(logFile);
+        }
     }
 
     @Override
@@ -29,7 +46,32 @@ public class AtunkoTui extends ToolkitApp {
         };
     }
 
+    @Override
+    protected TuiConfig configure() {
+        if (logFile != null) {
+            return TuiConfig.builder()
+                    .errorHandler((error, context) -> {
+                        Logger.getLogger("io.github.atunkodev").log(Level.SEVERE, "Render error", error.cause());
+                        return ErrorAction.QUIT_IMMEDIATELY;
+                    })
+                    .build();
+        }
+        return TuiConfig.defaults();
+    }
+
     public void requestQuit() {
         quit();
+    }
+
+    private static void configureLogging(Path logFile) {
+        try {
+            Logger logger = Logger.getLogger("io.github.atunkodev");
+            FileHandler fh = new FileHandler(logFile.toString());
+            fh.setFormatter(new SimpleFormatter());
+            logger.addHandler(fh);
+            logger.setLevel(Level.FINE);
+        } catch (IOException e) {
+            System.err.println("Warning: could not open log file " + logFile + ": " + e.getMessage());
+        }
     }
 }
