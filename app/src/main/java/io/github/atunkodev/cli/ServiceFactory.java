@@ -1,10 +1,12 @@
 package io.github.atunkodev.cli;
 
+import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
 import io.github.atunkodev.core.project.JavaSourceParser;
 import io.github.atunkodev.core.recipe.EnvironmentProvider;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
+import io.github.atunkodev.tui.TuiCommand;
 import picocli.CommandLine;
 
 /**
@@ -28,6 +30,9 @@ public class ServiceFactory implements CommandLine.IFactory {
         if (cls == RunCommand.class) {
             return cls.cast(new RunCommand(
                     new RecipeExecutionEngine(environmentProvider), new JavaSourceParser(), new ChangeApplier()));
+        }
+        if (cls == TuiCommand.class) {
+            return cls.cast(new TuiCommand(discoveryService, new RunConfigService()));
         }
         return defaultFactory.create(cls);
     }
