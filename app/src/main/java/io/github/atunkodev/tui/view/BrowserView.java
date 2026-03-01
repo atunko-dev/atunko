@@ -113,6 +113,8 @@ public final class BrowserView {
                 textInput(SEARCH_STATE)
                         .placeholder("Search recipes...")
                         .rounded()
+                        .focusable(false)
+                        .cursorRequiresFocus(false)
                         .constraint(Constraint.length(40)),
                 spacer(),
                 tabs(SortOrder.NAME.name(), SortOrder.TAGS.name())
