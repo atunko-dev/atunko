@@ -12,7 +12,7 @@ import picocli.CommandLine.Spec;
 
 @Command(
         name = "atunko",
-        description = "OpenRewrite recipe discovery, execution, and configuration",
+        description = "OpenRewrite recipe browsing, execution, and configuration",
         mixinStandardHelpOptions = true,
         subcommands = {ListCommand.class, SearchCommand.class, RunCommand.class})
 public class App implements Runnable {

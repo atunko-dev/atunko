@@ -2,7 +2,7 @@
 
 **atunkọ** (Yoruba) — _the act of rewriting/rebuilding_, from *atun* (again) + *kọ* (to write/build)
 
-An open-source TUI + CLI tool for OpenRewrite — recipe discovery, browsing, configuration,
+An open-source TUI + CLI tool for OpenRewrite — recipe browsing, search, configuration,
 execution, and saveable run configurations.
 
 ## Architecture
