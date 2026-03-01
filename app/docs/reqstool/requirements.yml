@@ -13,6 +13,18 @@ filters:
     requirement_ids:
       includes:
         - CLI_0001
+        - CLI_0001.1
+        - CLI_0001.2
+        - CLI_0001.3
+        - CLI_0001.4
+        - CLI_0001.5
+        - CLI_0001.6
+        - CLI_0001.7
+        - CLI_0001.8
+        - CLI_0001.9
+        - CLI_0001.10
+        - CLI_0001.11
+        - CLI_0001.12
         - CLI_0002
         - CLI_0002.1
         - CLI_0002.2

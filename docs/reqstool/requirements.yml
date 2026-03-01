@@ -11,14 +11,125 @@ implementations:
     - path: ../../app/docs/reqstool
 
 requirements:
-  # CLI requirements
+  # CLI requirements — TUI
   - id: CLI_0001
     title: TUI Launch
     significance: shall
-    description: The tool shall launch an interactive TUI when invoked without subcommands
+    description: >-
+      The tool shall launch an interactive TUI when invoked without subcommands,
+      providing recipe browsing, search, selection, configuration, and execution
+    categories: [interaction-capability]
+    revision: 0.2.0
+
+  - id: CLI_0001.1
+    title: TUI — Recipe Table
+    significance: shall
+    description: The TUI shall display a scrollable table of recipes with name, description, and tags
+    references:
+      requirement_ids: ["CLI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: CLI_0001.2
+    title: TUI — Recipe Detail Panel
+    significance: shall
+    description: The TUI shall show a side panel with recipe details when a recipe is highlighted
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0001.3
+    title: TUI — Search Filter
+    significance: shall
+    description: The TUI shall support real-time search filtering of the recipe list
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0001.4
+    title: TUI — Recipe Detail View
+    significance: shall
+    description: The TUI shall display a full-screen detail view when a recipe is selected
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0001.5
+    title: TUI — Multi-Select
+    significance: shall
+    description: The TUI shall support selecting multiple recipes for batch operations
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0001.6
+    title: TUI — Recipe Ordering
+    significance: shall
+    description: The TUI shall support sorting recipes by name or tags
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0001.7
+    title: TUI — Recipe Options
+    significance: shall
+    description: The TUI shall allow configuring recipe options before execution
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0001.8
+    title: TUI — Dry-Run Preview
+    significance: shall
+    description: The TUI shall show a preview of changes before applying recipes
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0001.9
+    title: TUI — Recipe Execution
+    significance: shall
+    description: The TUI shall execute selected recipes and display results
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0001.10
+    title: TUI — Save Run Config
+    significance: shall
+    description: The TUI shall support saving the current recipe setup to a portable YAML file
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0001.11
+    title: TUI — Tag Browser
+    significance: shall
+    description: The TUI shall provide a tag-based browser for filtering recipes by tag
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: CLI_0001.12
+    title: TUI — Keyboard Navigation
+    significance: shall
+    description: The TUI shall support keyboard navigation and shortcuts for all interactions
+    references:
+      requirement_ids: ["CLI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  # CLI requirements — list/search/run
   - id: CLI_0002
     title: CLI Recipe Listing
     significance: shall
