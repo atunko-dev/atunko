@@ -12,8 +12,9 @@ with or endorsed by Moderne.
 
 == Features
 
-* **Recipe Discovery** — Browse and search all available OpenRewrite recipes
-* **Recipe Execution** — Run recipes against your project from the command line
+* **Interactive TUI** — Browse, search, and select recipes in a full-screen terminal UI
+* **CLI Commands** — List, search, and run recipes from the command line
+* **Recipe Execution** — Run recipes against your project
 * **Run Configurations** — Save and load recipe setups as portable `.atunko.yml` files
 * **Project Scanning** — Gradle and Maven project support for classpath resolution
 
@@ -24,12 +25,12 @@ with or endorsed by Moderne.
 # Requires Java 25+
 ./gradlew build
 
-# Launch TUI
+# Launch interactive TUI (default command)
 ./gradlew :app:run
 
 # CLI commands
-./gradlew :app:run --args="discover"
-./gradlew :app:run --args="discover --search 'spring boot'"
+./gradlew :app:run --args="list"
+./gradlew :app:run --args="search 'spring boot'"
 ./gradlew :app:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
 ----
 

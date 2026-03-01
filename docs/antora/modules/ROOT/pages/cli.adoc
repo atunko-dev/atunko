@@ -1,22 +1,61 @@
 = CLI Usage
 :description: Command reference for atunko CLI
 
-atunko provides a CLI interface for headless and scripted usage of OpenRewrite recipes.
+atunko provides a CLI interface for headless and scripted usage of OpenRewrite recipes,
+plus an interactive TUI for browsing and selecting recipes.
 
 == Commands
 
-=== `discover` — List and search recipes
+=== `tui` — Interactive recipe browser
 
-List all available OpenRewrite recipes or filter by keyword.
+Launch the full-screen terminal UI for browsing, searching, and selecting recipes.
+This is the default command when no subcommand is specified.
+
+[source,bash]
+----
+atunko tui
+atunko        # same as above — tui is the default
+----
+
+==== Key bindings
+
+[cols="1,3"]
+|===
+| Key | Action
+
+| `↑` / `↓`
+| Navigate recipe list
+
+| `Enter`
+| Open recipe detail view
+
+| `Space`
+| Toggle recipe selection
+
+| `t`
+| Open tag browser
+
+| `/`
+| Enter search mode (type query, `Enter` to apply, `Esc` to cancel)
+
+| `←` / `→`
+| Toggle sort order (name / tags)
+
+| `q`
+| Quit
+|===
+
+=== `list` — List all recipes
+
+List all available OpenRewrite recipes.
 
 [source,bash]
 ----
 # List all recipes
-atunko discover
+atunko list
 
-# Search for recipes matching a keyword
-atunko discover --search "spring boot"
-atunko discover --search "unused imports"
+# List sorted by tags in table format
+atunko list --sort tags --format table
 ----
 
 ==== Options
@@ -25,11 +64,50 @@ atunko discover --search "unused imports"
 |===
 | Option | Description
 
-| `--search <query>`
-| Filter recipes by keyword (matches against name, description, and tags)
+| `--sort <name\|tags>`
+| Sort order: by recipe name (default) or by tags
+
+| `--format <text\|table>`
+| Output format: plain text (default) or table
 
 | `--help`
-| Show help for the discover command
+| Show help for the list command
+|===
+
+=== `search` — Search recipes
+
+Search for OpenRewrite recipes matching a keyword.
+
+[source,bash]
+----
+# Search for recipes matching a keyword
+atunko search "spring boot"
+atunko search "unused imports"
+
+# Search in a specific field
+atunko search "spring" --field name --format table
+----
+
+==== Options
+
+[cols="1,3"]
+|===
+| Option | Description
+
+| `<query>`
+| Search keyword (matches against name, description, and tags by default)
+
+| `--field <name\|description\|tags\|all>`
+| Restrict search to a specific field (default: all)
+
+| `--sort <name\|tags>`
+| Sort order: by recipe name (default) or by tags
+
+| `--format <text\|table>`
+| Output format: plain text (default) or table
+
+| `--help`
+| Show help for the search command
 |===
 
 === `run` — Execute a recipe
@@ -67,7 +145,8 @@ During development, commands can be run via Gradle:
 
 [source,bash]
 ----
-./gradlew :app:run --args="discover"
-./gradlew :app:run --args="discover --search 'spring boot'"
+./gradlew :app:run                           # Launch TUI (default)
+./gradlew :app:run --args="list"             # List all recipes
+./gradlew :app:run --args="search 'spring'"  # Search recipes
 ./gradlew :app:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
 ----

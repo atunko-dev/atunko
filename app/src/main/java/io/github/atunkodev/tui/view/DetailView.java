@@ -47,19 +47,20 @@ public final class DetailView {
                                         text(""),
                                         text("Tags:").bold(),
                                         text(recipe.tags().isEmpty() ? "(none)" : String.join(", ", recipe.tags()))))
-                        .rounded()
-                        .focusable()
-                        .onKeyEvent(event -> {
-                            if (event.character() == 'q' || event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
-                                controller.goBack();
-                                return EventResult.HANDLED;
-                            }
-                            if (event.character() == ' ') {
-                                controller.toggleSelection();
-                                return EventResult.HANDLED;
-                            }
-                            return EventResult.UNHANDLED;
-                        }))
-                .bottom(text(" Esc/q:back Space:toggle selection").dim(), Constraint.length(1));
+                        .rounded())
+                .bottom(text(" Esc/q:back Space:toggle selection").dim(), Constraint.length(1))
+                .id("detail")
+                .focusable()
+                .onKeyEvent(event -> {
+                    if (event.isChar('q') || event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
+                        controller.goBack();
+                        return EventResult.HANDLED;
+                    }
+                    if (event.isChar(' ')) {
+                        controller.toggleSelection();
+                        return EventResult.HANDLED;
+                    }
+                    return EventResult.UNHANDLED;
+                });
     }
 }

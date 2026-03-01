@@ -2,6 +2,7 @@ package io.github.atunkodev.tui.view;
 
 import static dev.tamboui.toolkit.Toolkit.column;
 import static dev.tamboui.toolkit.Toolkit.dock;
+import static dev.tamboui.toolkit.Toolkit.handleTextInputKey;
 import static dev.tamboui.toolkit.Toolkit.list;
 import static dev.tamboui.toolkit.Toolkit.panel;
 import static dev.tamboui.toolkit.Toolkit.row;
@@ -32,9 +33,75 @@ public final class BrowserView {
         List<RecipeInfo> recipes = controller.recipes();
 
         return dock().top(renderHeader(controller), Constraint.length(3))
-                .center(row(renderRecipeList(controller, recipes, app), renderDetailPanel(controller))
+                .center(row(renderRecipeList(controller, recipes), renderDetailPanel(controller))
                         .constraint(Constraint.fill()))
-                .bottom(renderStatusBar(controller, recipes), Constraint.length(1));
+                .bottom(renderStatusBar(controller, recipes), Constraint.length(1))
+                .id("browser")
+                .focusable()
+                .onKeyEvent(event -> handleKeyEvent(controller, app, event));
+    }
+
+    private static EventResult handleKeyEvent(
+            TuiController controller, AtunkoTui app, dev.tamboui.tui.event.KeyEvent event) {
+        if (controller.isSearchMode()) {
+            return handleSearchModeKey(controller, event);
+        }
+        return handleBrowseModeKey(controller, app, event);
+    }
+
+    private static EventResult handleSearchModeKey(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
+        if (event.isConfirm()) {
+            controller.setSearchQuery(SEARCH_STATE.text());
+            controller.exitSearchMode();
+            return EventResult.HANDLED;
+        }
+        if (event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
+            SEARCH_STATE.clear();
+            controller.setSearchQuery("");
+            controller.exitSearchMode();
+            return EventResult.HANDLED;
+        }
+        if (handleTextInputKey(SEARCH_STATE, event)) {
+            return EventResult.HANDLED;
+        }
+        return EventResult.UNHANDLED;
+    }
+
+    private static EventResult handleBrowseModeKey(
+            TuiController controller, AtunkoTui app, dev.tamboui.tui.event.KeyEvent event) {
+        if (event.isDown()) {
+            controller.moveDown();
+            return EventResult.HANDLED;
+        }
+        if (event.isUp()) {
+            controller.moveUp();
+            return EventResult.HANDLED;
+        }
+        if (event.isConfirm()) {
+            controller.openDetail();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar(' ')) {
+            controller.toggleSelection();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('t')) {
+            controller.openTagBrowser();
+            return EventResult.HANDLED;
+        }
+        if (event.isQuit() || event.isChar('q')) {
+            app.requestQuit();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('/')) {
+            controller.enterSearchMode();
+            return EventResult.HANDLED;
+        }
+        if (event.isLeft() || event.isRight()) {
+            controller.setSortOrder(controller.sortOrder() == SortOrder.NAME ? SortOrder.TAGS : SortOrder.NAME);
+            return EventResult.HANDLED;
+        }
+        return EventResult.UNHANDLED;
     }
 
     private static Element renderHeader(TuiController controller) {
@@ -45,29 +112,13 @@ public final class BrowserView {
                 textInput(SEARCH_STATE)
                         .placeholder("Search recipes...")
                         .rounded()
-                        .constraint(Constraint.length(40))
-                        .focusable()
-                        .onKeyEvent(event -> {
-                            if (event.code() == dev.tamboui.tui.event.KeyCode.ENTER) {
-                                controller.setSearchQuery(SEARCH_STATE.text());
-                                return EventResult.HANDLED;
-                            }
-                            return EventResult.UNHANDLED;
-                        }),
+                        .constraint(Constraint.length(40)),
                 spacer(),
                 tabs(SortOrder.NAME.name(), SortOrder.TAGS.name())
-                        .selected(controller.sortOrder() == SortOrder.NAME ? 0 : 1)
-                        .onKeyEvent(event -> {
-                            if (event.isLeft() || event.isRight()) {
-                                controller.setSortOrder(
-                                        controller.sortOrder() == SortOrder.NAME ? SortOrder.TAGS : SortOrder.NAME);
-                                return EventResult.HANDLED;
-                            }
-                            return EventResult.UNHANDLED;
-                        }));
+                        .selected(controller.sortOrder() == SortOrder.NAME ? 0 : 1));
     }
 
-    private static Element renderRecipeList(TuiController controller, List<RecipeInfo> recipes, AtunkoTui app) {
+    private static Element renderRecipeList(TuiController controller, List<RecipeInfo> recipes) {
         var listItems = recipes.stream()
                 .map(r -> {
                     boolean selected = controller.selectedRecipes().contains(r.name());
@@ -82,38 +133,7 @@ public final class BrowserView {
                 .title("Recipes")
                 .rounded()
                 .autoScroll()
-                .constraint(Constraint.fill(2))
-                .focusable()
-                .onKeyEvent(event -> {
-                    if (event.isDown()) {
-                        controller.moveDown();
-                        return EventResult.HANDLED;
-                    }
-                    if (event.isUp()) {
-                        controller.moveUp();
-                        return EventResult.HANDLED;
-                    }
-                    if (event.isConfirm()) {
-                        controller.openDetail();
-                        return EventResult.HANDLED;
-                    }
-                    if (event.character() == ' ') {
-                        controller.toggleSelection();
-                        return EventResult.HANDLED;
-                    }
-                    if (event.character() == 't') {
-                        controller.openTagBrowser();
-                        return EventResult.HANDLED;
-                    }
-                    if (event.character() == 'q') {
-                        app.requestQuit();
-                        return EventResult.HANDLED;
-                    }
-                    if (event.character() == '/') {
-                        return EventResult.FOCUS_NEXT;
-                    }
-                    return EventResult.UNHANDLED;
-                });
+                .constraint(Constraint.fill(2));
     }
 
     private static Element renderDetailPanel(TuiController controller) {
@@ -141,7 +161,7 @@ public final class BrowserView {
         int selected = controller.selectedRecipes().size();
         String status = recipes.size() + " recipes"
                 + (selected > 0 ? " | " + selected + " selected" : "")
-                + " | ↑↓:navigate Space:select Enter:detail t:tags q:quit /:search";
+                + " | ↑↓:navigate Space:select Enter:detail t:tags q:quit /:search ←→:sort";
         return text(" " + status).dim();
     }
 }

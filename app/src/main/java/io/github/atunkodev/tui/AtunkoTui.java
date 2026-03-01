@@ -22,7 +22,7 @@ public class AtunkoTui extends ToolkitApp {
         return switch (controller.currentScreen()) {
             case BROWSER -> BrowserView.render(controller, this);
             case DETAIL -> DetailView.render(controller);
-            case TAG_BROWSER -> TagBrowserView.render(controller, this);
+            case TAG_BROWSER -> TagBrowserView.render(controller);
             case EXECUTION_RESULTS -> ExecutionResultsView.render(controller);
             case RUN_CONFIG -> BrowserView.render(controller, this);
         };

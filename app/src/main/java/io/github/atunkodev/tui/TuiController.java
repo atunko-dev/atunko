@@ -27,6 +27,7 @@ public class TuiController {
     private int highlightedIndex;
     private final Set<String> selectedRecipes = new LinkedHashSet<>();
     private String tagFilter = "";
+    private boolean searchMode;
     private ExecutionResult executionResult;
     private boolean lastRunWasDryRun;
 
@@ -64,6 +65,19 @@ public class TuiController {
         List<RecipeInfo> sorted = new ArrayList<>(filtered);
         sorted.sort(sortOrder.comparator());
         return List.copyOf(sorted);
+    }
+
+    public boolean isSearchMode() {
+        return searchMode;
+    }
+
+    @Requirements({"CLI_0001.3"})
+    public void enterSearchMode() {
+        this.searchMode = true;
+    }
+
+    public void exitSearchMode() {
+        this.searchMode = false;
     }
 
     @Requirements({"CLI_0001.3"})

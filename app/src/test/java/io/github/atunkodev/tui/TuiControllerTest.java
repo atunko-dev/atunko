@@ -52,6 +52,29 @@ class TuiControllerTest {
         assertThat(visible.get(0).tags()).containsExactlyInAnyOrder("java", "testing");
     }
 
+    // --- Search Mode ---
+
+    @Test
+    @SVCs({"SVC_CLI_0001.3"})
+    void enterSearchMode_enablesSearchMode() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.enterSearchMode();
+
+        assertThat(controller.isSearchMode()).isTrue();
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.3"})
+    void exitSearchMode_disablesSearchMode() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.enterSearchMode();
+
+        controller.exitSearchMode();
+
+        assertThat(controller.isSearchMode()).isFalse();
+    }
+
     // --- Search and Sort ---
 
     @Test

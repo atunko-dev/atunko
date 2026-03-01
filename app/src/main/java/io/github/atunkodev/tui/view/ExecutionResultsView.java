@@ -41,18 +41,16 @@ public final class ExecutionResultsView {
                                 spacer(),
                                 text(summary + " ").dim()),
                         Constraint.length(1))
-                .center(list(items)
-                        .title("Changed Files")
-                        .rounded()
-                        .autoScroll()
-                        .focusable()
-                        .onKeyEvent(event -> {
-                            if (event.character() == 'q' || event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
-                                controller.goBack();
-                                return EventResult.HANDLED;
-                            }
-                            return EventResult.UNHANDLED;
-                        }))
-                .bottom(text(" Esc/q:back").dim(), Constraint.length(1));
+                .center(list(items).title("Changed Files").rounded().autoScroll())
+                .bottom(text(" Esc/q:back").dim(), Constraint.length(1))
+                .id("execution-results")
+                .focusable()
+                .onKeyEvent(event -> {
+                    if (event.isChar('q') || event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
+                        controller.goBack();
+                        return EventResult.HANDLED;
+                    }
+                    return EventResult.UNHANDLED;
+                });
     }
 }

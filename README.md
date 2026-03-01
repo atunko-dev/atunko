@@ -34,16 +34,40 @@ The fat JAR is produced at `app/build/libs/atunko.jar`.
 
 ## Usage
 
-### Discover recipes
+### Interactive TUI
+
+```bash
+# Launch the interactive recipe browser (default command)
+java -jar app/build/libs/atunko.jar tui
+```
+
+Key bindings: `↑↓` navigate, `Enter` open detail, `Space` toggle selection,
+`t` tag browser, `/` search, `←→` sort order, `q` quit.
+
+### List recipes
 
 ```bash
 # List all available recipes
-java -jar app/build/libs/atunko.jar discover
+java -jar app/build/libs/atunko.jar list
 
-# Search for recipes by keyword
-java -jar app/build/libs/atunko.jar discover --search "spring boot"
-java -jar app/build/libs/atunko.jar discover --search "unused imports"
+# List with sorting and output format
+java -jar app/build/libs/atunko.jar list --sort tags --format table
 ```
+
+Options: `--sort <name|tags>`, `--format <text|table>`.
+
+### Search recipes
+
+```bash
+# Search for recipes by keyword
+java -jar app/build/libs/atunko.jar search "spring boot"
+java -jar app/build/libs/atunko.jar search "unused imports"
+
+# Search in specific fields
+java -jar app/build/libs/atunko.jar search "spring" --field name --format table
+```
+
+Options: `--field <name|description|tags|all>`, `--sort <name|tags>`, `--format <text|table>`.
 
 ### Run a recipe
 
@@ -62,7 +86,9 @@ Options:
 During development you can run commands directly via Gradle:
 
 ```bash
-./gradlew :app:run --args="discover"
+./gradlew :app:run                           # Launch TUI (default)
+./gradlew :app:run --args="list"             # List all recipes
+./gradlew :app:run --args="search 'spring'"  # Search recipes
 ./gradlew :app:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
 ```
 

@@ -26,7 +26,7 @@ atunko/
 ./gradlew :core:test               # Core module tests only
 ./gradlew :app:test                # App module tests only
 ./gradlew :app:run                 # Launch TUI (default)
-./gradlew :app:run --args="discover"  # Run CLI command
+./gradlew :app:run --args="list"      # Run CLI command
 ./gradlew spotlessApply            # Auto-fix formatting (Palantir Java Format)
 ./gradlew spotlessCheck            # Check formatting (CI mode — fails on violations)
 ./gradlew checkstyleMain           # Run Checkstyle on main source
@@ -69,6 +69,11 @@ Three layers of automated quality checks run on every build:
 - **OpenRewrite** (`rewrite-recipe-bom:3.25.0`) — code transformation engine
 - **Picocli** (`4.7.7`) — CLI framework
 - **TamboUI** (`0.2.0-SNAPSHOT`) — TUI framework (snapshot from Sonatype)
+  - Docs: https://tamboui.dev/docs/main
+  - Canonical pattern: `.id("x").focusable().onKeyEvent(handler)` on outermost element per screen
+  - Single handler per screen, not per widget — inner widgets should NOT be focusable
+  - Character input: use `Toolkit.handleTextInputKey(state, event)` manually in the handler
+  - GitHub discussions: https://github.com/tamboui/tamboui/discussions
 - **Gradle Tooling API** (`9.3.1`) — project scanning (from Gradle's repo)
 - **reqstool annotations** (`1.0.0`) — requirements traceability
 
