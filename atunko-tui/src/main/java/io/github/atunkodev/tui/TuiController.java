@@ -26,10 +26,10 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.openrewrite.SourceFile;
 
-@Requirements({"atunko:CLI_0001"})
+@Requirements({"atunko:TUI_0001"})
 public class TuiController {
 
-    public record DisplayRow(RecipeInfo recipe, boolean isSubRecipe, String parentName, int depth) {}
+    public record DisplayRow(RecipeInfo recipe, boolean isSubRecipe, String parentName, int depth, String path) {}
 
     public static final class RecipeListState {
 
@@ -51,19 +51,21 @@ public class TuiController {
         public List<DisplayRow> displayRows() {
             List<DisplayRow> rows = new ArrayList<>();
             for (RecipeInfo r : source.topLevelRecipes()) {
-                rows.add(new DisplayRow(r, false, null, 0));
+                String path = r.name();
+                rows.add(new DisplayRow(r, false, null, 0, path));
                 if (expandedRecipes.contains(r.name()) && r.isComposite()) {
-                    addSubRows(rows, r, 1);
+                    addSubRows(rows, r, 1, path);
                 }
             }
             return List.copyOf(rows);
         }
 
-        private void addSubRows(List<DisplayRow> rows, RecipeInfo parent, int depth) {
+        private void addSubRows(List<DisplayRow> rows, RecipeInfo parent, int depth, String parentPath) {
             for (RecipeInfo sub : parent.recipeList()) {
-                rows.add(new DisplayRow(sub, true, parent.name(), depth));
+                String path = parentPath + "/" + sub.name();
+                rows.add(new DisplayRow(sub, true, parent.name(), depth, path));
                 if (expandedRecipes.contains(sub.name()) && sub.isComposite()) {
-                    addSubRows(rows, sub, depth + 1);
+                    addSubRows(rows, sub, depth + 1, path);
                 }
             }
         }
@@ -269,12 +271,12 @@ public class TuiController {
         return browserState.expandedRecipes();
     }
 
-    @Requirements({"atunko:CLI_0001.13"})
+    @Requirements({"atunko:TUI_0001.13"})
     public void expandRecipe(String recipeName) {
         browserState.expand(recipeName);
     }
 
-    @Requirements({"atunko:CLI_0001.13"})
+    @Requirements({"atunko:TUI_0001.13"})
     public void collapseRecipe(String recipeName) {
         browserState.collapse(recipeName);
     }
@@ -287,7 +289,54 @@ public class TuiController {
         return allRecipes.stream().filter(r -> r.name().equals(name)).findFirst();
     }
 
-    @Requirements({"atunko:CLI_0001.12", "atunko:CLI_0001.13"})
+    @Requirements({"atunko:TUI_0001.16"})
+    public Set<String> coveredRecipes() {
+        Set<String> covered = new LinkedHashSet<>();
+        for (String name : selectedRecipes) {
+            findRecipe(name).ifPresent(recipe -> {
+                if (recipe.isComposite()) {
+                    collectSubRecipeNames(recipe, covered);
+                }
+            });
+        }
+        return Set.copyOf(covered);
+    }
+
+    private void collectSubRecipeNames(RecipeInfo composite, Set<String> result) {
+        for (RecipeInfo sub : composite.recipeList()) {
+            result.add(sub.name());
+            if (sub.isComposite()) {
+                collectSubRecipeNames(sub, result);
+            }
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.16"})
+    public List<String> includedIn(String recipeName) {
+        List<String> parents = new ArrayList<>();
+        for (String name : selectedRecipes) {
+            findRecipe(name).ifPresent(recipe -> {
+                if (recipe.isComposite() && containsSubRecipe(recipe, recipeName)) {
+                    parents.add(recipe.displayName());
+                }
+            });
+        }
+        return List.copyOf(parents);
+    }
+
+    private boolean containsSubRecipe(RecipeInfo composite, String recipeName) {
+        for (RecipeInfo sub : composite.recipeList()) {
+            if (sub.name().equals(recipeName)) {
+                return true;
+            }
+            if (sub.isComposite() && containsSubRecipe(sub, recipeName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Requirements({"atunko:TUI_0001.12", "atunko:TUI_0001.13"})
     public List<DisplayRow> displayRows() {
         return browserState.displayRows();
     }
@@ -298,7 +347,7 @@ public class TuiController {
 
     // --- Search ---
 
-    @Requirements({"atunko:CLI_0001.3"})
+    @Requirements({"atunko:TUI_0001.3"})
     public void enterSearchMode() {
         this.searchMode = true;
     }
@@ -307,13 +356,13 @@ public class TuiController {
         this.searchMode = false;
     }
 
-    @Requirements({"atunko:CLI_0001.3"})
+    @Requirements({"atunko:TUI_0001.3"})
     public void setSearchQuery(String query) {
         this.searchQuery = query;
         browserState.resetHighlight();
     }
 
-    @Requirements({"atunko:CLI_0001.6"})
+    @Requirements({"atunko:TUI_0001.6"})
     public void setSortOrder(SortOrder order) {
         this.sortOrder = order;
     }
@@ -324,37 +373,37 @@ public class TuiController {
 
     // --- Navigation ---
 
-    @Requirements({"atunko:CLI_0001.12"})
+    @Requirements({"atunko:TUI_0001.12"})
     public void moveDown() {
         browserState.moveDown();
     }
 
-    @Requirements({"atunko:CLI_0001.12"})
+    @Requirements({"atunko:TUI_0001.12"})
     public void moveUp() {
         browserState.moveUp();
     }
 
     // --- Selection ---
 
-    @Requirements({"atunko:CLI_0001.5"})
+    @Requirements({"atunko:TUI_0001.5"})
     public void toggleSelection() {
         browserState.toggleSelection();
     }
 
-    @Requirements({"atunko:CLI_0001.5"})
+    @Requirements({"atunko:TUI_0001.5"})
     public void cycleSelection() {
         browserState.cycleSelection(true);
         LOG.fine(() -> "Cycle selection: " + selectedRecipes.size() + " selected");
     }
 
-    @Requirements({"atunko:CLI_0001.13"})
+    @Requirements({"atunko:TUI_0001.13"})
     public void collapseHighlighted() {
         browserState.collapseHighlighted();
     }
 
     // --- Screen navigation ---
 
-    @Requirements({"atunko:CLI_0001.4"})
+    @Requirements({"atunko:TUI_0001.4"})
     public void openDetail() {
         currentScreen = Screen.DETAIL;
     }
@@ -363,32 +412,32 @@ public class TuiController {
         currentScreen = Screen.BROWSER;
     }
 
-    @Requirements({"atunko:CLI_0001.11"})
+    @Requirements({"atunko:TUI_0001.11"})
     public void openTagBrowser() {
         currentScreen = Screen.TAG_BROWSER;
     }
 
-    @Requirements({"atunko:CLI_0001.11"})
+    @Requirements({"atunko:TUI_0001.11"})
     public List<String> allTags() {
         Set<String> tags = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         allRecipes.forEach(r -> tags.addAll(r.tags()));
         return List.copyOf(tags);
     }
 
-    @Requirements({"atunko:CLI_0001.11"})
+    @Requirements({"atunko:TUI_0001.11"})
     public void toggleTag(String tag) {
         if (!selectedTags.remove(tag)) {
             selectedTags.add(tag);
         }
     }
 
-    @Requirements({"atunko:CLI_0001.11"})
+    @Requirements({"atunko:TUI_0001.11"})
     public void applyTagFilter() {
         browserState.resetHighlight();
         this.currentScreen = Screen.BROWSER;
     }
 
-    @Requirements({"atunko:CLI_0001.11"})
+    @Requirements({"atunko:TUI_0001.11"})
     public void clearTagFilter() {
         this.selectedTags.clear();
         browserState.resetHighlight();
@@ -415,7 +464,7 @@ public class TuiController {
         return runState != null ? runState.expandedRecipes() : Set.of();
     }
 
-    @Requirements({"atunko:CLI_0001.14"})
+    @Requirements({"atunko:TUI_0001.14"})
     public void openConfirmRun() {
         runOrder = new ArrayList<>(selectedRecipes);
         runState = new RecipeListState(this::resolveRunRecipes, selectedRecipes);
@@ -431,26 +480,26 @@ public class TuiController {
         return result;
     }
 
-    @Requirements({"atunko:CLI_0001.14"})
+    @Requirements({"atunko:TUI_0001.14"})
     public List<DisplayRow> runDisplayRows() {
         return runState != null ? runState.displayRows() : List.of();
     }
 
-    @Requirements({"atunko:CLI_0001.14"})
+    @Requirements({"atunko:TUI_0001.14"})
     public void moveRunHighlightUp() {
         if (runState != null) {
             runState.moveUp();
         }
     }
 
-    @Requirements({"atunko:CLI_0001.14"})
+    @Requirements({"atunko:TUI_0001.14"})
     public void moveRunHighlightDown() {
         if (runState != null) {
             runState.moveDown();
         }
     }
 
-    @Requirements({"atunko:CLI_0001.14"})
+    @Requirements({"atunko:TUI_0001.14"})
     public void moveRunRecipeUp() {
         if (runState == null) {
             return;
@@ -478,7 +527,7 @@ public class TuiController {
         }
     }
 
-    @Requirements({"atunko:CLI_0001.14"})
+    @Requirements({"atunko:TUI_0001.14"})
     public void moveRunRecipeDown() {
         if (runState == null) {
             return;
@@ -506,35 +555,35 @@ public class TuiController {
         }
     }
 
-    @Requirements({"atunko:CLI_0001.14"})
+    @Requirements({"atunko:TUI_0001.14"})
     public void toggleRunRecipe() {
         if (runState != null) {
             runState.toggleSelection();
         }
     }
 
-    @Requirements({"atunko:CLI_0001.14"})
+    @Requirements({"atunko:TUI_0001.14"})
     public void cycleRunSelection() {
         if (runState != null) {
             runState.cycleSelection(false);
         }
     }
 
-    @Requirements({"atunko:CLI_0001.14"})
+    @Requirements({"atunko:TUI_0001.14"})
     public void expandRunRecipe() {
         if (runState != null) {
             runState.expandHighlighted();
         }
     }
 
-    @Requirements({"atunko:CLI_0001.14"})
+    @Requirements({"atunko:TUI_0001.14"})
     public void collapseRunRecipe() {
         if (runState != null) {
             runState.collapseHighlighted();
         }
     }
 
-    @Requirements({"atunko:CLI_0001.14"})
+    @Requirements({"atunko:TUI_0001.14"})
     public void flattenRunRecipe() {
         if (runState == null) {
             return;
@@ -573,14 +622,14 @@ public class TuiController {
         return lastRunWasDryRun;
     }
 
-    @Requirements({"atunko:CLI_0001.8"})
+    @Requirements({"atunko:TUI_0001.8"})
     public void showDryRunResult(ExecutionResult result) {
         this.executionResult = result;
         this.lastRunWasDryRun = true;
         this.currentScreen = Screen.EXECUTION_RESULTS;
     }
 
-    @Requirements({"atunko:CLI_0001.9"})
+    @Requirements({"atunko:TUI_0001.9"})
     public void showExecutionResult(ExecutionResult result) {
         this.executionResult = result;
         this.lastRunWasDryRun = false;
@@ -591,7 +640,7 @@ public class TuiController {
         return projectDir;
     }
 
-    @Requirements({"atunko:CLI_0001.8", "atunko:CLI_0001.9"})
+    @Requirements({"atunko:TUI_0001.8", "atunko:TUI_0001.9"})
     public void runSelectedRecipes(boolean dryRun) {
         if (engine == null || sourceParser == null) {
             return;
@@ -626,7 +675,7 @@ public class TuiController {
         }
     }
 
-    @Requirements({"atunko:CLI_0001.10"})
+    @Requirements({"atunko:TUI_0001.10"})
     public void saveRunConfig(Path file) throws IOException {
         RunConfig config = new RunConfig(List.copyOf(selectedRecipes));
         runConfigService.save(config, file);

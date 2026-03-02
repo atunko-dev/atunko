@@ -1,7 +1,7 @@
 ## Context
 
 The CLI is fully implemented with `list`, `search`, and `run` subcommands. When `atunko` is
-invoked without subcommands, `App.run()` prints usage text. CLI_0001 requires an interactive
+invoked without subcommands, `App.run()` prints usage text. TUI_0001 requires an interactive
 TUI accessible via `atunko tui` subcommand. The default (no subcommand) remains printing help,
 keeping the door open for future UI subcommands (e.g., `atunko webui`). The core module
 provides all necessary services (`RecipeDiscoveryService`, `RecipeExecutionEngine`,
@@ -11,8 +11,8 @@ on the classpath.
 ## Goals / Non-Goals
 
 **Goals:**
-- Launch TUI when no subcommand is given (CLI_0001)
-- Implement all 12 sub-capabilities (CLI_0001.1–CLI_0001.12) as TUI screens and interactions
+- Launch TUI when no subcommand is given (TUI_0001)
+- Implement all 12 sub-capabilities (TUI_0001.1–TUI_0001.12) as TUI screens and interactions
 - Reuse existing core services — no new core module changes
 - Keep CLI subcommands working unchanged
 - Follow MVC pattern: controller (state) + views (pure rendering) + event handling
@@ -102,7 +102,7 @@ rendering (name + description + tags) with built-in selection support.
 specific snapshot timestamp if instability occurs. The TUI layer is isolated in its own
 package, limiting blast radius.
 
-**[Recipe options are display-only]** → CLI_0001.7 (Recipe Options) will show options but
+**[Recipe options are display-only]** → TUI_0001.7 (Recipe Options) will show options but
 editing requires core module changes to support option mutation on `RecipeDescriptor`.
 Mitigation: implement as read-only display now, add editing in a follow-up change.
 

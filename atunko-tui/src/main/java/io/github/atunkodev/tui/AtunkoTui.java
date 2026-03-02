@@ -17,7 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-@Requirements({"CLI_0001", "CLI_0001.15"})
+@Requirements({"atunko:TUI_0001", "atunko:TUI_0001.15"})
 public class AtunkoTui extends ToolkitApp {
 
     private final TuiController controller;

@@ -13,7 +13,7 @@ public class MavenProjectScanner {
 
     private static final int TIMEOUT_MINUTES = 5;
 
-    @Requirements({"CORE_0005"})
+    @Requirements({"atunko:CORE_0005"})
     public ProjectInfo scan(Path projectDir) {
         Path absoluteDir = projectDir.toAbsolutePath().normalize();
         Path pomFile = absoluteDir.resolve("pom.xml");

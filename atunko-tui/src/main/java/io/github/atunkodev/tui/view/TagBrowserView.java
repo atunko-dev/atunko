@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-@Requirements({"CLI_0001.11"})
+@Requirements({"atunko:TUI_0001.11"})
 public final class TagBrowserView {
 
     private static final TextInputState TAG_SEARCH_STATE = new TextInputState();

@@ -23,7 +23,7 @@ public class RecipeExecutionEngine {
         this.environmentProvider = environmentProvider;
     }
 
-    @Requirements({"CORE_0003"})
+    @Requirements({"atunko:CORE_0003"})
     public ExecutionResult execute(String recipeName, List<SourceFile> sources) {
         Recipe recipe = environmentProvider.get().activateRecipes(recipeName);
         RecipeRun run = recipe.run(new InMemoryLargeSourceSet(sources), new InMemoryExecutionContext());

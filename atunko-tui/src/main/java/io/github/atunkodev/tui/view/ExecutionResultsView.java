@@ -18,7 +18,7 @@ import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 
-@Requirements({"CLI_0001.8", "CLI_0001.9"})
+@Requirements({"atunko:TUI_0001.8", "atunko:TUI_0001.9"})
 public final class ExecutionResultsView {
 
     private ExecutionResultsView() {}

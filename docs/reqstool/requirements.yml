@@ -159,6 +159,18 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: TUI_0001.16
+    title: TUI — Recipe Coverage Indicators
+    significance: shall
+    description: >-
+      The TUI shall visually indicate when a recipe is included by a selected
+      composite, show which composites cover it in the detail panel, and allow
+      the user to explicitly select a covered recipe for duplicate execution
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   # CLI requirements — list/search/run
   - id: CLI_0002
     title: CLI Recipe Listing
