@@ -33,8 +33,15 @@ class TuiControllerTest {
     private static final RecipeInfo COMPOSITE = new RecipeInfo(
             "org.test.Composite", "Composite Recipe", "A composite recipe", Set.of("java"), List.of(SUB_1, SUB_2));
 
+    // Nested composite: OUTER contains COMPOSITE and SUB_3
+    private static final RecipeInfo SUB_3 =
+            new RecipeInfo("org.test.Sub3", "Sub Recipe 3", "Third sub-recipe", Set.of("java"));
+    private static final RecipeInfo OUTER = new RecipeInfo(
+            "org.test.Outer", "Outer Composite", "A nested composite", Set.of("java"), List.of(COMPOSITE, SUB_3));
+
     private static final List<RecipeInfo> RECIPES = List.of(ALPHA, BETA, GAMMA);
     private static final List<RecipeInfo> RECIPES_WITH_COMPOSITE = List.of(ALPHA, COMPOSITE, GAMMA);
+    private static final List<RecipeInfo> RECIPES_WITH_NESTED = List.of(ALPHA, OUTER, GAMMA);
 
     @Test
     @SVCs({"SVC_CLI_0001"})
@@ -702,11 +709,11 @@ class TuiControllerTest {
                 .isLessThan(controller.displayRows().size());
     }
 
-    // --- Sub-recipe selection (toggles parent) ---
+    // --- Sub-recipe selection (individual) ---
 
     @Test
     @SVCs({"SVC_CLI_0001.5"})
-    void toggleSelection_selectingComposite_selectsOnlyParentName() {
+    void toggleSelection_selectingComposite_selectsOnlyThatRecipe() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
         controller.moveDown(); // highlight Composite (index 1)
@@ -718,41 +725,42 @@ class TuiControllerTest {
 
     @Test
     @SVCs({"SVC_CLI_0001.5"})
-    void toggleSelection_onSubRecipe_togglesParent() {
+    void toggleSelection_onSubRecipe_selectsSubRecipeIndividually() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
         controller.moveDown(); // Composite
         controller.moveDown(); // Sub1
 
-        controller.toggleSelection(); // toggles parent (Composite)
+        controller.toggleSelection();
 
-        assertThat(controller.selectedRecipes()).containsExactly("org.test.Composite");
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Sub1");
     }
 
     @Test
     @SVCs({"SVC_CLI_0001.5"})
-    void toggleSelection_onSubRecipe_deselectsParent() {
+    void toggleSelection_onSubRecipe_deselectsSubRecipeIndividually() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
         controller.moveDown(); // Composite
-        controller.toggleSelection(); // select Composite
         controller.moveDown(); // Sub1
+        controller.toggleSelection(); // select Sub1
 
-        controller.toggleSelection(); // deselect Composite via sub-recipe
+        controller.toggleSelection(); // deselect Sub1
 
         assertThat(controller.selectedRecipes()).isEmpty();
     }
 
     @Test
     @SVCs({"SVC_CLI_0001.5"})
-    void cycleSelection_selectsOnlyParentNames() {
+    void cycleSelection_selectsAllVisibleNames() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
 
         controller.cycleSelection();
 
         assertThat(controller.selectedRecipes())
-                .containsExactlyInAnyOrder("org.test.Alpha", "org.test.Composite", "org.test.Gamma");
+                .containsExactlyInAnyOrder(
+                        "org.test.Alpha", "org.test.Composite", "org.test.Sub1", "org.test.Sub2", "org.test.Gamma");
     }
 
     // --- Run dialog display rows ---
@@ -808,5 +816,85 @@ class TuiControllerTest {
         assertThat(controller.selectedTags()).isEmpty();
         assertThat(controller.selectedRecipes()).isEmpty();
         assertThat(controller.highlightedIndex()).isZero();
+    }
+
+    // --- Nested Composites ---
+
+    @Test
+    @SVCs({"SVC_CLI_0001.13"})
+    void displayRows_nestedComposite_hasCorrectDepth() {
+        TuiController controller = new TuiController(RECIPES_WITH_NESTED);
+        controller.expandRecipe("org.test.Outer");
+
+        List<DisplayRow> rows = controller.displayRows();
+
+        // Sorted by name: Alpha, Gamma, Outer + expanded children (Composite, Sub3)
+        assertThat(rows).hasSize(5);
+        assertThat(rows.get(0).recipe().name()).isEqualTo("org.test.Alpha");
+        assertThat(rows.get(0).depth()).isZero();
+        assertThat(rows.get(1).recipe().name()).isEqualTo("org.test.Gamma");
+        assertThat(rows.get(1).depth()).isZero();
+        assertThat(rows.get(2).recipe().name()).isEqualTo("org.test.Outer");
+        assertThat(rows.get(2).depth()).isZero();
+        assertThat(rows.get(3).recipe().name()).isEqualTo("org.test.Composite");
+        assertThat(rows.get(3).depth()).isEqualTo(1);
+        assertThat(rows.get(3).isSubRecipe()).isTrue();
+        assertThat(rows.get(3).recipe().isComposite()).isTrue();
+        assertThat(rows.get(4).recipe().name()).isEqualTo("org.test.Sub3");
+        assertThat(rows.get(4).depth()).isEqualTo(1);
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.13"})
+    void displayRows_deeplyNested_expandsBothLevels() {
+        TuiController controller = new TuiController(RECIPES_WITH_NESTED);
+        controller.expandRecipe("org.test.Outer");
+        controller.expandRecipe("org.test.Composite");
+
+        List<DisplayRow> rows = controller.displayRows();
+
+        // Sorted: Alpha, Gamma, Outer, Composite (d1), Sub1 (d2), Sub2 (d2), Sub3 (d1)
+        assertThat(rows).hasSize(7);
+        assertThat(rows.get(0).recipe().name()).isEqualTo("org.test.Alpha");
+        assertThat(rows.get(1).recipe().name()).isEqualTo("org.test.Gamma");
+        assertThat(rows.get(2).recipe().name()).isEqualTo("org.test.Outer");
+        assertThat(rows.get(3).recipe().name()).isEqualTo("org.test.Composite");
+        assertThat(rows.get(3).depth()).isEqualTo(1);
+        assertThat(rows.get(4).recipe().name()).isEqualTo("org.test.Sub1");
+        assertThat(rows.get(4).depth()).isEqualTo(2);
+        assertThat(rows.get(4).parentName()).isEqualTo("org.test.Composite");
+        assertThat(rows.get(5).recipe().name()).isEqualTo("org.test.Sub2");
+        assertThat(rows.get(5).depth()).isEqualTo(2);
+        assertThat(rows.get(6).recipe().name()).isEqualTo("org.test.Sub3");
+        assertThat(rows.get(6).depth()).isEqualTo(1);
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.13"})
+    void expandRecipe_onNestedSubRecipe_expandsIt() {
+        TuiController controller = new TuiController(RECIPES_WITH_NESTED);
+        controller.expandRecipe("org.test.Outer");
+
+        controller.expandRecipe("org.test.Composite");
+
+        assertThat(controller.isExpanded("org.test.Composite")).isTrue();
+        assertThat(controller.displayRows()).hasSize(7);
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.5"})
+    void toggleSelection_onNestedSubRecipe_selectsIndividually() {
+        TuiController controller = new TuiController(RECIPES_WITH_NESTED);
+        controller.expandRecipe("org.test.Outer");
+        controller.expandRecipe("org.test.Composite");
+        // Sorted: Alpha(0), Gamma(1), Outer(2), Composite(3), Sub1(4), Sub2(5), Sub3(6)
+        controller.moveDown(); // 1 - Gamma
+        controller.moveDown(); // 2 - Outer
+        controller.moveDown(); // 3 - Composite
+        controller.moveDown(); // 4 - Sub1
+
+        controller.toggleSelection();
+
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Sub1");
     }
 }

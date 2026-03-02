@@ -29,7 +29,7 @@ import org.openrewrite.SourceFile;
 @Requirements({"CLI_0001"})
 public class TuiController {
 
-    public record DisplayRow(RecipeInfo recipe, boolean isSubRecipe, String parentName) {}
+    public record DisplayRow(RecipeInfo recipe, boolean isSubRecipe, String parentName, int depth) {}
 
     private static final Logger LOG = Logger.getLogger(TuiController.class.getName());
 
@@ -152,14 +152,21 @@ public class TuiController {
     public List<DisplayRow> displayRows() {
         List<DisplayRow> rows = new ArrayList<>();
         for (RecipeInfo r : recipes()) {
-            rows.add(new DisplayRow(r, false, null));
+            rows.add(new DisplayRow(r, false, null, 0));
             if (isExpanded(r.name()) && r.isComposite()) {
-                for (RecipeInfo sub : r.recipeList()) {
-                    rows.add(new DisplayRow(sub, true, r.name()));
-                }
+                addSubRows(rows, r, 1);
             }
         }
         return List.copyOf(rows);
+    }
+
+    private void addSubRows(List<DisplayRow> rows, RecipeInfo parent, int depth) {
+        for (RecipeInfo sub : parent.recipeList()) {
+            rows.add(new DisplayRow(sub, true, parent.name(), depth));
+            if (isExpanded(sub.name()) && sub.isComposite()) {
+                addSubRows(rows, sub, depth + 1);
+            }
+        }
     }
 
     public Optional<DisplayRow> highlightedDisplayRow() {
@@ -219,8 +226,7 @@ public class TuiController {
     @Requirements({"CLI_0001.5"})
     public void toggleSelection() {
         highlightedDisplayRow().ifPresent(row -> {
-            // Sub-recipe toggle → toggle the parent composite instead
-            String name = row.isSubRecipe() ? row.parentName() : row.recipe().name();
+            String name = row.recipe().name();
             if (!selectedRecipes.remove(name)) {
                 selectedRecipes.add(name);
             }
@@ -229,15 +235,13 @@ public class TuiController {
 
     @Requirements({"CLI_0001.5"})
     public void cycleSelection() {
-        Set<String> parentNames = displayRows().stream()
-                .filter(r -> !r.isSubRecipe())
-                .map(r -> r.recipe().name())
-                .collect(Collectors.toSet());
-        boolean allSelected = parentNames.stream().allMatch(selectedRecipes::contains);
+        Set<String> visibleNames =
+                displayRows().stream().map(r -> r.recipe().name()).collect(Collectors.toSet());
+        boolean allSelected = visibleNames.stream().allMatch(selectedRecipes::contains);
         if (allSelected) {
             selectedRecipes.clear();
         } else {
-            selectedRecipes.addAll(parentNames);
+            selectedRecipes.addAll(visibleNames);
         }
         LOG.fine(() -> "Cycle selection: " + selectedRecipes.size() + " selected");
     }
@@ -307,12 +311,7 @@ public class TuiController {
 
     @Requirements({"CLI_0001.14"})
     public void openConfirmRun() {
-        // Only include top-level selected recipes in run order (not sub-recipe names).
-        // Sub-recipe selection state is maintained in selectedRecipes for display/toggle.
-        Set<String> topLevelNames = recipes().stream().map(RecipeInfo::name).collect(Collectors.toSet());
-        runOrder = selectedRecipes.stream()
-                .filter(topLevelNames::contains)
-                .collect(Collectors.toCollection(ArrayList::new));
+        runOrder = new ArrayList<>(selectedRecipes);
         runHighlightIndex = 0;
         runExpandedRecipes.clear();
         currentScreen = Screen.CONFIRM_RUN;
@@ -325,14 +324,21 @@ public class TuiController {
         for (String recipeName : runOrder) {
             Optional<RecipeInfo> info = findRecipe(recipeName);
             RecipeInfo recipe = info.orElse(new RecipeInfo(recipeName, recipeName, null, Set.of()));
-            rows.add(new DisplayRow(recipe, false, null));
+            rows.add(new DisplayRow(recipe, false, null, 0));
             if (runExpandedRecipes.contains(recipeName) && recipe.isComposite()) {
-                for (RecipeInfo sub : recipe.recipeList()) {
-                    rows.add(new DisplayRow(sub, true, recipeName));
-                }
+                addRunSubRows(rows, recipe, 1);
             }
         }
         return List.copyOf(rows);
+    }
+
+    private void addRunSubRows(List<DisplayRow> rows, RecipeInfo parent, int depth) {
+        for (RecipeInfo sub : parent.recipeList()) {
+            rows.add(new DisplayRow(sub, true, parent.name(), depth));
+            if (runExpandedRecipes.contains(sub.name()) && sub.isComposite()) {
+                addRunSubRows(rows, sub, depth + 1);
+            }
+        }
     }
 
     @Requirements({"CLI_0001.14"})
@@ -428,7 +434,7 @@ public class TuiController {
         List<DisplayRow> rows = runDisplayRows();
         if (!rows.isEmpty() && runHighlightIndex < rows.size()) {
             DisplayRow row = rows.get(runHighlightIndex);
-            if (!row.isSubRecipe()) {
+            if (row.recipe().isComposite()) {
                 runExpandedRecipes.add(row.recipe().name());
             }
         }
@@ -439,8 +445,11 @@ public class TuiController {
         List<DisplayRow> rows = runDisplayRows();
         if (!rows.isEmpty() && runHighlightIndex < rows.size()) {
             DisplayRow row = rows.get(runHighlightIndex);
-            String name = row.isSubRecipe() ? row.parentName() : row.recipe().name();
-            runExpandedRecipes.remove(name);
+            if (runExpandedRecipes.contains(row.recipe().name())) {
+                runExpandedRecipes.remove(row.recipe().name());
+            } else if (row.isSubRecipe() && row.parentName() != null) {
+                runExpandedRecipes.remove(row.parentName());
+            }
             clampRunHighlightIndex();
         }
     }

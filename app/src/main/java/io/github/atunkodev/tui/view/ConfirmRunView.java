@@ -81,20 +81,20 @@ public final class ConfirmRunView {
             RecipeInfo r = displayRow.recipe();
             boolean isSelected = selected.contains(r.name());
             String displayName = BrowserView.cleanDisplayName(r.displayName());
+            boolean isExpanded = controller.runExpandedRecipes().contains(r.name());
 
             if (displayRow.isSubRecipe()) {
-                // Sub-recipe checkbox mirrors parent's selection state
-                boolean parentSelected = selected.contains(displayRow.parentName());
-                String prefix = parentSelected ? "     [x] " : "     [ ] ";
-                var prefixEl = parentSelected
+                String indent = "  ".repeat(displayRow.depth());
+                String indicator = r.isComposite() ? (isExpanded ? "\u25bc " : "\u25b6 ") : "  ";
+                String prefix = "    " + indent + (isSelected ? "[x] " : "[ ] ") + indicator;
+                var prefixEl = isSelected
                         ? text(prefix).fg(Color.LIGHT_GREEN)
                         : text(prefix).dim();
                 var nameElement =
-                        parentSelected ? text(displayName) : text(displayName).dim();
+                        isSelected ? text(displayName) : text(displayName).dim();
                 recipeList.add(row(prefixEl, nameElement));
             } else {
                 parentIndex++;
-                boolean isExpanded = controller.runExpandedRecipes().contains(r.name());
                 String check = isSelected ? "[x] " : "[ ] ";
                 String indicator = r.isComposite() ? (isExpanded ? "\u25bc " : "\u25b6 ") : "  ";
                 String prefix = String.format("%2d. %s%s", parentIndex, check, indicator);

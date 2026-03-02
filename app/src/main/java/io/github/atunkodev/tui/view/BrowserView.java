@@ -104,7 +104,7 @@ public final class BrowserView {
         }
         if (event.isRight() || event.isChar('e')) {
             controller.highlightedDisplayRow().ifPresent(row -> {
-                if (!row.isSubRecipe() && row.recipe().isComposite()) {
+                if (row.recipe().isComposite()) {
                     controller.expandRecipe(row.recipe().name());
                 }
             });
@@ -112,12 +112,10 @@ public final class BrowserView {
         }
         if (event.isLeft()) {
             controller.highlightedDisplayRow().ifPresent(row -> {
-                if (row.isSubRecipe()) {
-                    if (row.parentName() != null) {
-                        controller.collapseRecipe(row.parentName());
-                    }
-                } else if (controller.isExpanded(row.recipe().name())) {
+                if (controller.isExpanded(row.recipe().name())) {
                     controller.collapseRecipe(row.recipe().name());
+                } else if (row.isSubRecipe() && row.parentName() != null) {
+                    controller.collapseRecipe(row.parentName());
                 }
             });
             return EventResult.HANDLED;
@@ -158,14 +156,14 @@ public final class BrowserView {
                 headerLabel,
                 text(" "),
                 tagIndicator,
-                spacer(),
+                text(" "),
                 textInput(SEARCH_STATE)
                         .placeholder("Search recipes...")
                         .rounded()
                         .focusable(false)
                         .cursorRequiresFocus(false)
-                        .constraint(Constraint.fill(1)),
-                spacer(),
+                        .constraint(Constraint.fill(3)),
+                text(" "),
                 tabs(SortOrder.NAME.name(), SortOrder.TAGS.name())
                         .selected(controller.sortOrder() == SortOrder.NAME ? 0 : 1));
     }
@@ -175,29 +173,20 @@ public final class BrowserView {
                 list().highlightStyle(Style.EMPTY.fg(Color.WHITE).bg(Color.BLUE).bold());
         for (DisplayRow row : displayRows) {
             RecipeInfo r = row.recipe();
-            if (row.isSubRecipe()) {
-                // Sub-recipe checkbox mirrors parent's selection state
-                boolean parentSelected = controller.selectedRecipes().contains(row.parentName());
-                String prefix = parentSelected ? "  [x] " : "  [ ] ";
-                var prefixEl = parentSelected
-                        ? text(prefix).fg(Color.LIGHT_GREEN)
-                        : text(prefix).dim();
-                recipeList.add(row(prefixEl, text(cleanDisplayName(r.displayName()))));
+            boolean selected = controller.selectedRecipes().contains(r.name());
+            boolean expanded = controller.isExpanded(r.name());
+            String indent = "  ".repeat(row.depth());
+            String check = selected ? "[x] " : "[ ] ";
+            String indicator = r.isComposite() ? (expanded ? "\u25bc " : "\u25b6 ") : "  ";
+            String prefix = indent + check + indicator;
+            var prefixEl =
+                    selected ? text(prefix).fg(Color.LIGHT_GREEN) : text(prefix).dim();
+            var name = text(cleanDisplayName(r.displayName()));
+            if (r.tags().isEmpty() || row.isSubRecipe()) {
+                recipeList.add(row(prefixEl, name));
             } else {
-                boolean selected = controller.selectedRecipes().contains(r.name());
-                boolean expanded = controller.isExpanded(r.name());
-                String check = selected ? "[x] " : "[ ] ";
-                String indicator = r.isComposite() ? (expanded ? "\u25bc " : "\u25b6 ") : "  ";
-                var prefixEl = selected
-                        ? text(check + indicator).fg(Color.LIGHT_GREEN)
-                        : text(check + indicator).dim();
-                var name = text(cleanDisplayName(r.displayName()));
-                if (r.tags().isEmpty()) {
-                    recipeList.add(row(prefixEl, name));
-                } else {
-                    var tags = text("  " + String.join(", ", r.tags())).dim();
-                    recipeList.add(row(prefixEl, name, spacer(), tags));
-                }
+                var tags = text("  " + String.join(", ", r.tags())).dim();
+                recipeList.add(row(prefixEl, name, spacer(), tags));
             }
         }
 
