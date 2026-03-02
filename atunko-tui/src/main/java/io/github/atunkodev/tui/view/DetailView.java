@@ -66,6 +66,13 @@ public final class DetailView {
                     text(String.join(", ", parents)).fg(Color.LIGHT_YELLOW)));
         }
 
+        Element centerContent;
+        if (controller.isShowHelp()) {
+            centerContent = row(spacer(), HelpOverlay.render(HelpOverlay.DETAIL_HELP), spacer());
+        } else {
+            centerContent = panel("Recipe Detail", detailContent).rounded().borderColor(Color.LIGHT_CYAN);
+        }
+
         return column(dock().top(
                                 row(
                                         text(" " + RecipeListRenderer.cleanDisplayName(recipe.displayName()))
@@ -75,9 +82,9 @@ public final class DetailView {
                                         spacer(),
                                         selectionLabel),
                                 Constraint.length(1))
-                        .center(panel("Recipe Detail", detailContent).rounded().borderColor(Color.LIGHT_CYAN))
+                        .center(centerContent)
                         .bottom(
-                                text(" Esc/q:back Space:toggle selection")
+                                text(" ?:help Space:toggle Esc/q:back")
                                         .fg(Color.WHITE)
                                         .bg(Color.indexed(236)),
                                 Constraint.length(1))
@@ -85,6 +92,14 @@ public final class DetailView {
                 .id("detail")
                 .focusable()
                 .onKeyEvent(event -> {
+                    if (controller.isShowHelp()) {
+                        controller.toggleHelp();
+                        return EventResult.HANDLED;
+                    }
+                    if (event.isChar('?')) {
+                        controller.toggleHelp();
+                        return EventResult.HANDLED;
+                    }
                     if (event.isChar('q') || event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
                         controller.goBack();
                         return EventResult.HANDLED;

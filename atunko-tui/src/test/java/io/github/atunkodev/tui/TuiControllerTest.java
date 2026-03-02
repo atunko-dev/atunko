@@ -975,6 +975,24 @@ class TuiControllerTest {
         assertThat(rows.get(7).depth()).isEqualTo(1);
     }
 
+    // --- Help Overlay ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001"})
+    void toggleHelp_togglesHelpState() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.isShowHelp()).isFalse();
+
+        controller.toggleHelp();
+
+        assertThat(controller.isShowHelp()).isTrue();
+
+        controller.toggleHelp();
+
+        assertThat(controller.isShowHelp()).isFalse();
+    }
+
     // --- Recipe Coverage Indicators ---
 
     @Test

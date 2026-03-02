@@ -195,6 +195,7 @@ public class TuiController {
     private final Set<String> selectedRecipes = new LinkedHashSet<>();
     private final Set<String> selectedTags = new LinkedHashSet<>();
     private boolean searchMode;
+    private boolean showHelp;
     private ExecutionResult executionResult;
     private boolean lastRunWasDryRun;
 
@@ -263,6 +264,14 @@ public class TuiController {
 
     public boolean isSearchMode() {
         return searchMode;
+    }
+
+    public boolean isShowHelp() {
+        return showHelp;
+    }
+
+    public void toggleHelp() {
+        this.showHelp = !this.showHelp;
     }
 
     // --- Browser list state (delegated to browserState) ---
