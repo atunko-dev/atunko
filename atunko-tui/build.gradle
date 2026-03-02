@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api project(':core')
+    api project(':atunko-core')
 
     // Picocli (for TuiCommand @Command annotation)
     implementation libs.picocli

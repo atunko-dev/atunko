@@ -5,13 +5,13 @@ context: |
   We use conventional commits
   TDD: tests before implementation
   Domain: Developer tooling — OpenRewrite recipe discovery, execution, and configuration
-  Architecture: Multi-module Gradle (app + core). Core has no UI dependencies.
+  Architecture: Multi-module Gradle (atunko-cli + atunko-tui + atunko-core). Core has no UI dependencies.
   reqstool is SSOT for requirements and SVCs — see docs/reqstool/
   License: Apache 2.0
 
 rules:
   proposal:
-    - Reference reqstool requirement IDs (CORE_xxxx, CLI_xxxx) when applicable
+    - Reference reqstool requirement IDs (CORE_xxxx, CLI_xxxx, TUI_xxxx) when applicable
     - Keep proposals focused on a single capability
   specs:
     - "reqstool is SSOT: NEVER duplicate requirement text or GIVEN/WHEN/THEN scenarios"

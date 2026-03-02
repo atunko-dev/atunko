@@ -5,11 +5,12 @@
 ```bash
 ./gradlew build                       # Full build (Spotless + Checkstyle + Error Prone + tests)
 ./gradlew test                        # All tests
-./gradlew :core:test                  # Core module tests only
-./gradlew :app:test                   # App module tests only
-./gradlew :app:run                    # Launch TUI (default)
-./gradlew :app:run --args="discover"  # Run a CLI command
-./gradlew :app:shadowJar              # Build the fat JAR
+./gradlew :atunko-core:test            # Core module tests only
+./gradlew :atunko-cli:test            # CLI module tests only
+./gradlew :atunko-tui:test            # TUI module tests only
+./gradlew :atunko-cli:run             # Launch TUI (default)
+./gradlew :atunko-cli:run --args="list"  # Run a CLI command
+./gradlew :atunko-cli:shadowJar       # Build the fat JAR
 ./gradlew spotlessApply               # Auto-fix formatting
 ./gradlew spotlessCheck               # Check formatting (CI mode)
 ./gradlew checkstyleMain              # Run Checkstyle on main sources
@@ -41,9 +42,11 @@ Three layers of automated checks run on every build:
 
 ```
 atunko/
-├── app/          # Application module — Picocli CLI + TamboUI TUI entry point
-│                 # Packages: io.github.atunkodev.cli, io.github.atunkodev.tui
-├── core/         # Core engine module — no UI dependencies
+├── atunko-cli/   # CLI entry point — Picocli commands, App main class, shadow JAR
+│                 # Package: io.github.atunkodev, io.github.atunkodev.cli
+├── atunko-tui/   # TUI module — TamboUI interactive interface
+│                 # Package: io.github.atunkodev.tui, io.github.atunkodev.tui.view
+├── atunko-core/  # Core engine module — no UI dependencies
 │                 # Package: io.github.atunkodev.core.{engine,recipe,project,config,result}
 ├── docs/
 │   └── reqstool/ # Requirements traceability (SSOT)
@@ -51,9 +54,9 @@ atunko/
 ```
 
 - Java 25, Gradle 9.x (Groovy DSL)
-- Package root: `io.github.atunkodev` (app), `io.github.atunkodev.core` (core)
-- `java-library` plugin in core (exposes API via `api` configuration)
-- `application` plugin in app (main class: `io.github.atunkodev.App`)
+- Package root: `io.github.atunkodev` (cli), `io.github.atunkodev.tui` (tui), `io.github.atunkodev.core` (core)
+- `java-library` plugin in core and tui (exposes API via `api` configuration)
+- `application` plugin in cli (main class: `io.github.atunkodev.App`)
 
 ## Commit Conventions
 

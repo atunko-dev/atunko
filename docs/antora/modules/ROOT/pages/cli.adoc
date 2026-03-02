@@ -219,8 +219,8 @@ During development, commands can be run via Gradle:
 
 [source,bash]
 ----
-./gradlew :app:run                           # Launch TUI (default)
-./gradlew :app:run --args="list"             # List all recipes
-./gradlew :app:run --args="search 'spring'"  # Search recipes
-./gradlew :app:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
+./gradlew :atunko-cli:run                           # Launch TUI (default)
+./gradlew :atunko-cli:run --args="list"             # List all recipes
+./gradlew :atunko-cli:run --args="search 'spring'"  # Search recipes
+./gradlew :atunko-cli:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
 ----

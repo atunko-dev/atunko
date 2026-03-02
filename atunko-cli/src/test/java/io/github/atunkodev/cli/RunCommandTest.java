@@ -12,7 +12,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 class RunCommandTest {
 
-    private static final Path FIXTURE_DIR = Path.of("../core/src/test/resources/fixtures/java-with-unused-imports");
+    private static final Path FIXTURE_DIR =
+            Path.of("../atunko-core/src/test/resources/fixtures/java-with-unused-imports");
 
     @TempDir
     Path tempDir;
@@ -29,7 +30,7 @@ class RunCommandTest {
     }
 
     @Test
-    @SVCs({"SVC_CLI_0003"})
+    @SVCs({"atunko:SVC_CLI_0003"})
     void run_withValidRecipe_reportsChanges() throws IOException {
         Path workDir = copyFixtureToTemp();
         CommandLineFixture cli = CommandLineFixture.create();
@@ -43,7 +44,7 @@ class RunCommandTest {
     }
 
     @Test
-    @SVCs({"SVC_CLI_0003"})
+    @SVCs({"atunko:SVC_CLI_0003"})
     void run_withInvalidRecipe_reportsError() throws IOException {
         Path workDir = copyFixtureToTemp();
         CommandLineFixture cli = CommandLineFixture.create();
@@ -56,7 +57,7 @@ class RunCommandTest {
     }
 
     @Test
-    @SVCs({"SVC_CLI_0003"})
+    @SVCs({"atunko:SVC_CLI_0003"})
     void run_withMissingRequiredOptions_fails() {
         CommandLineFixture cli = CommandLineFixture.create();
 

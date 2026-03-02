@@ -7,13 +7,13 @@ metadata:
 
 implementations:
   local:
-    - path: ../../core/docs/reqstool
-    - path: ../../cli/docs/reqstool
-    - path: ../../tui/docs/reqstool
+    - path: ../../atunko-core/docs/reqstool
+    - path: ../../atunko-cli/docs/reqstool
+    - path: ../../atunko-tui/docs/reqstool
 
 requirements:
-  # CLI requirements — TUI
-  - id: CLI_0001
+  # TUI requirements
+  - id: TUI_0001
     title: TUI Launch
     significance: shall
     description: >-
@@ -22,140 +22,140 @@ requirements:
     categories: [interaction-capability]
     revision: 0.2.0
 
-  - id: CLI_0001.1
+  - id: TUI_0001.1
     title: TUI — Recipe Table
     significance: shall
     description: The TUI shall display a scrollable table of recipes with name, description, and tags
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.2
+  - id: TUI_0001.2
     title: TUI — Recipe Detail Panel
     significance: shall
     description: The TUI shall show a side panel with recipe details when a recipe is highlighted
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.3
+  - id: TUI_0001.3
     title: TUI — Search Filter
     significance: shall
     description: The TUI shall support real-time search filtering of the recipe list
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.4
+  - id: TUI_0001.4
     title: TUI — Recipe Detail View
     significance: shall
     description: The TUI shall display a full-screen detail view when a recipe is selected
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.5
+  - id: TUI_0001.5
     title: TUI — Multi-Select
     significance: shall
     description: The TUI shall support selecting multiple recipes for batch operations
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.6
+  - id: TUI_0001.6
     title: TUI — Recipe Ordering
     significance: shall
     description: The TUI shall support sorting recipes by name or tags
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.7
+  - id: TUI_0001.7
     title: TUI — Recipe Options
     significance: shall
     description: The TUI shall allow configuring recipe options before execution
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.8
+  - id: TUI_0001.8
     title: TUI — Dry-Run Preview
     significance: shall
     description: The TUI shall show a preview of changes before applying recipes
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.9
+  - id: TUI_0001.9
     title: TUI — Recipe Execution
     significance: shall
     description: The TUI shall execute selected recipes and display results
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.10
+  - id: TUI_0001.10
     title: TUI — Save Run Config
     significance: shall
     description: The TUI shall support saving the current recipe setup to a portable YAML file
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.11
+  - id: TUI_0001.11
     title: TUI — Tag Browser
     significance: shall
     description: The TUI shall provide a tag-based browser for filtering recipes by tag
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.12
+  - id: TUI_0001.12
     title: TUI — Keyboard Navigation
     significance: shall
     description: The TUI shall support keyboard navigation and shortcuts for all interactions
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.13
+  - id: TUI_0001.13
     title: TUI — Composite Recipe Browsing
     significance: shall
     description: The TUI shall support browsing composite recipes with expand/collapse and destructive flatten
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.14
+  - id: TUI_0001.14
     title: TUI — Run Dialog
     significance: shall
     description: >-
       The TUI shall provide a navigable, reorderable recipe execution list with
       individual toggle, cycle selection, and composite expand/collapse/flatten
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: CLI_0001.15
+  - id: TUI_0001.15
     title: TUI — Debug Logging
     significance: shall
     description: The TUI shall support writing debug output to a log file via --log-file option
     references:
-      requirement_ids: ["CLI_0001"]
+      requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]
     revision: 0.1.0
 

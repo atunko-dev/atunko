@@ -9,29 +9,29 @@ execution, and saveable run configurations.
 
 ```
 atunko/
-├── cli/          # CLI entry point — Picocli commands, App main class, shadow JAR
+├── atunko-cli/   # CLI entry point — Picocli commands, App main class, shadow JAR
 │                 # Package: io.github.atunkodev, io.github.atunkodev.cli
-├── tui/          # TUI module — TamboUI interactive interface
+├── atunko-tui/   # TUI module — TamboUI interactive interface
 │                 # Package: io.github.atunkodev.tui, io.github.atunkodev.tui.view
-├── core/         # Core engine module — no UI dependencies
+├── atunko-core/  # Core engine module — no UI dependencies
 │                 # Package: io.github.atunkodev.core.{engine,recipe,project,config,result}
 ├── docs/
 │   └── reqstool/ # Requirements traceability (SSOT)
 └── openspec/     # Spec-driven development (links to reqstool, no duplication)
 ```
 
-**Dependency graph:** `cli` → `tui` → `core`
+**Dependency graph:** `atunko-cli` → `atunko-tui` → `atunko-core`
 
 ## Build Commands
 
 ```bash
 ./gradlew build                    # Full build (includes Spotless + Checkstyle + Error Prone)
 ./gradlew test                     # All tests
-./gradlew :core:test               # Core module tests only
-./gradlew :cli:test                # CLI module tests only
-./gradlew :tui:test                # TUI module tests only
-./gradlew :cli:run                 # Launch TUI (default)
-./gradlew :cli:run --args="list"   # Run CLI command
+./gradlew :atunko-core:test         # Core module tests only
+./gradlew :atunko-cli:test         # CLI module tests only
+./gradlew :atunko-tui:test         # TUI module tests only
+./gradlew :atunko-cli:run          # Launch TUI (default)
+./gradlew :atunko-cli:run --args="list"  # Run CLI command
 ./gradlew spotlessApply            # Auto-fix formatting (Palantir Java Format)
 ./gradlew spotlessCheck            # Check formatting (CI mode — fails on violations)
 ./gradlew checkstyleMain           # Run Checkstyle on main source
@@ -99,7 +99,7 @@ Three layers of automated quality checks run on every build:
 
 - JUnit 5 + AssertJ
 - Tests annotated with reqstool `@SVCs` to link to verification cases
-- Test fixture projects in `core/src/test/resources/` for integration tests
+- Test fixture projects in `atunko-core/src/test/resources/` for integration tests
 
 ## reqstool
 

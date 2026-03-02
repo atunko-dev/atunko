@@ -26,12 +26,12 @@ with or endorsed by Moderne.
 ./gradlew build
 
 # Launch interactive TUI (default command)
-./gradlew :app:run
+./gradlew :atunko-cli:run
 
 # CLI commands
-./gradlew :app:run --args="list"
-./gradlew :app:run --args="search 'spring boot'"
-./gradlew :app:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
+./gradlew :atunko-cli:run --args="list"
+./gradlew :atunko-cli:run --args="search 'spring boot'"
+./gradlew :atunko-cli:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
 ----
 
 See xref:cli.adoc[CLI Usage] for full command reference.

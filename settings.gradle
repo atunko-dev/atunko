@@ -4,4 +4,4 @@ pluginManagement {
 
 rootProject.name = 'atunko'
 
-include 'core', 'cli', 'tui'
+include 'atunko-core', 'atunko-cli', 'atunko-tui'

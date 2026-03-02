@@ -30,15 +30,18 @@ run configurations — all from the terminal.
 
 ```
 atunko/
-├── app/                            # Application module (TUI + CLI entry point)
+├── atunko-cli/                     # CLI entry point — Picocli commands, App main class, shadow JAR
 │   └── src/main/java/
-│       └── dev/atunko/
+│       └── io/github/atunkodev/
 │           ├── cli/                # Picocli commands
-│           ├── tui/                # TamboUI views/screens
 │           └── App.java            # Main entry point
-├── core/                           # Core engine module (no UI dependencies)
+├── atunko-tui/                     # TUI module — TamboUI interactive interface
 │   └── src/main/java/
-│       └── dev/atunko/core/
+│       └── io/github/atunkodev/tui/
+│           └── view/               # TUI views/screens
+├── atunko-core/                    # Core engine module (no UI dependencies)
+│   └── src/main/java/
+│       └── io/github/atunkodev/core/
 │           ├── engine/             # OpenRewrite integration
 │           ├── recipe/             # Recipe discovery, search, metadata
 │           ├── project/            # Project scanning, classpath resolution
@@ -334,7 +337,7 @@ cases:
     revision: "0.1.0"
 ```
 
-Each Gradle module (`app`, `core`) acts as a **microservice** variant importing from system-level.
+Each Gradle module (`atunko-cli`, `atunko-tui`, `atunko-core`) acts as a **microservice** variant importing from system-level.
 
 ### 1.4 OpenSpec Setup
 
@@ -499,6 +502,9 @@ Ideas and features for future consideration, not yet assigned to a phase.
   (requires core module support for option mutation on RecipeDescriptor)
 - **JBang support** — Distribute atunko as a JBang script for zero-install usage
   (`jbang atunko@atunko-dev tui`)
+- **Recipe source toggling** — Toggle the main recipe list between included (bundled)
+  recipes and the user's own recipes (provided via project classpath, specified on
+  command line, or added manually in the TUI)
 
 ---
 

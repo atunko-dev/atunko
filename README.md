@@ -27,10 +27,10 @@ java -jar atunko.jar --help
 ```bash
 git clone https://github.com/jimisola/atunko.git
 cd atunko
-./gradlew :app:shadowJar
+./gradlew :atunko-cli:shadowJar
 ```
 
-The fat JAR is produced at `app/build/libs/atunko.jar`.
+The fat JAR is produced at `atunko-cli/build/libs/atunko.jar`.
 
 ## Usage
 
@@ -38,10 +38,10 @@ The fat JAR is produced at `app/build/libs/atunko.jar`.
 
 ```bash
 # Launch the interactive recipe browser (default command)
-java -jar app/build/libs/atunko.jar tui
+java -jar atunko-cli/build/libs/atunko.jar tui
 
 # Launch with debug logging to a file
-java -jar app/build/libs/atunko.jar tui --log-file tui.log
+java -jar atunko-cli/build/libs/atunko.jar tui --log-file tui.log
 ```
 
 Options: `--log-file <path>` — write TUI debug output to a file (useful for troubleshooting).
@@ -86,10 +86,10 @@ to run sub-recipes individually.
 
 ```bash
 # List all available recipes
-java -jar app/build/libs/atunko.jar list
+java -jar atunko-cli/build/libs/atunko.jar list
 
 # List with sorting and output format
-java -jar app/build/libs/atunko.jar list --sort tags --format table
+java -jar atunko-cli/build/libs/atunko.jar list --sort tags --format table
 ```
 
 Options: `--sort <name|tags>`, `--format <text|table>`.
@@ -98,11 +98,11 @@ Options: `--sort <name|tags>`, `--format <text|table>`.
 
 ```bash
 # Search for recipes by keyword
-java -jar app/build/libs/atunko.jar search "spring boot"
-java -jar app/build/libs/atunko.jar search "unused imports"
+java -jar atunko-cli/build/libs/atunko.jar search "spring boot"
+java -jar atunko-cli/build/libs/atunko.jar search "unused imports"
 
 # Search in specific fields
-java -jar app/build/libs/atunko.jar search "spring" --field name --format table
+java -jar atunko-cli/build/libs/atunko.jar search "spring" --field name --format table
 ```
 
 Options: `--field <name|description|tags|all>`, `--sort <name|tags>`, `--format <text|table>`.
@@ -111,7 +111,7 @@ Options: `--field <name|description|tags|all>`, `--sort <name|tags>`, `--format 
 
 ```bash
 # Run a recipe against a project
-java -jar app/build/libs/atunko.jar run -r org.openrewrite.java.RemoveUnusedImports --project-dir /path/to/project
+java -jar atunko-cli/build/libs/atunko.jar run -r org.openrewrite.java.RemoveUnusedImports --project-dir /path/to/project
 ```
 
 Options:
@@ -126,19 +126,20 @@ Options:
 During development you can run commands directly via Gradle:
 
 ```bash
-./gradlew :app:run                           # Launch TUI (default)
-./gradlew :app:run --args="list"             # List all recipes
-./gradlew :app:run --args="search 'spring'"  # Search recipes
-./gradlew :app:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
+./gradlew :atunko-cli:run                           # Launch TUI (default)
+./gradlew :atunko-cli:run --args="list"             # List all recipes
+./gradlew :atunko-cli:run --args="search 'spring'"  # Search recipes
+./gradlew :atunko-cli:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
 ```
 
 ## Architecture
 
 ```
 atunko/
-├── app/     # CLI (Picocli) + TUI (TamboUI) entry point
-├── core/    # Core engine — recipe discovery, execution, project scanning
-└── docs/    # Requirements traceability (reqstool)
+├── atunko-cli/   # CLI entry point — Picocli commands, App main class, shadow JAR
+├── atunko-tui/   # TUI module — TamboUI interactive interface
+├── atunko-core/  # Core engine — recipe discovery, execution, project scanning
+└── docs/         # Requirements traceability (reqstool)
 ```
 
 ## Contributing

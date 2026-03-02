@@ -19,8 +19,8 @@ tasks.named('test') {
 }
 
 dependencies {
-    implementation project(':core')
-    implementation project(':tui')
+    implementation project(':atunko-core')
+    implementation project(':atunko-tui')
 
     // Picocli
     implementation libs.picocli
