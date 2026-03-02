@@ -16,11 +16,10 @@ display names that contain the given recipe (directly or transitively). Uses
 
 `RecipeListRenderer` receives the `coveredRecipes` set and renders:
 - `[x]` — explicitly selected
-- `[✓]` — sub-recipe of an expanded selected composite (included)
-- `[≈]` — top-level recipe covered by a selected composite
+- `[c]` — covered by a selected composite (directly or transitively)
 - `[ ]` — not selected, not covered
 
-Covered-but-unselected recipes are dimmed. Included sub-recipes use muted green.
+Covered recipes are dimmed.
 
 ### Detail Panel
 

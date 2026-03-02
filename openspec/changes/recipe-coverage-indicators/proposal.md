@@ -7,8 +7,8 @@ composite selection, leading to confusion about duplicate execution.
 
 ## What Changes
 
-- Add visual indicators in the recipe list: `[✓]` for sub-recipes of an expanded
-  selected composite, `[≈]` for top-level recipes covered by a selected composite
+- Add visual indicators in the recipe list: `[c]` for recipes covered by a
+  selected composite (directly or transitively)
 - Dim covered-but-unselected recipes to show they are included implicitly
 - Show "Included in: <composite names>" in the detail panel for covered recipes
 - Compute covered recipes recursively through nested composites

@@ -61,6 +61,7 @@ Key bindings:
 | `←`/`c` | Collapse composite recipe |
 | `s` | Toggle sort order |
 | `Esc` | Reset filters / go back |
+| `?` | Show help overlay |
 | `q` | Quit |
 
 **Run dialog** (`r` from browser):
@@ -76,6 +77,7 @@ Key bindings:
 | `f` | Flatten composite (replace with sub-recipes) |
 | `r` | Run selected recipes |
 | `d` | Dry-run (preview changes) |
+| `?` | Show help overlay |
 | `Esc`/`q` | Back |
 
 **Composite recipes:** Recipes containing sub-recipes are marked with `▶` in the
