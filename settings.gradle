@@ -1,3 +1,7 @@
+pluginManagement {
+    includeBuild('reqstool-java-gradle-plugin')
+}
+
 rootProject.name = 'atunko'
 
-include 'core', 'app'
+include 'core', 'cli', 'tui'

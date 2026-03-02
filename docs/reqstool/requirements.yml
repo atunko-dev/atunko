@@ -8,7 +8,8 @@ metadata:
 implementations:
   local:
     - path: ../../core/docs/reqstool
-    - path: ../../app/docs/reqstool
+    - path: ../../cli/docs/reqstool
+    - path: ../../tui/docs/reqstool
 
 requirements:
   # CLI requirements — TUI

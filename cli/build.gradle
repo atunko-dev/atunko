@@ -1,0 +1,28 @@
+plugins {
+    id 'application'
+    id 'com.gradleup.shadow' version '9.0.0'
+}
+
+application {
+    mainClass = 'io.github.atunkodev.App'
+}
+
+shadowJar {
+    archiveBaseName.set('atunko')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+    mergeServiceFiles()
+}
+
+tasks.named('test') {
+    maxHeapSize = '2g'
+}
+
+dependencies {
+    implementation project(':core')
+    implementation project(':tui')
+
+    // Picocli
+    implementation libs.picocli
+    annotationProcessor libs.picocli.codegen
+}

@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/reqstool/reqstool-client/main/src/reqstool/resources/schemas/v1/software_verification_cases.schema.json
+filters:
+  atunko:
+    svc_ids:
+      includes:
+        - SVC_CLI_0001
+        - SVC_CLI_0001.1
+        - SVC_CLI_0001.2
+        - SVC_CLI_0001.3
+        - SVC_CLI_0001.4
+        - SVC_CLI_0001.5
+        - SVC_CLI_0001.6
+        - SVC_CLI_0001.7
+        - SVC_CLI_0001.8
+        - SVC_CLI_0001.9
+        - SVC_CLI_0001.10
+        - SVC_CLI_0001.11
+        - SVC_CLI_0001.12
+        - SVC_CLI_0001.13
+        - SVC_CLI_0001.14
+        - SVC_CLI_0001.15
+
+cases: []

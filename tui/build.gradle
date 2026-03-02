@@ -1,0 +1,18 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api project(':core')
+
+    // Picocli (for TuiCommand @Command annotation)
+    implementation libs.picocli
+    annotationProcessor libs.picocli.codegen
+
+    // TamboUI
+    implementation platform(rootProject.libs.tamboui.bom)
+    implementation libs.tamboui.toolkit
+    implementation libs.tamboui.css
+    implementation libs.tamboui.picocli
+    implementation libs.tamboui.jline3.backend
+}

@@ -9,8 +9,10 @@ execution, and saveable run configurations.
 
 ```
 atunko/
-├── app/          # Application module — Picocli CLI + TamboUI TUI entry point
-│                 # Package: io.github.atunkodev.cli, io.github.atunkodev.tui
+├── cli/          # CLI entry point — Picocli commands, App main class, shadow JAR
+│                 # Package: io.github.atunkodev, io.github.atunkodev.cli
+├── tui/          # TUI module — TamboUI interactive interface
+│                 # Package: io.github.atunkodev.tui, io.github.atunkodev.tui.view
 ├── core/         # Core engine module — no UI dependencies
 │                 # Package: io.github.atunkodev.core.{engine,recipe,project,config,result}
 ├── docs/
@@ -18,15 +20,18 @@ atunko/
 └── openspec/     # Spec-driven development (links to reqstool, no duplication)
 ```
 
+**Dependency graph:** `cli` → `tui` → `core`
+
 ## Build Commands
 
 ```bash
 ./gradlew build                    # Full build (includes Spotless + Checkstyle + Error Prone)
 ./gradlew test                     # All tests
 ./gradlew :core:test               # Core module tests only
-./gradlew :app:test                # App module tests only
-./gradlew :app:run                 # Launch TUI (default)
-./gradlew :app:run --args="list"      # Run CLI command
+./gradlew :cli:test                # CLI module tests only
+./gradlew :tui:test                # TUI module tests only
+./gradlew :cli:run                 # Launch TUI (default)
+./gradlew :cli:run --args="list"   # Run CLI command
 ./gradlew spotlessApply            # Auto-fix formatting (Palantir Java Format)
 ./gradlew spotlessCheck            # Check formatting (CI mode — fails on violations)
 ./gradlew checkstyleMain           # Run Checkstyle on main source
@@ -71,9 +76,9 @@ Three layers of automated quality checks run on every build:
 ## Code Conventions
 
 - Java 25, Gradle 9.3.1 (Groovy DSL)
-- Package root: `io.github.atunkodev` (app), `io.github.atunkodev.core` (core)
-- Use `java-library` plugin in core (exposes API via `api` configuration)
-- Use `application` plugin in app (main class: `io.github.atunkodev.App`)
+- Package root: `io.github.atunkodev` (cli), `io.github.atunkodev.tui` (tui), `io.github.atunkodev.core` (core)
+- Use `java-library` plugin in core and tui (exposes API via `api` configuration)
+- Use `application` plugin in cli (main class: `io.github.atunkodev.App`)
 - Conventional commits for all changes
 
 ## Key Dependencies
