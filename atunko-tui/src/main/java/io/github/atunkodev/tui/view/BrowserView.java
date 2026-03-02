@@ -215,7 +215,9 @@ public final class BrowserView {
         int selected = controller.selectedRecipes().size();
         long parentCount = displayRows.stream().filter(r -> !r.isSubRecipe()).count();
         String status = parentCount + " recipes"
-                + " | " + selected + " selected | \u2191\u2193:nav Space:sel a:all/none r:run Enter:detail"
+                + " | " + selected + " selected"
+                + " | [x]=selected [c]=covered"
+                + " | \u2191\u2193:nav Space:sel a:all/none r:run Enter:detail"
                 + " \u2192:expand \u2190:collapse t:tags s:sort /:search Esc:clear q:quit";
         return text(" " + status).fg(Color.WHITE).bg(Color.indexed(236));
     }

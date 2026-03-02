@@ -43,7 +43,7 @@ public final class RecipeListRenderer {
             boolean selected = selectedRecipes.contains(r.name());
             boolean covered = coveredRecipes.contains(r.name());
             boolean expanded = expandedRecipes.contains(r.name());
-            String check = resolveCheckbox(selected, covered, displayRow.isSubRecipe());
+            String check = resolveCheckbox(selected, covered);
             String indicator = r.isComposite() ? (expanded ? "\u25bc " : "\u25b6 ") : "  ";
 
             String prefix;
@@ -57,7 +57,7 @@ public final class RecipeListRenderer {
                         : check + indicator;
             }
 
-            var prefixEl = resolvePrefixStyle(prefix, selected, covered, displayRow.isSubRecipe());
+            var prefixEl = resolvePrefixStyle(prefix, selected, covered);
             String displayName = cleanDisplayName(r.displayName());
             var nameEl = resolveNameStyle(displayName, selected, covered, options);
 
@@ -82,25 +82,19 @@ public final class RecipeListRenderer {
         return result;
     }
 
-    private static String resolveCheckbox(boolean selected, boolean covered, boolean isSubRecipe) {
+    private static String resolveCheckbox(boolean selected, boolean covered) {
         if (selected) {
             return "[x] ";
         }
-        if (covered && isSubRecipe) {
-            return "[\u2713] ";
-        }
         if (covered) {
-            return "[\u2248] ";
+            return "[c] ";
         }
         return "[ ] ";
     }
 
-    private static Element resolvePrefixStyle(String prefix, boolean selected, boolean covered, boolean isSubRecipe) {
+    private static Element resolvePrefixStyle(String prefix, boolean selected, boolean covered) {
         if (selected) {
             return text(prefix).fg(Color.LIGHT_GREEN);
-        }
-        if (covered && isSubRecipe) {
-            return text(prefix).fg(Color.indexed(65));
         }
         if (covered) {
             return text(prefix).dim();
