@@ -19,6 +19,7 @@ import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 @Requirements({"CLI_0001.11"})
 public final class TagBrowserView {
@@ -38,33 +39,46 @@ public final class TagBrowserView {
                         .filter(t -> t.toLowerCase(Locale.ROOT).contains(query))
                         .toList();
 
-        Element header;
-        if (tagSearchMode) {
-            header = row(
-                    text(" SEARCH TAGS ").bold().fg(Color.BLACK).bg(Color.LIGHT_YELLOW),
-                    text(" "),
-                    textInput(TAG_SEARCH_STATE)
-                            .placeholder("Filter tags...")
-                            .rounded()
-                            .focusable(false)
-                            .cursorRequiresFocus(false)
-                            .constraint(Constraint.length(30)),
-                    spacer());
-        } else {
-            header = text(" Tag Browser ").bold().fg(Color.WHITE).bg(Color.BLUE);
+        Set<String> selected = controller.selectedTags();
+
+        var recipeList =
+                list().highlightStyle(Style.EMPTY.fg(Color.WHITE).bg(Color.BLUE).bold());
+        for (String tag : tags) {
+            boolean isSelected = selected.contains(tag);
+            String prefix = isSelected ? "[x] " : "[ ] ";
+            var prefixEl = isSelected
+                    ? text(prefix).fg(Color.LIGHT_GREEN)
+                    : text(prefix).dim();
+            recipeList.add(row(prefixEl, text(tag)));
         }
+
+        var headerLabel = tagSearchMode
+                ? text(" SEARCH TAGS ").bold().fg(Color.BLACK).bg(Color.LIGHT_YELLOW)
+                : text(" Tag Browser ").bold().fg(Color.WHITE).bg(Color.BLUE);
+
+        long selectedCount = selected.size();
+        var selectedIndicator =
+                selectedCount > 0 ? text(" " + selectedCount + " selected ").fg(Color.LIGHT_GREEN) : text("");
+
+        Element header = row(
+                headerLabel,
+                text(" "),
+                selectedIndicator,
+                spacer(),
+                textInput(TAG_SEARCH_STATE)
+                        .placeholder("Filter tags...")
+                        .rounded()
+                        .focusable(false)
+                        .cursorRequiresFocus(false)
+                        .constraint(Constraint.fill(1)));
 
         String footer = tagSearchMode
                 ? " Type to filter | Enter:apply Esc:clear search"
-                : " \u2191\u2193:navigate /:search Enter:filter by tag Esc/q:back";
+                : " \u2191\u2193:nav Space:sel Enter:apply /:search Esc:clear q:back";
 
-        return column(dock().top(header, Constraint.length(1))
-                        .center(list(tags)
+        return column(dock().top(header, Constraint.length(3))
+                        .center(recipeList
                                 .selected(tagIndex)
-                                .highlightStyle(Style.EMPTY
-                                        .fg(Color.WHITE)
-                                        .bg(Color.BLUE)
-                                        .bold())
                                 .title("Tags (" + tags.size() + ")")
                                 .rounded()
                                 .borderColor(Color.LIGHT_CYAN)
@@ -96,7 +110,7 @@ public final class TagBrowserView {
             return EventResult.HANDLED;
         }
         if (event.isDown()) {
-            tagIndex = Math.min(tagIndex + 1, tags.size() - 1);
+            tagIndex = Math.min(tagIndex + 1, Math.max(tags.size() - 1, 0));
             return EventResult.HANDLED;
         }
         if (event.isUp()) {
@@ -113,15 +127,19 @@ public final class TagBrowserView {
     private static EventResult handleBrowseModeKey(
             TuiController controller, List<String> tags, dev.tamboui.tui.event.KeyEvent event) {
         if (event.isDown()) {
-            tagIndex = Math.min(tagIndex + 1, tags.size() - 1);
+            tagIndex = Math.min(tagIndex + 1, Math.max(tags.size() - 1, 0));
             return EventResult.HANDLED;
         }
         if (event.isUp()) {
             tagIndex = Math.max(tagIndex - 1, 0);
             return EventResult.HANDLED;
         }
-        if (event.isConfirm() && !tags.isEmpty()) {
-            controller.filterByTag(tags.get(tagIndex));
+        if (event.isChar(' ') && !tags.isEmpty()) {
+            controller.toggleTag(tags.get(tagIndex));
+            return EventResult.HANDLED;
+        }
+        if (event.isConfirm()) {
+            controller.applyTagFilter();
             tagIndex = 0;
             TAG_SEARCH_STATE.clear();
             return EventResult.HANDLED;
@@ -130,7 +148,13 @@ public final class TagBrowserView {
             tagSearchMode = true;
             return EventResult.HANDLED;
         }
-        if (event.isChar('q') || event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
+        if (event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
+            controller.clearTagFilter();
+            tagIndex = 0;
+            TAG_SEARCH_STATE.clear();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('q')) {
             controller.goBack();
             tagIndex = 0;
             TAG_SEARCH_STATE.clear();

@@ -83,12 +83,14 @@ public final class ConfirmRunView {
             String displayName = BrowserView.cleanDisplayName(r.displayName());
 
             if (displayRow.isSubRecipe()) {
-                String prefix = isSelected ? "     [x] " : "     [ ] ";
-                var prefixEl = isSelected
+                // Sub-recipe checkbox mirrors parent's selection state
+                boolean parentSelected = selected.contains(displayRow.parentName());
+                String prefix = parentSelected ? "     [x] " : "     [ ] ";
+                var prefixEl = parentSelected
                         ? text(prefix).fg(Color.LIGHT_GREEN)
                         : text(prefix).dim();
                 var nameElement =
-                        isSelected ? text(displayName) : text(displayName).dim();
+                        parentSelected ? text(displayName) : text(displayName).dim();
                 recipeList.add(row(prefixEl, nameElement));
             } else {
                 parentIndex++;

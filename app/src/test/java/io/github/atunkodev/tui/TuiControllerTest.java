@@ -258,10 +258,11 @@ class TuiControllerTest {
 
     @Test
     @SVCs({"SVC_CLI_0001.11"})
-    void filterByTag_filtersRecipesToThoseWithTag() {
+    void toggleTag_andApply_filtersRecipesBySelectedTags() {
         TuiController controller = new TuiController(RECIPES);
 
-        controller.filterByTag("spring");
+        controller.toggleTag("spring");
+        controller.applyTagFilter();
 
         assertThat(controller.recipes()).containsExactly(BETA);
         assertThat(controller.currentScreen()).isEqualTo(Screen.BROWSER);
@@ -269,13 +270,38 @@ class TuiControllerTest {
 
     @Test
     @SVCs({"SVC_CLI_0001.11"})
+    void toggleTag_multipleTagsFiltersUnion() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.toggleTag("spring");
+        controller.toggleTag("testing");
+
+        // ALPHA has "testing", BETA has "spring"
+        assertThat(controller.recipes()).containsExactlyInAnyOrder(ALPHA, BETA);
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.11"})
+    void toggleTag_deselectsWhenAlreadySelected() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleTag("spring");
+
+        controller.toggleTag("spring"); // deselect
+
+        assertThat(controller.selectedTags()).isEmpty();
+        assertThat(controller.recipes()).hasSize(3);
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.11"})
     void clearTagFilter_showsAllRecipes() {
         TuiController controller = new TuiController(RECIPES);
-        controller.filterByTag("spring");
+        controller.toggleTag("spring");
 
         controller.clearTagFilter();
 
         assertThat(controller.recipes()).hasSize(3);
+        assertThat(controller.selectedTags()).isEmpty();
     }
 
     // --- Recipe Options ---
@@ -529,9 +555,8 @@ class TuiControllerTest {
     void flattenRunRecipe_replacesCompositeWithSubRecipes() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.moveDown(); // highlight Composite
-        controller.toggleSelection(); // select Composite (+ subs via propagation)
+        controller.toggleSelection(); // select Composite only
         controller.openConfirmRun();
-        // runOrder has only top-level: [Composite] (sub-recipes not in top-level list)
 
         controller.flattenRunRecipe(); // flatten Composite at index 0
 
@@ -677,72 +702,57 @@ class TuiControllerTest {
                 .isLessThan(controller.displayRows().size());
     }
 
-    // --- Parent ↔ child selection propagation ---
+    // --- Sub-recipe selection (toggles parent) ---
 
     @Test
     @SVCs({"SVC_CLI_0001.5"})
-    void toggleSelection_selectingParentComposite_selectsAllSubRecipes() {
+    void toggleSelection_selectingComposite_selectsOnlyParentName() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
         controller.moveDown(); // highlight Composite (index 1)
 
         controller.toggleSelection();
 
-        assertThat(controller.selectedRecipes())
-                .containsExactlyInAnyOrder("org.test.Composite", "org.test.Sub1", "org.test.Sub2");
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Composite");
     }
 
     @Test
     @SVCs({"SVC_CLI_0001.5"})
-    void toggleSelection_deselectingParentComposite_deselectsAllSubRecipes() {
+    void toggleSelection_onSubRecipe_togglesParent() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
-        controller.moveDown(); // highlight Composite
-        controller.toggleSelection(); // select parent + children
+        controller.moveDown(); // Composite
+        controller.moveDown(); // Sub1
 
-        controller.toggleSelection(); // deselect parent + children
+        controller.toggleSelection(); // toggles parent (Composite)
+
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Composite");
+    }
+
+    @Test
+    @SVCs({"SVC_CLI_0001.5"})
+    void toggleSelection_onSubRecipe_deselectsParent() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+        controller.moveDown(); // Composite
+        controller.toggleSelection(); // select Composite
+        controller.moveDown(); // Sub1
+
+        controller.toggleSelection(); // deselect Composite via sub-recipe
 
         assertThat(controller.selectedRecipes()).isEmpty();
     }
 
     @Test
     @SVCs({"SVC_CLI_0001.5"})
-    void toggleSelection_selectingSubRecipe_doesNotSelectParent() {
-        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
-        controller.expandRecipe("org.test.Composite");
-        controller.moveDown(); // Composite
-        controller.moveDown(); // Sub1
-
-        controller.toggleSelection();
-
-        assertThat(controller.selectedRecipes()).containsExactly("org.test.Sub1");
-    }
-
-    @Test
-    @SVCs({"SVC_CLI_0001.5"})
-    void toggleSelection_deselectingSubRecipe_doesNotDeselectParent() {
-        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
-        controller.expandRecipe("org.test.Composite");
-        controller.moveDown(); // Composite
-        controller.toggleSelection(); // select parent + all children
-        controller.moveDown(); // Sub1
-
-        controller.toggleSelection(); // deselect Sub1 only
-
-        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Composite", "org.test.Sub2");
-    }
-
-    @Test
-    @SVCs({"SVC_CLI_0001.5"})
-    void cycleSelection_includesSubRecipesOfExpandedComposites() {
+    void cycleSelection_selectsOnlyParentNames() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
 
         controller.cycleSelection();
 
         assertThat(controller.selectedRecipes())
-                .containsExactlyInAnyOrder(
-                        "org.test.Alpha", "org.test.Composite", "org.test.Sub1", "org.test.Sub2", "org.test.Gamma");
+                .containsExactlyInAnyOrder("org.test.Alpha", "org.test.Composite", "org.test.Gamma");
     }
 
     // --- Run dialog display rows ---
@@ -752,7 +762,7 @@ class TuiControllerTest {
     void runDisplayRows_withExpandedComposite_includesSubRecipes() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.moveDown(); // highlight Composite
-        controller.toggleSelection(); // select Composite (+ subs)
+        controller.toggleSelection(); // select Composite
         controller.openConfirmRun();
         controller.expandRunRecipe(); // expand Composite in run dialog
 
@@ -772,7 +782,7 @@ class TuiControllerTest {
     void moveRunHighlightDown_navigatesExpandedRunDisplayRows() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.moveDown(); // highlight Composite
-        controller.toggleSelection(); // select Composite (+ subs)
+        controller.toggleSelection(); // select Composite
         controller.openConfirmRun();
         controller.expandRunRecipe();
 
@@ -780,5 +790,23 @@ class TuiControllerTest {
         controller.moveRunHighlightDown(); // Sub2 (index 2)
 
         assertThat(controller.runHighlightIndex()).isEqualTo(2);
+    }
+
+    // --- Clear all ---
+
+    @Test
+    @SVCs({"SVC_CLI_0001"})
+    void clearAll_resetsSearchTagsAndSelections() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.setSearchQuery("alpha");
+        controller.toggleTag("java");
+        controller.toggleSelection(); // select Alpha
+
+        controller.clearAll();
+
+        assertThat(controller.searchQuery()).isEmpty();
+        assertThat(controller.selectedTags()).isEmpty();
+        assertThat(controller.selectedRecipes()).isEmpty();
+        assertThat(controller.highlightedIndex()).isZero();
     }
 }

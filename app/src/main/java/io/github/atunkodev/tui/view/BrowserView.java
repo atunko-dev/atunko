@@ -110,10 +110,9 @@ public final class BrowserView {
             });
             return EventResult.HANDLED;
         }
-        if (event.isLeft() || event.isChar('c')) {
+        if (event.isLeft()) {
             controller.highlightedDisplayRow().ifPresent(row -> {
                 if (row.isSubRecipe()) {
-                    // Collapse parent when on a sub-recipe
                     if (row.parentName() != null) {
                         controller.collapseRecipe(row.parentName());
                     }
@@ -129,7 +128,7 @@ public final class BrowserView {
         }
         if (event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
             SEARCH_STATE.clear();
-            controller.clearFilters();
+            controller.clearAll();
             return EventResult.HANDLED;
         }
         if (event.isChar('/')) {
@@ -150,9 +149,11 @@ public final class BrowserView {
         var headerLabel = controller.isSearchMode()
                 ? text(" SEARCH ").bold().fg(Color.BLACK).bg(Color.LIGHT_YELLOW)
                 : text(" atunko ").bold().fg(Color.WHITE).bg(Color.BLUE);
-        var tagIndicator = controller.tagFilter().isEmpty()
+        var tagIndicator = controller.selectedTags().isEmpty()
                 ? spacer()
-                : text(" tag:" + controller.tagFilter() + " ").fg(Color.BLACK).bg(Color.LIGHT_CYAN);
+                : text(" tags:" + String.join(",", controller.selectedTags()) + " ")
+                        .fg(Color.BLACK)
+                        .bg(Color.LIGHT_CYAN);
         return row(
                 headerLabel,
                 text(" "),
@@ -163,7 +164,7 @@ public final class BrowserView {
                         .rounded()
                         .focusable(false)
                         .cursorRequiresFocus(false)
-                        .constraint(Constraint.length(40)),
+                        .constraint(Constraint.fill(1)),
                 spacer(),
                 tabs(SortOrder.NAME.name(), SortOrder.TAGS.name())
                         .selected(controller.sortOrder() == SortOrder.NAME ? 0 : 1));
@@ -174,14 +175,16 @@ public final class BrowserView {
                 list().highlightStyle(Style.EMPTY.fg(Color.WHITE).bg(Color.BLUE).bold());
         for (DisplayRow row : displayRows) {
             RecipeInfo r = row.recipe();
-            boolean selected = controller.selectedRecipes().contains(r.name());
             if (row.isSubRecipe()) {
-                String prefix = selected ? "  [x] " : "  [ ] ";
-                var prefixEl = selected
+                // Sub-recipe checkbox mirrors parent's selection state
+                boolean parentSelected = controller.selectedRecipes().contains(row.parentName());
+                String prefix = parentSelected ? "  [x] " : "  [ ] ";
+                var prefixEl = parentSelected
                         ? text(prefix).fg(Color.LIGHT_GREEN)
                         : text(prefix).dim();
                 recipeList.add(row(prefixEl, text(cleanDisplayName(r.displayName()))));
             } else {
+                boolean selected = controller.selectedRecipes().contains(r.name());
                 boolean expanded = controller.isExpanded(r.name());
                 String check = selected ? "[x] " : "[ ] ";
                 String indicator = r.isComposite() ? (expanded ? "\u25bc " : "\u25b6 ") : "  ";
@@ -246,8 +249,8 @@ public final class BrowserView {
         int selected = controller.selectedRecipes().size();
         long parentCount = displayRows.stream().filter(r -> !r.isSubRecipe()).count();
         String status = parentCount + " recipes"
-                + " | " + selected + " selected | \u2191\u2193:nav Space:sel a:sel all/none r:run Enter:detail"
-                + " \u2192:expand \u2190:collapse t:tags s:sort /:search Esc:reset q:quit";
+                + " | " + selected + " selected | \u2191\u2193:nav Space:sel a:all/none r:run Enter:detail"
+                + " \u2192:expand \u2190:collapse t:tags s:sort /:search Esc:clear q:quit";
         return text(" " + status).fg(Color.WHITE).bg(Color.indexed(236));
     }
 

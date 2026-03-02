@@ -45,7 +45,7 @@ public class TuiController {
     private SortOrder sortOrder = SortOrder.NAME;
     private int highlightedIndex;
     private final Set<String> selectedRecipes = new LinkedHashSet<>();
-    private String tagFilter = "";
+    private final Set<String> selectedTags = new LinkedHashSet<>();
     private boolean searchMode;
     private ExecutionResult executionResult;
     private boolean lastRunWasDryRun;
@@ -108,8 +108,8 @@ public class TuiController {
         return List.copyOf(sorted);
     }
 
-    public String tagFilter() {
-        return tagFilter;
+    public Set<String> selectedTags() {
+        return Set.copyOf(selectedTags);
     }
 
     public boolean isSearchMode() {
@@ -219,30 +219,25 @@ public class TuiController {
     @Requirements({"CLI_0001.5"})
     public void toggleSelection() {
         highlightedDisplayRow().ifPresent(row -> {
-            RecipeInfo recipe = row.recipe();
-            if (selectedRecipes.contains(recipe.name())) {
-                selectedRecipes.remove(recipe.name());
-                if (!row.isSubRecipe() && recipe.isComposite()) {
-                    recipe.recipeList().forEach(sub -> selectedRecipes.remove(sub.name()));
-                }
-            } else {
-                selectedRecipes.add(recipe.name());
-                if (!row.isSubRecipe() && recipe.isComposite()) {
-                    recipe.recipeList().forEach(sub -> selectedRecipes.add(sub.name()));
-                }
+            // Sub-recipe toggle → toggle the parent composite instead
+            String name = row.isSubRecipe() ? row.parentName() : row.recipe().name();
+            if (!selectedRecipes.remove(name)) {
+                selectedRecipes.add(name);
             }
         });
     }
 
     @Requirements({"CLI_0001.5"})
     public void cycleSelection() {
-        Set<String> visibleNames =
-                displayRows().stream().map(r -> r.recipe().name()).collect(Collectors.toSet());
-        boolean allSelected = visibleNames.stream().allMatch(selectedRecipes::contains);
+        Set<String> parentNames = displayRows().stream()
+                .filter(r -> !r.isSubRecipe())
+                .map(r -> r.recipe().name())
+                .collect(Collectors.toSet());
+        boolean allSelected = parentNames.stream().allMatch(selectedRecipes::contains);
         if (allSelected) {
             selectedRecipes.clear();
         } else {
-            selectedRecipes.addAll(visibleNames);
+            selectedRecipes.addAll(parentNames);
         }
         LOG.fine(() -> "Cycle selection: " + selectedRecipes.size() + " selected");
     }
@@ -271,21 +266,28 @@ public class TuiController {
     }
 
     @Requirements({"CLI_0001.11"})
-    public void filterByTag(String tag) {
-        this.tagFilter = tag;
+    public void toggleTag(String tag) {
+        if (!selectedTags.remove(tag)) {
+            selectedTags.add(tag);
+        }
+    }
+
+    @Requirements({"CLI_0001.11"})
+    public void applyTagFilter() {
         this.highlightedIndex = 0;
         this.currentScreen = Screen.BROWSER;
     }
 
     @Requirements({"CLI_0001.11"})
     public void clearTagFilter() {
-        this.tagFilter = "";
+        this.selectedTags.clear();
         this.highlightedIndex = 0;
     }
 
-    public void clearFilters() {
+    public void clearAll() {
         this.searchQuery = "";
-        this.tagFilter = "";
+        this.selectedTags.clear();
+        this.selectedRecipes.clear();
         this.highlightedIndex = 0;
     }
 
@@ -546,8 +548,9 @@ public class TuiController {
 
     private List<RecipeInfo> filterRecipes() {
         var stream = allRecipes.stream();
-        if (!tagFilter.isBlank()) {
-            stream = stream.filter(r -> r.tags().stream().anyMatch(t -> t.equalsIgnoreCase(tagFilter)));
+        if (!selectedTags.isEmpty()) {
+            stream = stream.filter(r ->
+                    r.tags().stream().anyMatch(t -> selectedTags.stream().anyMatch(st -> st.equalsIgnoreCase(t))));
         }
         if (!searchQuery.isBlank()) {
             String lowerQuery = searchQuery.toLowerCase(Locale.ROOT);
