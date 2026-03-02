@@ -32,9 +32,17 @@ public final class BrowserView {
     public static Element render(TuiController controller, AtunkoTui app) {
         List<DisplayRow> displayRows = controller.displayRows();
 
+        Element centerContent;
+        if (controller.isShowHelp()) {
+            centerContent = row(spacer(), HelpOverlay.render(HelpOverlay.BROWSER_HELP), spacer())
+                    .constraint(Constraint.fill());
+        } else {
+            centerContent = row(renderRecipeList(controller, displayRows), renderDetailPanel(controller))
+                    .constraint(Constraint.fill());
+        }
+
         return column(dock().top(renderHeader(controller), Constraint.length(3))
-                        .center(row(renderRecipeList(controller, displayRows), renderDetailPanel(controller))
-                                .constraint(Constraint.fill()))
+                        .center(centerContent)
                         .bottom(renderStatusBar(controller, displayRows), Constraint.length(1))
                         .constraint(Constraint.fill()))
                 .id("browser")
@@ -44,6 +52,10 @@ public final class BrowserView {
 
     private static EventResult handleKeyEvent(
             TuiController controller, AtunkoTui app, dev.tamboui.tui.event.KeyEvent event) {
+        if (controller.isShowHelp()) {
+            controller.toggleHelp();
+            return EventResult.HANDLED;
+        }
         if (controller.isSearchMode()) {
             return handleSearchModeKey(controller, event);
         }
@@ -126,6 +138,10 @@ public final class BrowserView {
         }
         if (event.isChar('s')) {
             controller.setSortOrder(controller.sortOrder() == SortOrder.NAME ? SortOrder.TAGS : SortOrder.NAME);
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('?')) {
+            controller.toggleHelp();
             return EventResult.HANDLED;
         }
         return EventResult.UNHANDLED;
@@ -214,11 +230,7 @@ public final class BrowserView {
     private static Element renderStatusBar(TuiController controller, List<DisplayRow> displayRows) {
         int selected = controller.selectedRecipes().size();
         long parentCount = displayRows.stream().filter(r -> !r.isSubRecipe()).count();
-        String status = parentCount + " recipes"
-                + " | " + selected + " selected"
-                + " | [x]=selected [c]=covered"
-                + " | \u2191\u2193:nav Space:sel a:all/none r:run Enter:detail"
-                + " \u2192:expand \u2190:collapse t:tags s:sort /:search Esc:clear q:quit";
+        String status = parentCount + " recipes | " + selected + " selected | ?:help q:quit";
         return text(" " + status).fg(Color.WHITE).bg(Color.indexed(236));
     }
 }

@@ -29,7 +29,9 @@ public final class ConfirmRunView {
                 controller.projectDir().toAbsolutePath().normalize().toString();
 
         Element centerContent;
-        if (hasRecipes) {
+        if (controller.isShowHelp()) {
+            centerContent = row(spacer(), HelpOverlay.render(HelpOverlay.RUN_DIALOG_HELP), spacer());
+        } else if (hasRecipes) {
             centerContent = column(
                     row(text("Project: ").bold(), text(projectPath)),
                     text(""),
@@ -45,10 +47,7 @@ public final class ConfirmRunView {
                 .filter(r -> selected.contains(r.recipe().name()))
                 .count();
         long totalCount = displayRows.size();
-        String footer = hasRecipes
-                ? " \u2191\u2193:nav +/-:reorder Space:toggle a:sel all/none \u2192:expand \u2190:collapse f:flatten"
-                        + " r:run d:dry-run Esc:back"
-                : " Esc:back";
+        String footer = hasRecipes ? selectedCount + "/" + totalCount + " selected | ?:help Esc:back" : "Esc:back";
 
         return column(dock().top(
                                 row(
@@ -83,6 +82,14 @@ public final class ConfirmRunView {
 
     private static EventResult handleKeyEvent(
             TuiController controller, boolean hasRecipes, dev.tamboui.tui.event.KeyEvent event) {
+        if (controller.isShowHelp()) {
+            controller.toggleHelp();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('?')) {
+            controller.toggleHelp();
+            return EventResult.HANDLED;
+        }
         if (hasRecipes) {
             if (event.isDown()) {
                 controller.moveRunHighlightDown();
