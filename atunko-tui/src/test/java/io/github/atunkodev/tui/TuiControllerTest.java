@@ -16,7 +16,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-@SVCs({"atunko:SVC_CLI_0001"})
+@SVCs({"atunko:SVC_TUI_0001"})
 class TuiControllerTest {
 
     private static final RecipeInfo ALPHA =
@@ -44,7 +44,7 @@ class TuiControllerTest {
     private static final List<RecipeInfo> RECIPES_WITH_NESTED = List.of(ALPHA, OUTER, GAMMA);
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001"})
+    @SVCs({"atunko:SVC_TUI_0001"})
     void initialState_browserScreenWithRecipesLoaded() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -56,7 +56,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.1"})
+    @SVCs({"atunko:SVC_TUI_0001.1"})
     void recipes_exposesFilteredSortedList() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -71,7 +71,7 @@ class TuiControllerTest {
     // --- Search Mode ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.3"})
+    @SVCs({"atunko:SVC_TUI_0001.3"})
     void enterSearchMode_enablesSearchMode() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -81,7 +81,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.3"})
+    @SVCs({"atunko:SVC_TUI_0001.3"})
     void exitSearchMode_disablesSearchMode() {
         TuiController controller = new TuiController(RECIPES);
         controller.enterSearchMode();
@@ -94,7 +94,7 @@ class TuiControllerTest {
     // --- Search and Sort ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.3"})
+    @SVCs({"atunko:SVC_TUI_0001.3"})
     void setSearchQuery_filtersRecipesByNameDescriptionAndTags() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -105,7 +105,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.3"})
+    @SVCs({"atunko:SVC_TUI_0001.3"})
     void setSearchQuery_matchesByDescription() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -115,7 +115,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.3"})
+    @SVCs({"atunko:SVC_TUI_0001.3"})
     void setSearchQuery_emptyQueryShowsAll() {
         TuiController controller = new TuiController(RECIPES);
         controller.setSearchQuery("spring");
@@ -126,7 +126,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.3"})
+    @SVCs({"atunko:SVC_TUI_0001.3"})
     void setSearchQuery_resetsHighlightedIndex() {
         TuiController controller = new TuiController(RECIPES);
         controller.moveDown();
@@ -138,7 +138,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.6"})
+    @SVCs({"atunko:SVC_TUI_0001.6"})
     void setSortOrder_reordersRecipeList() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -154,7 +154,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.6"})
+    @SVCs({"atunko:SVC_TUI_0001.6"})
     void setSortOrder_nameOrderIsAlphabetical() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -169,7 +169,7 @@ class TuiControllerTest {
     // --- Selection and Navigation ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.2"})
+    @SVCs({"atunko:SVC_TUI_0001.2"})
     void highlightedRecipe_returnsCurrentlyHighlightedRecipe() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -181,7 +181,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.5"})
+    @SVCs({"atunko:SVC_TUI_0001.5"})
     void toggleSelection_addsAndRemovesRecipes() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -198,7 +198,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.4"})
+    @SVCs({"atunko:SVC_TUI_0001.4"})
     void openDetail_switchesToDetailScreen() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -208,7 +208,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.4"})
+    @SVCs({"atunko:SVC_TUI_0001.4"})
     void goBack_returnsFromDetailToBrowser() {
         TuiController controller = new TuiController(RECIPES);
         controller.openDetail();
@@ -219,7 +219,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.12"})
+    @SVCs({"atunko:SVC_TUI_0001.12"})
     void moveDown_wrapsAtEnd() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -232,7 +232,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.12"})
+    @SVCs({"atunko:SVC_TUI_0001.12"})
     void moveUp_wrapsAtStart() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -244,7 +244,7 @@ class TuiControllerTest {
     // --- Tag Browser ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.11"})
+    @SVCs({"atunko:SVC_TUI_0001.11"})
     void allTags_returnsUniqueTagsSorted() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -254,7 +254,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.11"})
+    @SVCs({"atunko:SVC_TUI_0001.11"})
     void openTagBrowser_switchesToTagBrowserScreen() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -264,7 +264,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.11"})
+    @SVCs({"atunko:SVC_TUI_0001.11"})
     void toggleTag_andApply_filtersRecipesBySelectedTags() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -276,7 +276,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.11"})
+    @SVCs({"atunko:SVC_TUI_0001.11"})
     void toggleTag_multipleTagsFiltersUnion() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -288,7 +288,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.11"})
+    @SVCs({"atunko:SVC_TUI_0001.11"})
     void toggleTag_deselectsWhenAlreadySelected() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleTag("spring");
@@ -300,7 +300,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.11"})
+    @SVCs({"atunko:SVC_TUI_0001.11"})
     void clearTagFilter_showsAllRecipes() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleTag("spring");
@@ -314,7 +314,7 @@ class TuiControllerTest {
     // --- Recipe Options ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.7"})
+    @SVCs({"atunko:SVC_TUI_0001.7"})
     void highlightedRecipe_isAvailableForOptionsLookup() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -325,7 +325,7 @@ class TuiControllerTest {
     // --- Dry-Run and Execution ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.8"})
+    @SVCs({"atunko:SVC_TUI_0001.8"})
     void showDryRunResult_storesResultAndSwitchesToExecutionScreen() {
         TuiController controller = new TuiController(RECIPES);
         ExecutionResult result = new ExecutionResult(List.of(new FileChange(Path.of("Foo.java"), "before", "after")));
@@ -339,7 +339,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.9"})
+    @SVCs({"atunko:SVC_TUI_0001.9"})
     void showExecutionResult_storesResultAndSwitchesToExecutionScreen() {
         TuiController controller = new TuiController(RECIPES);
         ExecutionResult result = new ExecutionResult(List.of(new FileChange(Path.of("Foo.java"), "before", "after")));
@@ -354,7 +354,7 @@ class TuiControllerTest {
     // --- Save Run Configuration ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.10"})
+    @SVCs({"atunko:SVC_TUI_0001.10"})
     void saveRunConfig_persistsSelectedRecipes(@TempDir Path tempDir) throws Exception {
         RunConfigService service = new RunConfigService();
         TuiController controller = new TuiController(RECIPES, service);
@@ -372,7 +372,7 @@ class TuiControllerTest {
     // --- Cycle Selection ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.5"})
+    @SVCs({"atunko:SVC_TUI_0001.5"})
     void cycleSelection_selectsAllWhenNoneSelected() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -383,7 +383,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.5"})
+    @SVCs({"atunko:SVC_TUI_0001.5"})
     void cycleSelection_clearsWhenAllSelected() {
         TuiController controller = new TuiController(RECIPES);
         controller.cycleSelection(); // select all
@@ -394,7 +394,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.5"})
+    @SVCs({"atunko:SVC_TUI_0001.5"})
     void cycleSelection_selectsAllWhenPartiallySelected() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleSelection(); // select Alpha only
@@ -408,7 +408,7 @@ class TuiControllerTest {
     // --- Composite Recipe Browsing ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.13"})
+    @SVCs({"atunko:SVC_TUI_0001.13"})
     void expandRecipe_addsToExpandedSet() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
 
@@ -419,7 +419,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.13"})
+    @SVCs({"atunko:SVC_TUI_0001.13"})
     void collapseRecipe_removesFromExpandedSet() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
@@ -430,7 +430,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.13"})
+    @SVCs({"atunko:SVC_TUI_0001.13"})
     void findRecipe_returnsCompositeWithSubRecipes() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
 
@@ -444,7 +444,7 @@ class TuiControllerTest {
     // --- Run Dialog ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void openConfirmRun_initializesRunOrderFromSelection() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleSelection(); // select Alpha
@@ -459,7 +459,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void moveRunHighlightDown_navigatesRunList() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleSelection();
@@ -473,7 +473,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void moveRunHighlightUp_wrapsAround() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleSelection();
@@ -487,7 +487,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void moveRunRecipeDown_reordersRecipes() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleSelection(); // select Alpha
@@ -504,7 +504,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void moveRunRecipeUp_reordersRecipes() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleSelection();
@@ -522,7 +522,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void toggleRunRecipe_togglesIndividualRecipeSelection() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleSelection();
@@ -540,7 +540,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void cycleRunSelection_cyclesAllNone() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleSelection();
@@ -558,7 +558,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void flattenRunRecipe_replacesCompositeWithSubRecipes() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.moveDown(); // highlight Composite
@@ -572,7 +572,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void flattenRunRecipe_nonComposite_doesNothing() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleSelection(); // select Alpha
@@ -584,7 +584,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void expandRunRecipe_addsToRunExpandedSet() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.moveDown(); // highlight Composite
@@ -597,7 +597,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void collapseRunRecipe_removesFromRunExpandedSet() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.moveDown();
@@ -613,7 +613,7 @@ class TuiControllerTest {
     // --- Display Rows (flat list model) ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.13"})
+    @SVCs({"atunko:SVC_TUI_0001.13"})
     void displayRows_withoutExpansion_containsOnlyParentRows() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
 
@@ -627,7 +627,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.13"})
+    @SVCs({"atunko:SVC_TUI_0001.13"})
     void displayRows_withExpansion_includesSubRecipeRows() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
@@ -649,7 +649,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.12"})
+    @SVCs({"atunko:SVC_TUI_0001.12"})
     void moveDown_navigatesExpandedDisplayRows() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
@@ -665,7 +665,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.12"})
+    @SVCs({"atunko:SVC_TUI_0001.12"})
     void moveUp_navigatesExpandedDisplayRows() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
@@ -678,7 +678,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.13"})
+    @SVCs({"atunko:SVC_TUI_0001.13"})
     void highlightedDisplayRow_returnsCorrectRow() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
@@ -693,7 +693,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.13"})
+    @SVCs({"atunko:SVC_TUI_0001.13"})
     void collapseRecipe_clampsHighlightIndex() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
@@ -712,7 +712,7 @@ class TuiControllerTest {
     // --- Sub-recipe selection (individual) ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.5"})
+    @SVCs({"atunko:SVC_TUI_0001.5"})
     void toggleSelection_selectingComposite_selectsOnlyThatRecipe() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
@@ -724,7 +724,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.5"})
+    @SVCs({"atunko:SVC_TUI_0001.5"})
     void toggleSelection_onSubRecipe_selectsSubRecipeIndividually() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
@@ -737,7 +737,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.5"})
+    @SVCs({"atunko:SVC_TUI_0001.5"})
     void toggleSelection_onSubRecipe_deselectsSubRecipeIndividually() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
@@ -751,7 +751,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.5"})
+    @SVCs({"atunko:SVC_TUI_0001.5"})
     void cycleSelection_selectsAllVisibleNames() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
@@ -766,7 +766,7 @@ class TuiControllerTest {
     // --- Run dialog display rows ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void runDisplayRows_withExpandedComposite_includesSubRecipes() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.moveDown(); // highlight Composite
@@ -786,7 +786,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void moveRunHighlightDown_navigatesExpandedRunDisplayRows() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.moveDown(); // highlight Composite
@@ -803,7 +803,7 @@ class TuiControllerTest {
     // --- Clear all ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001"})
+    @SVCs({"atunko:SVC_TUI_0001"})
     void clearAll_resetsSearchTagsAndSelections() {
         TuiController controller = new TuiController(RECIPES);
         controller.setSearchQuery("alpha");
@@ -821,7 +821,7 @@ class TuiControllerTest {
     // --- Nested Composites ---
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.13"})
+    @SVCs({"atunko:SVC_TUI_0001.13"})
     void displayRows_nestedComposite_hasCorrectDepth() {
         TuiController controller = new TuiController(RECIPES_WITH_NESTED);
         controller.expandRecipe("org.test.Outer");
@@ -845,7 +845,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.13"})
+    @SVCs({"atunko:SVC_TUI_0001.13"})
     void displayRows_deeplyNested_expandsBothLevels() {
         TuiController controller = new TuiController(RECIPES_WITH_NESTED);
         controller.expandRecipe("org.test.Outer");
@@ -860,9 +860,11 @@ class TuiControllerTest {
         assertThat(rows.get(2).recipe().name()).isEqualTo("org.test.Outer");
         assertThat(rows.get(3).recipe().name()).isEqualTo("org.test.Composite");
         assertThat(rows.get(3).depth()).isEqualTo(1);
+        assertThat(rows.get(3).path()).isEqualTo("org.test.Outer/org.test.Composite");
         assertThat(rows.get(4).recipe().name()).isEqualTo("org.test.Sub1");
         assertThat(rows.get(4).depth()).isEqualTo(2);
         assertThat(rows.get(4).parentName()).isEqualTo("org.test.Composite");
+        assertThat(rows.get(4).path()).isEqualTo("org.test.Outer/org.test.Composite/org.test.Sub1");
         assertThat(rows.get(5).recipe().name()).isEqualTo("org.test.Sub2");
         assertThat(rows.get(5).depth()).isEqualTo(2);
         assertThat(rows.get(6).recipe().name()).isEqualTo("org.test.Sub3");
@@ -870,7 +872,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.13"})
+    @SVCs({"atunko:SVC_TUI_0001.13"})
     void expandRecipe_onNestedSubRecipe_expandsIt() {
         TuiController controller = new TuiController(RECIPES_WITH_NESTED);
         controller.expandRecipe("org.test.Outer");
@@ -882,7 +884,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_CLI_0001.5"})
+    @SVCs({"atunko:SVC_TUI_0001.5"})
     void toggleSelection_onNestedSubRecipe_selectsIndividually() {
         TuiController controller = new TuiController(RECIPES_WITH_NESTED);
         controller.expandRecipe("org.test.Outer");
@@ -896,5 +898,172 @@ class TuiControllerTest {
         controller.toggleSelection();
 
         assertThat(controller.selectedRecipes()).containsExactly("org.test.Sub1");
+    }
+
+    // --- Path-based IDs: same recipe at different tree positions ---
+
+    // A recipe that appears both at top-level and as a sub-recipe of a composite
+    private static final RecipeInfo COMMON =
+            new RecipeInfo("org.test.Common", "Common Recipe", "Appears everywhere", Set.of("java"));
+    private static final RecipeInfo COMPOSITE_WITH_COMMON = new RecipeInfo(
+            "org.test.CompositeCommon",
+            "Composite With Common",
+            "Contains Common",
+            Set.of("java"),
+            List.of(COMMON, SUB_2));
+    private static final List<RecipeInfo> RECIPES_WITH_DUPLICATE = List.of(COMMON, COMPOSITE_WITH_COMMON);
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.5"})
+    void toggleSelection_sameRecipeAtDifferentPositions_selectsByRecipeName() {
+        TuiController controller = new TuiController(RECIPES_WITH_DUPLICATE);
+        // Sorted by name: Common(0), CompositeCommon(1)
+        controller.expandRecipe("org.test.CompositeCommon");
+        // Rows: Common(0), CompositeCommon(1), Common-sub(2), Sub2-sub(3)
+
+        // Select top-level Common — uses recipe name as key
+        controller.toggleSelection();
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Common");
+
+        // Move to sub-recipe Common and toggle — same recipe name, so it deselects
+        controller.moveDown(); // CompositeCommon (1)
+        controller.moveDown(); // Common sub-recipe (2)
+        controller.toggleSelection();
+        assertThat(controller.selectedRecipes()).isEmpty();
+
+        // Toggle again from the sub-recipe position — selects the recipe by name
+        controller.toggleSelection();
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Common");
+    }
+
+    // A composite that appears both at top-level and nested inside another composite
+    private static final RecipeInfo NESTED_HOST = new RecipeInfo(
+            "org.test.NestedHost", "Nested Host", "Contains Composite", Set.of("java"), List.of(COMPOSITE, SUB_3));
+    private static final List<RecipeInfo> RECIPES_WITH_DUPLICATE_COMPOSITE = List.of(COMPOSITE, NESTED_HOST);
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.13"})
+    void expandRecipe_sameCompositeAtDifferentPositions_expandsAllInstances() {
+        TuiController controller = new TuiController(RECIPES_WITH_DUPLICATE_COMPOSITE);
+        // Sorted: Composite(0), NestedHost(1)
+        controller.expandRecipe("org.test.NestedHost");
+        // Rows: Composite(0), NestedHost(1), Composite-sub(2), Sub3-sub(3)
+
+        // Expand Composite by name — expands ALL instances (recipe name identity)
+        controller.expandRecipe("org.test.Composite");
+
+        assertThat(controller.isExpanded("org.test.Composite")).isTrue();
+
+        List<DisplayRow> rows = controller.displayRows();
+        // Top-level Composite expanded: Composite(0), Sub1(1), Sub2(2)
+        // NestedHost(3), nested Composite expanded: Composite(4), Sub1(5), Sub2(6), Sub3(7)
+        assertThat(rows).hasSize(8);
+        assertThat(rows.get(0).recipe().name()).isEqualTo("org.test.Composite");
+        assertThat(rows.get(0).depth()).isZero();
+        assertThat(rows.get(1).recipe().name()).isEqualTo("org.test.Sub1");
+        assertThat(rows.get(1).depth()).isEqualTo(1);
+        assertThat(rows.get(2).recipe().name()).isEqualTo("org.test.Sub2");
+        assertThat(rows.get(2).depth()).isEqualTo(1);
+        assertThat(rows.get(3).recipe().name()).isEqualTo("org.test.NestedHost");
+        assertThat(rows.get(4).recipe().name()).isEqualTo("org.test.Composite");
+        assertThat(rows.get(4).depth()).isEqualTo(1);
+        assertThat(rows.get(5).recipe().name()).isEqualTo("org.test.Sub1");
+        assertThat(rows.get(5).depth()).isEqualTo(2);
+        assertThat(rows.get(6).recipe().name()).isEqualTo("org.test.Sub2");
+        assertThat(rows.get(6).depth()).isEqualTo(2);
+        assertThat(rows.get(7).recipe().name()).isEqualTo("org.test.Sub3");
+        assertThat(rows.get(7).depth()).isEqualTo(1);
+    }
+
+    // --- Recipe Coverage Indicators ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.16"})
+    void coveredRecipes_returnsSubRecipesOfSelectedComposites() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown(); // highlight Composite
+        controller.toggleSelection(); // select Composite
+
+        Set<String> covered = controller.coveredRecipes();
+
+        assertThat(covered).containsExactlyInAnyOrder("org.test.Sub1", "org.test.Sub2");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.16.1"})
+    void coveredRecipes_recursivelyIncludesNestedSubRecipes() {
+        TuiController controller = new TuiController(RECIPES_WITH_NESTED);
+        // Sorted: Alpha(0), Gamma(1), Outer(2) — highlight Outer
+        controller.moveDown(); // Gamma
+        controller.moveDown(); // Outer
+        controller.toggleSelection(); // select Outer
+
+        Set<String> covered = controller.coveredRecipes();
+
+        // Outer contains Composite and Sub3; Composite contains Sub1 and Sub2
+        assertThat(covered)
+                .containsExactlyInAnyOrder("org.test.Composite", "org.test.Sub3", "org.test.Sub1", "org.test.Sub2");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.16"})
+    void coveredRecipes_emptyWhenNoCompositesSelected() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.toggleSelection(); // select Alpha (non-composite)
+
+        Set<String> covered = controller.coveredRecipes();
+
+        assertThat(covered).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.16"})
+    void coveredRecipes_doesNotIncludeTheSelectedCompositeItself() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown(); // highlight Composite
+        controller.toggleSelection(); // select Composite
+
+        Set<String> covered = controller.coveredRecipes();
+
+        assertThat(covered).doesNotContain("org.test.Composite");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.16.2"})
+    void includedIn_returnsParentCompositesForCoveredRecipe() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown(); // highlight Composite
+        controller.toggleSelection(); // select Composite
+
+        List<String> parents = controller.includedIn("org.test.Sub1");
+
+        assertThat(parents).containsExactly("Composite Recipe");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.16.2"})
+    void includedIn_returnsEmptyForNonCoveredRecipe() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown(); // highlight Composite
+        controller.toggleSelection(); // select Composite
+
+        List<String> parents = controller.includedIn("org.test.Alpha");
+
+        assertThat(parents).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.13"})
+    void displayRows_pathFieldIsCorrectForAllPositions() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+
+        List<DisplayRow> rows = controller.displayRows();
+
+        assertThat(rows.get(0).path()).isEqualTo("org.test.Alpha");
+        assertThat(rows.get(1).path()).isEqualTo("org.test.Composite");
+        assertThat(rows.get(2).path()).isEqualTo("org.test.Composite/org.test.Sub1");
+        assertThat(rows.get(3).path()).isEqualTo("org.test.Composite/org.test.Sub2");
+        assertThat(rows.get(4).path()).isEqualTo("org.test.Gamma");
     }
 }

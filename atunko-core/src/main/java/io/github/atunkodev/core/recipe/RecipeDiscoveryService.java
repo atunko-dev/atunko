@@ -20,19 +20,19 @@ public class RecipeDiscoveryService {
         this.environmentProvider = environmentProvider;
     }
 
-    @Requirements({"CORE_0001"})
+    @Requirements({"atunko:CORE_0001"})
     public List<RecipeInfo> discoverAll() {
         return environmentProvider.get().listRecipeDescriptors().stream()
                 .map(this::toRecipeInfo)
                 .toList();
     }
 
-    @Requirements({"CORE_0002"})
+    @Requirements({"atunko:CORE_0002"})
     public List<RecipeInfo> search(String query) {
         return search(query, ALL_FIELDS);
     }
 
-    @Requirements({"CORE_0002"})
+    @Requirements({"atunko:CORE_0002"})
     public List<RecipeInfo> search(String query, Set<RecipeField> fields) {
         if (query == null || query.isBlank()) {
             return discoverAll();

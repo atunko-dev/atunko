@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-@SVCs({"SVC_CLI_0004"})
+@SVCs({"atunko:SVC_CLI_0004"})
 class SearchCommandTest {
 
     @Test
-    @SVCs({"SVC_CLI_0004.1"})
+    @SVCs({"atunko:SVC_CLI_0004.1"})
     void search_displaysMatchingRecipesAsText() {
         CommandLineFixture cli = CommandLineFixture.create();
 
@@ -26,7 +26,7 @@ class SearchCommandTest {
     }
 
     @Test
-    @SVCs({"SVC_CLI_0004.1"})
+    @SVCs({"atunko:SVC_CLI_0004.1"})
     void search_showsMessageWhenNoResults() {
         CommandLineFixture cli = CommandLineFixture.create();
 
@@ -37,7 +37,7 @@ class SearchCommandTest {
     }
 
     @Test
-    @SVCs({"SVC_CLI_0004.2"})
+    @SVCs({"atunko:SVC_CLI_0004.2"})
     void search_displaysMatchingRecipesAsJson() throws Exception {
         CommandLineFixture cli = CommandLineFixture.create();
 
@@ -54,7 +54,7 @@ class SearchCommandTest {
     }
 
     @Test
-    @SVCs({"SVC_CLI_0004.3"})
+    @SVCs({"atunko:SVC_CLI_0004.3"})
     void search_sortsByName() {
         CommandLineFixture cli = CommandLineFixture.create();
 
@@ -65,7 +65,7 @@ class SearchCommandTest {
     }
 
     @Test
-    @SVCs({"SVC_CLI_0004.4"})
+    @SVCs({"atunko:SVC_CLI_0004.4"})
     void search_sortsByTags() {
         CommandLineFixture cli = CommandLineFixture.create();
 
@@ -76,7 +76,7 @@ class SearchCommandTest {
     }
 
     @Test
-    @SVCs({"SVC_CLI_0004.5"})
+    @SVCs({"atunko:SVC_CLI_0004.5"})
     void search_filtersByField() {
         CommandLineFixture cli = CommandLineFixture.create();
 

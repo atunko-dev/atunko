@@ -22,7 +22,7 @@ import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 
-@Requirements({"atunko:CLI_0001.1", "atunko:CLI_0001.2", "atunko:CLI_0001.13"})
+@Requirements({"atunko:TUI_0001.1", "atunko:TUI_0001.2", "atunko:TUI_0001.13"})
 public final class BrowserView {
 
     private static final TextInputState SEARCH_STATE = new TextInputState();
@@ -164,41 +164,47 @@ public final class BrowserView {
                 displayRows,
                 controller.selectedRecipes(),
                 controller.expandedRecipes(),
+                controller.coveredRecipes(),
                 controller.highlightedIndex(),
                 "Recipes",
                 RecipeListRenderer.RenderOptions.BROWSER,
                 Constraint.fill(2));
     }
 
+    @Requirements({"atunko:TUI_0001.16"})
     private static Element renderDetailPanel(TuiController controller) {
         return controller
                 .highlightedRecipe()
-                .map(recipe -> (Element) panel(
-                                "Detail",
-                                column(
-                                        text(RecipeListRenderer.cleanDisplayName(recipe.displayName()))
-                                                .bold()
-                                                .fg(Color.LIGHT_CYAN),
-                                        text(""),
-                                        text(recipe.name()).dim(),
-                                        text(""),
-                                        text(recipe.description() != null ? recipe.description() : ""),
-                                        text(""),
-                                        row(
-                                                text("Tags: ").bold(),
-                                                text(recipe.tags().isEmpty()
-                                                                ? "none"
-                                                                : String.join(", ", recipe.tags()))
-                                                        .fg(Color.LIGHT_CYAN)),
-                                        recipe.isComposite()
-                                                ? text("Composite: "
-                                                                + recipe.recipeList()
-                                                                        .size() + " sub-recipes")
-                                                        .fg(Color.LIGHT_CYAN)
-                                                : text("")))
-                        .rounded()
-                        .borderColor(Color.LIGHT_CYAN)
-                        .constraint(Constraint.fill(1)))
+                .map(recipe -> {
+                    var content = column(
+                            text(RecipeListRenderer.cleanDisplayName(recipe.displayName()))
+                                    .bold()
+                                    .fg(Color.LIGHT_CYAN),
+                            text(""),
+                            text(recipe.name()).dim(),
+                            text(""),
+                            text(recipe.description() != null ? recipe.description() : ""),
+                            text(""),
+                            row(
+                                    text("Tags: ").bold(),
+                                    text(recipe.tags().isEmpty() ? "none" : String.join(", ", recipe.tags()))
+                                            .fg(Color.LIGHT_CYAN)),
+                            recipe.isComposite()
+                                    ? text("Composite: " + recipe.recipeList().size() + " sub-recipes")
+                                            .fg(Color.LIGHT_CYAN)
+                                    : text(""));
+                    java.util.List<String> parents = controller.includedIn(recipe.name());
+                    if (!parents.isEmpty()) {
+                        content.add(text(""));
+                        content.add(row(
+                                text("Included in: ").bold().fg(Color.LIGHT_YELLOW),
+                                text(String.join(", ", parents)).fg(Color.LIGHT_YELLOW)));
+                    }
+                    return (Element) panel("Detail", content)
+                            .rounded()
+                            .borderColor(Color.LIGHT_CYAN)
+                            .constraint(Constraint.fill(1));
+                })
                 .orElse(panel("Detail", text("No recipe selected"))
                         .rounded()
                         .borderColor(Color.LIGHT_CYAN)

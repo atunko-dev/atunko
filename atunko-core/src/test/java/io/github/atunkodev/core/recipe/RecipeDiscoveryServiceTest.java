@@ -12,14 +12,14 @@ class RecipeDiscoveryServiceTest {
     private final RecipeDiscoveryService service = new RecipeDiscoveryService();
 
     @Test
-    @SVCs({"SVC_CORE_0001"})
+    @SVCs({"atunko:SVC_CORE_0001"})
     void discoverAll_returnsNonEmptyList() {
         List<RecipeInfo> recipes = service.discoverAll();
         assertThat(recipes).isNotEmpty();
     }
 
     @Test
-    @SVCs({"SVC_CORE_0001"})
+    @SVCs({"atunko:SVC_CORE_0001"})
     void discoverAll_recipesHaveNameAndDescription() {
         List<RecipeInfo> recipes = service.discoverAll();
         assertThat(recipes).allSatisfy(recipe -> {
@@ -29,14 +29,14 @@ class RecipeDiscoveryServiceTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0001"})
+    @SVCs({"atunko:SVC_CORE_0001"})
     void discoverAll_includesKnownRecipe() {
         List<RecipeInfo> recipes = service.discoverAll();
         assertThat(recipes).extracting(RecipeInfo::name).contains("org.openrewrite.java.RemoveUnusedImports");
     }
 
     @Test
-    @SVCs({"SVC_CORE_0002"})
+    @SVCs({"atunko:SVC_CORE_0002"})
     void search_withMatchingKeyword_returnsFilteredRecipes() {
         List<RecipeInfo> results = service.search("RemoveUnusedImports");
         assertThat(results).isNotEmpty();
@@ -46,7 +46,7 @@ class RecipeDiscoveryServiceTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0002"})
+    @SVCs({"atunko:SVC_CORE_0002"})
     void search_isCaseInsensitive() {
         List<RecipeInfo> upper = service.search("REMOVEUNUSEDIMPORTS");
         List<RecipeInfo> lower = service.search("removeunusedimports");
@@ -57,7 +57,7 @@ class RecipeDiscoveryServiceTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0002"})
+    @SVCs({"atunko:SVC_CORE_0002"})
     void search_matchesAgainstNameDisplayNameDescriptionAndTags() {
         // Match against name (fully qualified recipe name)
         assertThat(service.search("org.openrewrite.java.RemoveUnusedImports")).isNotEmpty();
@@ -77,14 +77,14 @@ class RecipeDiscoveryServiceTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0002"})
+    @SVCs({"atunko:SVC_CORE_0002"})
     void search_withNonMatchingKeyword_returnsEmptyList() {
         List<RecipeInfo> results = service.search("zzz_no_recipe_matches_this_xyzzy");
         assertThat(results).isEmpty();
     }
 
     @Test
-    @SVCs({"SVC_CORE_0002"})
+    @SVCs({"atunko:SVC_CORE_0002"})
     void search_withBlankOrNullQuery_returnsAllRecipes() {
         List<RecipeInfo> all = service.discoverAll();
         assertThat(service.search(null)).isEqualTo(all);
@@ -93,7 +93,7 @@ class RecipeDiscoveryServiceTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0001.1"})
+    @SVCs({"atunko:SVC_CORE_0001.1"})
     void discoverAll_compositeRecipesExposeSubRecipes() {
         List<RecipeInfo> recipes = service.discoverAll();
 
@@ -108,7 +108,7 @@ class RecipeDiscoveryServiceTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0001.1"})
+    @SVCs({"atunko:SVC_CORE_0001.1"})
     void discoverAll_nonCompositeRecipesHaveEmptyRecipeList() {
         List<RecipeInfo> recipes = service.discoverAll();
 

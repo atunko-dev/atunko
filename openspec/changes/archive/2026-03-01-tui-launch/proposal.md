@@ -3,7 +3,7 @@
 The CLI (`list`, `search`, `run`) is implemented, but the primary interaction mode — an
 interactive TUI for recipe browsing, selection, configuration, and execution — is missing.
 This is the core differentiator from the existing `rewriteDiscover`/`rewriteRun` Gradle
-tasks: a rich, interactive terminal experience (CLI_0001).
+tasks: a rich, interactive terminal experience (TUI_0001).
 
 ## What Changes
 
@@ -23,7 +23,7 @@ tasks: a rich, interactive terminal experience (CLI_0001).
 - `tui-launch`: Interactive TUI application — recipe browsing, search, selection,
   configuration, execution, tag browsing, keyboard navigation, composite recipe
   browsing, navigable run dialog, and debug logging
-  (CLI_0001, CLI_0001.1–CLI_0001.15)
+  (TUI_0001, TUI_0001.1–TUI_0001.15)
 
 ### Modified Capabilities
 _(none — CLI subcommands are unchanged)_

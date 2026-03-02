@@ -90,8 +90,8 @@ cases:
       THEN the saved recipes are executed with the saved options
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001
-    requirement_ids: ["CLI_0001"]
+  - id: SVC_TUI_0001
+    requirement_ids: ["TUI_0001"]
     title: Launch TUI via subcommand
     verification: automated-test
     description: |
@@ -100,8 +100,8 @@ cases:
       THEN the TUI controller is initialized and launched
     revision: "0.2.0"
 
-  - id: SVC_CLI_0001.1
-    requirement_ids: ["CLI_0001.1"]
+  - id: SVC_TUI_0001.1
+    requirement_ids: ["TUI_0001.1"]
     title: TUI displays recipe table
     verification: automated-test
     description: |
@@ -110,8 +110,8 @@ cases:
       THEN a scrollable table shows each recipe with name, description, and tags
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.2
-    requirement_ids: ["CLI_0001.2"]
+  - id: SVC_TUI_0001.2
+    requirement_ids: ["TUI_0001.2"]
     title: TUI shows recipe detail panel
     verification: automated-test
     description: |
@@ -120,8 +120,8 @@ cases:
       THEN a side panel shows the recipe's full description, tags, and options
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.3
-    requirement_ids: ["CLI_0001.3"]
+  - id: SVC_TUI_0001.3
+    requirement_ids: ["TUI_0001.3"]
     title: TUI filters recipes by search
     verification: automated-test
     description: |
@@ -130,8 +130,8 @@ cases:
       THEN only recipes matching the query in name, description, or tags are shown
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.4
-    requirement_ids: ["CLI_0001.4"]
+  - id: SVC_TUI_0001.4
+    requirement_ids: ["TUI_0001.4"]
     title: TUI shows full recipe detail view
     verification: automated-test
     description: |
@@ -140,8 +140,8 @@ cases:
       THEN a full-screen detail view shows the recipe's complete information
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.5
-    requirement_ids: ["CLI_0001.5"]
+  - id: SVC_TUI_0001.5
+    requirement_ids: ["TUI_0001.5"]
     title: TUI supports multi-select
     verification: automated-test
     description: |
@@ -150,8 +150,8 @@ cases:
       THEN the selected recipes are tracked and visually indicated
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.6
-    requirement_ids: ["CLI_0001.6"]
+  - id: SVC_TUI_0001.6
+    requirement_ids: ["TUI_0001.6"]
     title: TUI sorts recipes
     verification: automated-test
     description: |
@@ -160,8 +160,8 @@ cases:
       THEN the recipe list is reordered accordingly
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.7
-    requirement_ids: ["CLI_0001.7"]
+  - id: SVC_TUI_0001.7
+    requirement_ids: ["TUI_0001.7"]
     title: TUI configures recipe options
     verification: automated-test
     description: |
@@ -170,8 +170,8 @@ cases:
       THEN the recipe's options are displayed and editable
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.8
-    requirement_ids: ["CLI_0001.8"]
+  - id: SVC_TUI_0001.8
+    requirement_ids: ["TUI_0001.8"]
     title: TUI shows dry-run preview
     verification: automated-test
     description: |
@@ -180,8 +180,8 @@ cases:
       THEN a preview of affected files and changes is displayed without modifying files
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.9
-    requirement_ids: ["CLI_0001.9"]
+  - id: SVC_TUI_0001.9
+    requirement_ids: ["TUI_0001.9"]
     title: TUI executes recipes
     verification: automated-test
     description: |
@@ -190,8 +190,8 @@ cases:
       THEN the recipes are applied and results are displayed
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.10
-    requirement_ids: ["CLI_0001.10"]
+  - id: SVC_TUI_0001.10
+    requirement_ids: ["TUI_0001.10"]
     title: TUI saves run configuration
     verification: automated-test
     description: |
@@ -200,8 +200,8 @@ cases:
       THEN an .atunko.yml file is written with the current setup
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.11
-    requirement_ids: ["CLI_0001.11"]
+  - id: SVC_TUI_0001.11
+    requirement_ids: ["TUI_0001.11"]
     title: TUI provides tag browser
     verification: automated-test
     description: |
@@ -210,8 +210,8 @@ cases:
       THEN tags are listed and selecting a tag filters the recipe table
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.12
-    requirement_ids: ["CLI_0001.12"]
+  - id: SVC_TUI_0001.12
+    requirement_ids: ["TUI_0001.12"]
     title: TUI supports keyboard navigation
     verification: automated-test
     description: |
@@ -220,8 +220,8 @@ cases:
       THEN focus moves between elements and actions are triggered as expected
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.13
-    requirement_ids: ["CLI_0001.13"]
+  - id: SVC_TUI_0001.13
+    requirement_ids: ["TUI_0001.13"]
     title: Browse composite recipes with expand/collapse
     verification: automated-test
     description: |
@@ -230,8 +230,8 @@ cases:
       THEN the sub-recipes are displayed below the parent with collapse support
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.14
-    requirement_ids: ["CLI_0001.14"]
+  - id: SVC_TUI_0001.14
+    requirement_ids: ["TUI_0001.14"]
     title: Run dialog with reorder and toggle
     verification: automated-test
     description: |
@@ -240,14 +240,44 @@ cases:
       THEN the execution order and selection state update accordingly
     revision: "0.1.0"
 
-  - id: SVC_CLI_0001.15
-    requirement_ids: ["CLI_0001.15"]
+  - id: SVC_TUI_0001.15
+    requirement_ids: ["TUI_0001.15"]
     title: Debug logging to file
     verification: automated-test
     description: |
       GIVEN the TUI is launched with --log-file option
       WHEN TUI actions are performed
       THEN debug output is written to the specified log file
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.16
+    requirement_ids: ["TUI_0001.16"]
+    title: Display recipe coverage indicators
+    verification: automated-test
+    description: |
+      GIVEN a composite recipe is selected
+      WHEN its sub-recipes appear in the recipe list
+      THEN they are visually marked as covered by the composite
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.16.1
+    requirement_ids: ["TUI_0001.16"]
+    title: Recursively compute covered recipes
+    verification: automated-test
+    description: |
+      GIVEN a composite with nested composites is selected
+      WHEN coveredRecipes is computed
+      THEN all sub-recipes at every nesting level are included
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.16.2
+    requirement_ids: ["TUI_0001.16"]
+    title: Show which composites include a recipe
+    verification: automated-test
+    description: |
+      GIVEN a recipe is covered by one or more selected composites
+      WHEN the user highlights that recipe
+      THEN the detail panel shows which composites include it
     revision: "0.1.0"
 
   - id: SVC_CLI_0002

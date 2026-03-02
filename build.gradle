@@ -3,6 +3,7 @@ plugins {
     id 'com.diffplug.spotless' version '8.2.1' apply false
     id 'com.palantir.java-format-spotless' version '2.89.0' apply false
     id 'net.ltgt.errorprone' version '5.0.0' apply false
+    id 'io.github.reqstool.gradle-plugin' version '0.1.0' apply false
 }
 
 allprojects {
@@ -30,6 +31,19 @@ subprojects {
     apply plugin: 'com.palantir.java-format-spotless'
     apply plugin: 'checkstyle'
     apply plugin: 'net.ltgt.errorprone'
+    apply plugin: 'io.github.reqstool.gradle-plugin'
+
+    requirementsTool {
+        datasetPath = file("docs/reqstool")
+    }
+
+    tasks.named('assembleRequirements') {
+        dependsOn 'compileJava', 'compileTestJava'
+    }
+
+    tasks.named('build') {
+        dependsOn 'assembleRequirements'
+    }
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(25)

@@ -16,7 +16,7 @@ import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 import java.util.Set;
 
-@Requirements({"CLI_0001.14"})
+@Requirements({"atunko:TUI_0001.14"})
 public final class ConfirmRunView {
 
     private ConfirmRunView() {}
@@ -74,6 +74,7 @@ public final class ConfirmRunView {
                 displayRows,
                 selected,
                 controller.runExpandedRecipes(),
+                Set.of(),
                 controller.runHighlightIndex(),
                 "Execution Order",
                 RecipeListRenderer.RenderOptions.RUN_DIALOG,

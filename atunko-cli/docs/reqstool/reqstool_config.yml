@@ -2,6 +2,6 @@
 language: java
 build: gradle
 resources:
-  annotations: ../../../build/reqstool/annotations.yml
+  annotations: ../../build/reqstool/annotations.yml
   test_results:
-    - ../../../build/test-results/**/*.xml
+    - ../../build/test-results/**/*.xml

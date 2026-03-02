@@ -45,7 +45,7 @@ public class TuiCommand implements Runnable {
     }
 
     @Override
-    @Requirements({"CLI_0001"})
+    @Requirements({"atunko:TUI_0001"})
     public void run() {
         List<RecipeInfo> recipes = discoveryService.discoverAll();
         TuiController controller = new TuiController(

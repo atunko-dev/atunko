@@ -14,8 +14,9 @@ import dev.tamboui.toolkit.event.EventResult;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
+import java.util.List;
 
-@Requirements({"CLI_0001.4", "CLI_0001.7"})
+@Requirements({"atunko:TUI_0001.4", "atunko:TUI_0001.7"})
 public final class DetailView {
 
     private DetailView() {}
@@ -55,6 +56,14 @@ public final class DetailView {
                                 .fg(Color.LIGHT_CYAN)));
                 index++;
             }
+        }
+
+        List<String> parents = controller.includedIn(recipe.name());
+        if (!parents.isEmpty()) {
+            detailContent.add(text(""));
+            detailContent.add(row(
+                    text("Included in: ").bold().fg(Color.LIGHT_YELLOW),
+                    text(String.join(", ", parents)).fg(Color.LIGHT_YELLOW)));
         }
 
         return column(dock().top(

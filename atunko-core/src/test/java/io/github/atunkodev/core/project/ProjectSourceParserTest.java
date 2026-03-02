@@ -15,7 +15,7 @@ class ProjectSourceParserTest {
     private static final Path FIXTURE_DIR = Path.of("src/test/resources/fixtures/multi-file-project");
 
     @Test
-    @SVCs({"SVC_CORE_0003.1"})
+    @SVCs({"atunko:SVC_CORE_0003.1"})
     void parse_parsesJavaFiles() {
         ProjectInfo info = new ProjectInfo(
                 List.of(), List.of(FIXTURE_DIR.resolve("src/main/java")), List.of(), List.of(), List.of());
@@ -27,7 +27,7 @@ class ProjectSourceParserTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0003.1"})
+    @SVCs({"atunko:SVC_CORE_0003.1"})
     void parse_parsesYamlFiles() {
         ProjectInfo info = new ProjectInfo(
                 List.of(), List.of(), List.of(FIXTURE_DIR.resolve("src/main/resources")), List.of(), List.of());
@@ -38,7 +38,7 @@ class ProjectSourceParserTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0003.1"})
+    @SVCs({"atunko:SVC_CORE_0003.1"})
     void parse_parsesPropertiesFiles() {
         ProjectInfo info = new ProjectInfo(
                 List.of(), List.of(), List.of(FIXTURE_DIR.resolve("src/main/resources")), List.of(), List.of());
@@ -49,7 +49,7 @@ class ProjectSourceParserTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0003.1"})
+    @SVCs({"atunko:SVC_CORE_0003.1"})
     void parse_parsesXmlFiles() {
         ProjectInfo info = new ProjectInfo(
                 List.of(), List.of(), List.of(FIXTURE_DIR.resolve("src/main/resources")), List.of(), List.of());
@@ -60,7 +60,7 @@ class ProjectSourceParserTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0003.1"})
+    @SVCs({"atunko:SVC_CORE_0003.1"})
     void parse_parsesJsonFiles() {
         ProjectInfo info = new ProjectInfo(
                 List.of(), List.of(), List.of(FIXTURE_DIR.resolve("src/main/resources")), List.of(), List.of());
@@ -71,7 +71,7 @@ class ProjectSourceParserTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0003.1"})
+    @SVCs({"atunko:SVC_CORE_0003.1"})
     void parse_parsesAllFileTypesFromMultipleDirectories() {
         ProjectInfo info = new ProjectInfo(
                 List.of(),
@@ -91,7 +91,7 @@ class ProjectSourceParserTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0003.1"})
+    @SVCs({"atunko:SVC_CORE_0003.1"})
     void parse_emptyDirectories_returnsEmptyList() {
         ProjectInfo info = new ProjectInfo(List.of(), List.of(), List.of(), List.of(), List.of());
 

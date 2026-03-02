@@ -24,7 +24,7 @@ class RecipeExecutionEngineTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0003"})
+    @SVCs({"atunko:SVC_CORE_0003"})
     void execute_removesUnusedImports() {
         List<SourceFile> sources = parseFixture();
 
@@ -40,7 +40,7 @@ class RecipeExecutionEngineTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0003"})
+    @SVCs({"atunko:SVC_CORE_0003"})
     void execute_withUnknownRecipe_throwsException() {
         List<SourceFile> sources = parseFixture();
 
@@ -49,7 +49,7 @@ class RecipeExecutionEngineTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0003"})
+    @SVCs({"atunko:SVC_CORE_0003"})
     void execute_withNoMatchingChanges_returnsEmptyResult() {
         List<SourceFile> sources = JavaParser.fromJavaVersion()
                 .build()

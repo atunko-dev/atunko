@@ -19,7 +19,7 @@ class RunConfigServiceTest {
     Path tempDir;
 
     @Test
-    @SVCs({"SVC_CORE_0007"})
+    @SVCs({"atunko:SVC_CORE_0007"})
     void save_writesYamlFile() throws IOException {
         RunConfig config = new RunConfig(
                 List.of("org.openrewrite.java.cleanup.RemoveUnusedImports", "org.openrewrite.java.format.AutoFormat"));
@@ -36,7 +36,7 @@ class RunConfigServiceTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0007"})
+    @SVCs({"atunko:SVC_CORE_0007"})
     void save_withEmptyRecipes_writesEmptyList() throws IOException {
         RunConfig config = new RunConfig(List.of());
 
@@ -49,7 +49,7 @@ class RunConfigServiceTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0007"})
+    @SVCs({"atunko:SVC_CORE_0007"})
     void save_overwritesExistingFile() throws IOException {
         Path file = tempDir.resolve(".atunko.yml");
         Files.writeString(file, "old content");
@@ -63,7 +63,7 @@ class RunConfigServiceTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0008"})
+    @SVCs({"atunko:SVC_CORE_0008"})
     void load_readsYamlFile() throws IOException {
         RunConfig original = new RunConfig(
                 List.of("org.openrewrite.java.cleanup.RemoveUnusedImports", "org.openrewrite.java.format.AutoFormat"));
@@ -78,14 +78,14 @@ class RunConfigServiceTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0008"})
+    @SVCs({"atunko:SVC_CORE_0008"})
     void load_nonExistentFile_throws() {
         assertThatThrownBy(() -> service.load(Path.of("/nonexistent/.atunko.yml")))
                 .isInstanceOf(IOException.class);
     }
 
     @Test
-    @SVCs({"SVC_CORE_0008"})
+    @SVCs({"atunko:SVC_CORE_0008"})
     void load_invalidYaml_throws() throws IOException {
         Path file = tempDir.resolve(".atunko.yml");
         Files.writeString(file, "not: [valid: yaml: for: runconfig");
@@ -94,7 +94,7 @@ class RunConfigServiceTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0008"})
+    @SVCs({"atunko:SVC_CORE_0008"})
     void load_yamlWithNullRecipes_throws() throws IOException {
         Path file = tempDir.resolve(".atunko.yml");
         Files.writeString(file, "version: 1\nrecipes:\n");
@@ -104,7 +104,7 @@ class RunConfigServiceTest {
     }
 
     @Test
-    @SVCs({"SVC_CORE_0008"})
+    @SVCs({"atunko:SVC_CORE_0008"})
     void load_yamlWithoutVersion_usesDefaults() throws IOException {
         Path file = tempDir.resolve(".atunko.yml");
         Files.writeString(file, "recipes:\n- org.openrewrite.java.RemoveUnusedImports\n");

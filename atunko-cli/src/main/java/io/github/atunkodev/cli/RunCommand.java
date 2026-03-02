@@ -45,7 +45,7 @@ public class RunCommand implements Runnable {
     }
 
     @Override
-    @Requirements({"CLI_0003"})
+    @Requirements({"atunko:CLI_0003"})
     public void run() {
         PrintWriter out = spec.commandLine().getOut();
         List<SourceFile> sources = sourceParser.parse(projectDir);

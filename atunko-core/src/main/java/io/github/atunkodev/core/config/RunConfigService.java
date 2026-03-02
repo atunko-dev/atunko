@@ -19,12 +19,12 @@ public class RunConfigService {
         this.yamlMapper = new ObjectMapper(yamlFactory).disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     }
 
-    @Requirements({"CORE_0007"})
+    @Requirements({"atunko:CORE_0007"})
     public void save(RunConfig config, Path file) throws IOException {
         yamlMapper.writeValue(file.toFile(), config);
     }
 
-    @Requirements({"CORE_0008"})
+    @Requirements({"atunko:CORE_0008"})
     public RunConfig load(Path file) throws IOException {
         return yamlMapper.readValue(file.toFile(), RunConfig.class);
     }

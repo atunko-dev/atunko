@@ -29,7 +29,7 @@ public class ProjectSourceParser {
     private static final Set<String> JSON_EXTENSIONS = Set.of("json");
     private static final Set<String> PROPERTIES_EXTENSIONS = Set.of("properties");
 
-    @Requirements({"CORE_0003"})
+    @Requirements({"atunko:CORE_0003"})
     public List<SourceFile> parse(ProjectInfo projectInfo) {
         List<Path> rawDirs = projectInfo.allSourceAndResourceDirs();
         if (rawDirs.isEmpty()) {

@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-@SVCs({"SVC_CLI_0002"})
+@SVCs({"atunko:SVC_CLI_0002"})
 class ListCommandTest {
 
     @Test
-    @SVCs({"SVC_CLI_0002.1"})
+    @SVCs({"atunko:SVC_CLI_0002.1"})
     void list_displaysRecipesAsText() {
         CommandLineFixture cli = CommandLineFixture.create();
 
@@ -27,7 +27,7 @@ class ListCommandTest {
     }
 
     @Test
-    @SVCs({"SVC_CLI_0002.2"})
+    @SVCs({"atunko:SVC_CLI_0002.2"})
     void list_displaysRecipesAsJson() throws Exception {
         CommandLineFixture cli = CommandLineFixture.create();
 
@@ -45,7 +45,7 @@ class ListCommandTest {
     }
 
     @Test
-    @SVCs({"SVC_CLI_0002.3"})
+    @SVCs({"atunko:SVC_CLI_0002.3"})
     void list_sortsByNameByDefault() {
         CommandLineFixture cli = CommandLineFixture.create();
 
@@ -56,7 +56,7 @@ class ListCommandTest {
     }
 
     @Test
-    @SVCs({"SVC_CLI_0002.4"})
+    @SVCs({"atunko:SVC_CLI_0002.4"})
     void list_sortsByTags() {
         CommandLineFixture cli = CommandLineFixture.create();
 

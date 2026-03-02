@@ -16,7 +16,7 @@ import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 
 public class GradleProjectScanner {
 
-    @Requirements({"CORE_0004"})
+    @Requirements({"atunko:CORE_0004"})
     public ProjectInfo scan(Path projectDir) {
         Path absoluteDir = projectDir.toAbsolutePath().normalize();
 
