@@ -2,17 +2,14 @@ package io.github.atunkodev.tui.view;
 
 import static dev.tamboui.toolkit.Toolkit.column;
 import static dev.tamboui.toolkit.Toolkit.dock;
-import static dev.tamboui.toolkit.Toolkit.list;
 import static dev.tamboui.toolkit.Toolkit.row;
 import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
 
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.style.Color;
-import dev.tamboui.style.Style;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
-import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.Requirements;
@@ -73,46 +70,14 @@ public final class ConfirmRunView {
 
     private static Element renderRecipeList(
             TuiController controller, List<DisplayRow> displayRows, Set<String> selected) {
-        var recipeList =
-                list().highlightStyle(Style.EMPTY.fg(Color.WHITE).bg(Color.BLUE).bold());
-
-        int parentIndex = 0;
-        for (DisplayRow displayRow : displayRows) {
-            RecipeInfo r = displayRow.recipe();
-            boolean isSelected = selected.contains(r.name());
-            String displayName = BrowserView.cleanDisplayName(r.displayName());
-            boolean isExpanded = controller.runExpandedRecipes().contains(r.name());
-
-            if (displayRow.isSubRecipe()) {
-                String indent = "  ".repeat(displayRow.depth());
-                String indicator = r.isComposite() ? (isExpanded ? "\u25bc " : "\u25b6 ") : "  ";
-                String prefix = "    " + indent + (isSelected ? "[x] " : "[ ] ") + indicator;
-                var prefixEl = isSelected
-                        ? text(prefix).fg(Color.LIGHT_GREEN)
-                        : text(prefix).dim();
-                var nameElement =
-                        isSelected ? text(displayName) : text(displayName).dim();
-                recipeList.add(row(prefixEl, nameElement));
-            } else {
-                parentIndex++;
-                String check = isSelected ? "[x] " : "[ ] ";
-                String indicator = r.isComposite() ? (isExpanded ? "\u25bc " : "\u25b6 ") : "  ";
-                String prefix = String.format("%2d. %s%s", parentIndex, check, indicator);
-                var prefixEl = isSelected
-                        ? text(prefix).fg(Color.LIGHT_GREEN)
-                        : text(prefix).dim();
-                var nameElement =
-                        isSelected ? text(displayName) : text(displayName).dim();
-                recipeList.add(row(prefixEl, nameElement));
-            }
-        }
-
-        return recipeList
-                .selected(controller.runHighlightIndex())
-                .title("Execution Order")
-                .rounded()
-                .borderColor(Color.LIGHT_CYAN)
-                .autoScroll();
+        return RecipeListRenderer.renderRecipeList(
+                displayRows,
+                selected,
+                controller.runExpandedRecipes(),
+                controller.runHighlightIndex(),
+                "Execution Order",
+                RecipeListRenderer.RenderOptions.RUN_DIALOG,
+                null);
     }
 
     private static EventResult handleKeyEvent(

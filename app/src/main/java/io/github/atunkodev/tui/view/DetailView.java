@@ -35,7 +35,7 @@ public final class DetailView {
 
         var detailContent = column(
                 row(text("Name: ").bold(), text(recipe.name())),
-                row(text("Display Name: ").bold(), text(BrowserView.cleanDisplayName(recipe.displayName()))),
+                row(text("Display Name: ").bold(), text(RecipeListRenderer.cleanDisplayName(recipe.displayName()))),
                 text(""),
                 text("Description:").bold(),
                 text(recipe.description() != null ? recipe.description() : "(none)"),
@@ -51,14 +51,15 @@ public final class DetailView {
             for (RecipeInfo sub : recipe.recipeList()) {
                 detailContent.add(row(
                         text("  " + index + ". ").fg(Color.LIGHT_YELLOW),
-                        text(BrowserView.cleanDisplayName(sub.displayName())).fg(Color.LIGHT_CYAN)));
+                        text(RecipeListRenderer.cleanDisplayName(sub.displayName()))
+                                .fg(Color.LIGHT_CYAN)));
                 index++;
             }
         }
 
         return column(dock().top(
                                 row(
-                                        text(" " + BrowserView.cleanDisplayName(recipe.displayName()))
+                                        text(" " + RecipeListRenderer.cleanDisplayName(recipe.displayName()))
                                                 .bold()
                                                 .fg(Color.WHITE)
                                                 .bg(Color.BLUE),

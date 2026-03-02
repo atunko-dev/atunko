@@ -3,7 +3,6 @@ package io.github.atunkodev.tui.view;
 import static dev.tamboui.toolkit.Toolkit.column;
 import static dev.tamboui.toolkit.Toolkit.dock;
 import static dev.tamboui.toolkit.Toolkit.handleTextInputKey;
-import static dev.tamboui.toolkit.Toolkit.list;
 import static dev.tamboui.toolkit.Toolkit.panel;
 import static dev.tamboui.toolkit.Toolkit.row;
 import static dev.tamboui.toolkit.Toolkit.spacer;
@@ -13,12 +12,10 @@ import static dev.tamboui.toolkit.Toolkit.textInput;
 
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.style.Color;
-import dev.tamboui.style.Style;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.widgets.input.TextInputState;
 import io.github.atunkodev.cli.SortOrder;
-import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.AtunkoTui;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
@@ -111,13 +108,7 @@ public final class BrowserView {
             return EventResult.HANDLED;
         }
         if (event.isLeft()) {
-            controller.highlightedDisplayRow().ifPresent(row -> {
-                if (controller.isExpanded(row.recipe().name())) {
-                    controller.collapseRecipe(row.recipe().name());
-                } else if (row.isSubRecipe() && row.parentName() != null) {
-                    controller.collapseRecipe(row.parentName());
-                }
-            });
+            controller.collapseHighlighted();
             return EventResult.HANDLED;
         }
         if (event.isQuit() || event.isChar('q')) {
@@ -169,34 +160,14 @@ public final class BrowserView {
     }
 
     private static Element renderRecipeList(TuiController controller, List<DisplayRow> displayRows) {
-        var recipeList =
-                list().highlightStyle(Style.EMPTY.fg(Color.WHITE).bg(Color.BLUE).bold());
-        for (DisplayRow row : displayRows) {
-            RecipeInfo r = row.recipe();
-            boolean selected = controller.selectedRecipes().contains(r.name());
-            boolean expanded = controller.isExpanded(r.name());
-            String indent = "  ".repeat(row.depth());
-            String check = selected ? "[x] " : "[ ] ";
-            String indicator = r.isComposite() ? (expanded ? "\u25bc " : "\u25b6 ") : "  ";
-            String prefix = indent + check + indicator;
-            var prefixEl =
-                    selected ? text(prefix).fg(Color.LIGHT_GREEN) : text(prefix).dim();
-            var name = text(cleanDisplayName(r.displayName()));
-            if (r.tags().isEmpty() || row.isSubRecipe()) {
-                recipeList.add(row(prefixEl, name));
-            } else {
-                var tags = text("  " + String.join(", ", r.tags())).dim();
-                recipeList.add(row(prefixEl, name, spacer(), tags));
-            }
-        }
-
-        return recipeList
-                .selected(controller.highlightedIndex())
-                .title("Recipes")
-                .rounded()
-                .borderColor(Color.LIGHT_CYAN)
-                .autoScroll()
-                .constraint(Constraint.fill(2));
+        return RecipeListRenderer.renderRecipeList(
+                displayRows,
+                controller.selectedRecipes(),
+                controller.expandedRecipes(),
+                controller.highlightedIndex(),
+                "Recipes",
+                RecipeListRenderer.RenderOptions.BROWSER,
+                Constraint.fill(2));
     }
 
     private static Element renderDetailPanel(TuiController controller) {
@@ -205,7 +176,7 @@ public final class BrowserView {
                 .map(recipe -> (Element) panel(
                                 "Detail",
                                 column(
-                                        text(cleanDisplayName(recipe.displayName()))
+                                        text(RecipeListRenderer.cleanDisplayName(recipe.displayName()))
                                                 .bold()
                                                 .fg(Color.LIGHT_CYAN),
                                         text(""),
@@ -241,9 +212,5 @@ public final class BrowserView {
                 + " | " + selected + " selected | \u2191\u2193:nav Space:sel a:all/none r:run Enter:detail"
                 + " \u2192:expand \u2190:collapse t:tags s:sort /:search Esc:clear q:quit";
         return text(" " + status).fg(Color.WHITE).bg(Color.indexed(236));
-    }
-
-    static String cleanDisplayName(String text) {
-        return text.replace("`", "");
     }
 }
