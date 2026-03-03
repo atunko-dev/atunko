@@ -1,0 +1,226 @@
+= CLI Usage
+:description: Command reference for atunko CLI
+
+atunko provides a CLI interface for headless and scripted usage of OpenRewrite recipes,
+plus an interactive TUI for browsing and selecting recipes.
+
+== Commands
+
+=== `tui` — Interactive recipe browser
+
+Launch the full-screen terminal UI for browsing, searching, and selecting recipes.
+This is the default command when no subcommand is specified.
+
+[source,bash]
+----
+atunko tui
+atunko        # same as above — tui is the default
+----
+
+==== Options
+
+[cols="1,3"]
+|===
+| Option | Description
+
+| `--project-dir <path>`
+| Project directory for recipe execution (default: `.`). Uses the Gradle Tooling API to
+resolve source dirs, resource dirs, test dirs, and compile classpath for each module.
+
+| `--log-file <path>`
+| Write TUI debug output to a file (useful for troubleshooting)
+|===
+
+==== Browser key bindings
+
+[cols="1,3"]
+|===
+| Key | Action
+
+| `↑` / `↓`
+| Navigate recipe list
+
+| `Enter`
+| Open recipe detail view
+
+| `Space`
+| Toggle recipe selection
+
+| `a`
+| Cycle selection (none → all → none)
+
+| `r`
+| Open run dialog with selected recipes
+
+| `t`
+| Open tag browser
+
+| `/`
+| Enter search mode (type query, `Enter` to apply, `Esc` to cancel)
+
+| `→` / `e`
+| Expand composite recipe (show sub-recipes)
+
+| `←` / `c`
+| Collapse composite recipe
+
+| `s`
+| Toggle sort order (name / tags)
+
+| `Esc`
+| Clear search and tag filters (reset to full list)
+
+| `q`
+| Quit
+|===
+
+==== Run dialog key bindings
+
+The run dialog opens when you press `r` from the browser with selected recipes.
+
+[cols="1,3"]
+|===
+| Key | Action
+
+| `↑` / `↓`
+| Navigate run list
+
+| `Space` / `Enter`
+| Toggle individual recipe on/off
+
+| `a`
+| Cycle selection (all/none)
+
+| `+` / `-`
+| Reorder recipes (move highlighted recipe up/down)
+
+| `→` / `e`
+| Expand composite recipe
+
+| `←` / `c`
+| Collapse composite recipe
+
+| `f`
+| Flatten composite (replace with individual sub-recipes)
+
+| `r`
+| Run selected recipes (apply changes)
+
+| `d`
+| Dry-run (preview changes without applying)
+
+| `Esc` / `q`
+| Back to browser
+|===
+
+==== Composite recipes
+
+Recipes that contain sub-recipes are marked with `▶` in the browser.
+Use `→`/`e` to expand and see their sub-recipes, `←`/`c` to collapse.
+In the run dialog, `f` flattens a composite into its individual sub-recipes.
+
+=== `list` — List all recipes
+
+List all available OpenRewrite recipes.
+
+[source,bash]
+----
+# List all recipes
+atunko list
+
+# List sorted by tags in table format
+atunko list --sort tags --format table
+----
+
+==== Options
+
+[cols="1,3"]
+|===
+| Option | Description
+
+| `--sort <name\|tags>`
+| Sort order: by recipe name (default) or by tags
+
+| `--format <text\|table>`
+| Output format: plain text (default) or table
+
+| `--help`
+| Show help for the list command
+|===
+
+=== `search` — Search recipes
+
+Search for OpenRewrite recipes matching a keyword.
+
+[source,bash]
+----
+# Search for recipes matching a keyword
+atunko search "spring boot"
+atunko search "unused imports"
+
+# Search in a specific field
+atunko search "spring" --field name --format table
+----
+
+==== Options
+
+[cols="1,3"]
+|===
+| Option | Description
+
+| `<query>`
+| Search keyword (matches against name, description, and tags by default)
+
+| `--field <name\|description\|tags\|all>`
+| Restrict search to a specific field (default: all)
+
+| `--sort <name\|tags>`
+| Sort order: by recipe name (default) or by tags
+
+| `--format <text\|table>`
+| Output format: plain text (default) or table
+
+| `--help`
+| Show help for the search command
+|===
+
+=== `run` — Execute a recipe
+
+Execute an OpenRewrite recipe against a project directory.
+
+[source,bash]
+----
+# Run a specific recipe
+atunko run -r org.openrewrite.java.RemoveUnusedImports --project-dir .
+
+# Run a Spring Boot migration recipe
+atunko run -r org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0 --project-dir /path/to/project
+----
+
+==== Options
+
+[cols="1,3"]
+|===
+| Option | Description
+
+| `-r`, `--recipe <name>`
+| Fully qualified recipe name (required)
+
+| `--project-dir <path>`
+| Path to the project directory (required)
+
+| `--help`
+| Show help for the run command
+|===
+
+== Running via Gradle
+
+During development, commands can be run via Gradle:
+
+[source,bash]
+----
+./gradlew :atunko-cli:run                           # Launch TUI (default)
+./gradlew :atunko-cli:run --args="list"             # List all recipes
+./gradlew :atunko-cli:run --args="search 'spring'"  # Search recipes
+./gradlew :atunko-cli:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
+----

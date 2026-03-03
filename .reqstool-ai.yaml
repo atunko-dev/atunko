@@ -1,0 +1,14 @@
+# reqstool-ai configuration for atunko
+urn: atunko
+revision: "0.1.0"
+system:
+  path: docs/reqstool
+modules:
+  core:
+    path: core/docs/reqstool
+    req_prefix: CORE_
+    svc_prefix: SVC_CORE_
+  app:
+    path: app/docs/reqstool
+    req_prefix: CLI_
+    svc_prefix: SVC_CLI_

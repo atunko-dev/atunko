@@ -1,0 +1,361 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/reqstool/reqstool-client/main/src/reqstool/resources/schemas/v1/requirements.schema.json
+metadata:
+  urn: atunko
+  variant: system
+  title: Atunko System Requirements
+  url: https://github.com/atunko/atunko
+
+implementations:
+  local:
+    - path: ../../atunko-core/docs/reqstool
+    - path: ../../atunko-cli/docs/reqstool
+    - path: ../../atunko-tui/docs/reqstool
+
+requirements:
+  # TUI requirements
+  - id: TUI_0001
+    title: TUI Launch
+    significance: shall
+    description: >-
+      The tool shall provide an interactive TUI via CLI subcommand,
+      with recipe browsing, search, selection, configuration, and execution
+    categories: [interaction-capability]
+    revision: 0.2.0
+
+  - id: TUI_0001.1
+    title: TUI — Recipe Table
+    significance: shall
+    description: The TUI shall display a scrollable table of recipes with name, description, and tags
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.2
+    title: TUI — Recipe Detail Panel
+    significance: shall
+    description: The TUI shall show a side panel with recipe details when a recipe is highlighted
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.3
+    title: TUI — Search Filter
+    significance: shall
+    description: The TUI shall support real-time search filtering of the recipe list
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.4
+    title: TUI — Recipe Detail View
+    significance: shall
+    description: The TUI shall display a full-screen detail view when a recipe is selected
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.5
+    title: TUI — Multi-Select
+    significance: shall
+    description: The TUI shall support selecting multiple recipes for batch operations
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.6
+    title: TUI — Recipe Ordering
+    significance: shall
+    description: The TUI shall support sorting recipes by name or tags
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.7
+    title: TUI — Recipe Options
+    significance: shall
+    description: The TUI shall allow configuring recipe options before execution
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.8
+    title: TUI — Dry-Run Preview
+    significance: shall
+    description: The TUI shall show a preview of changes before applying recipes
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.9
+    title: TUI — Recipe Execution
+    significance: shall
+    description: The TUI shall execute selected recipes and display results
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.10
+    title: TUI — Save Run Config
+    significance: shall
+    description: The TUI shall support saving the current recipe setup to a portable YAML file
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.11
+    title: TUI — Tag Browser
+    significance: shall
+    description: The TUI shall provide a tag-based browser for filtering recipes by tag
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.12
+    title: TUI — Keyboard Navigation
+    significance: shall
+    description: The TUI shall support keyboard navigation and shortcuts for all interactions
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.13
+    title: TUI — Composite Recipe Browsing
+    significance: shall
+    description: The TUI shall support browsing composite recipes with expand/collapse and destructive flatten
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.14
+    title: TUI — Run Dialog
+    significance: shall
+    description: >-
+      The TUI shall provide a navigable, reorderable recipe execution list with
+      individual toggle, cycle selection, and composite expand/collapse/flatten
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.15
+    title: TUI — Debug Logging
+    significance: shall
+    description: The TUI shall support writing debug output to a log file via --log-file option
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.16
+    title: TUI — Recipe Coverage Indicators
+    significance: shall
+    description: >-
+      The TUI shall visually indicate when a recipe is included by a selected
+      composite, show which composites cover it in the detail panel, and allow
+      the user to explicitly select a covered recipe for duplicate execution
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  # CLI requirements — list/search/run
+  - id: CLI_0002
+    title: CLI Recipe Listing
+    significance: shall
+    description: The tool shall list all available recipes via CLI subcommand, with selectable output format and sort order
+    categories: [functional-suitability]
+    revision: 0.2.0
+
+  - id: CLI_0002.1
+    title: List — Text Format
+    significance: shall
+    description: The list subcommand shall display recipes in human-readable text format
+    references:
+      requirement_ids: ["CLI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0002.2
+    title: List — JSON Format
+    significance: shall
+    description: The list subcommand shall display recipes in JSON format
+    references:
+      requirement_ids: ["CLI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0002.3
+    title: List — Sort by Name
+    significance: shall
+    description: The list subcommand shall support sorting recipes alphabetically by name
+    references:
+      requirement_ids: ["CLI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0002.4
+    title: List — Sort by Tags
+    significance: shall
+    description: The list subcommand shall support sorting recipes by first tag, then by name
+    references:
+      requirement_ids: ["CLI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0003
+    title: CLI Recipe Execution
+    significance: shall
+    description: The tool shall execute recipes via CLI subcommand
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0004
+    title: CLI Recipe Search
+    significance: shall
+    description: The tool shall search recipes by keyword via CLI subcommand, with selectable output format, sort order, and field filter
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0004.1
+    title: Search — Text Format
+    significance: shall
+    description: The search subcommand shall display matching recipes in human-readable text format
+    references:
+      requirement_ids: ["CLI_0004"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0004.2
+    title: Search — JSON Format
+    significance: shall
+    description: The search subcommand shall display matching recipes in JSON format
+    references:
+      requirement_ids: ["CLI_0004"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0004.3
+    title: Search — Sort by Name
+    significance: shall
+    description: The search subcommand shall support sorting matching recipes alphabetically by name
+    references:
+      requirement_ids: ["CLI_0004"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0004.4
+    title: Search — Sort by Tags
+    significance: shall
+    description: The search subcommand shall support sorting matching recipes by first tag, then by name
+    references:
+      requirement_ids: ["CLI_0004"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0004.5
+    title: Search — Field Filter
+    significance: shall
+    description: The search subcommand shall support filtering which recipe fields (name, displayName, description, tags) the query matches against
+    references:
+      requirement_ids: ["CLI_0004"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  # Core requirements
+  - id: CORE_0001
+    title: Recipe Discovery
+    significance: shall
+    description: The core engine shall discover all OpenRewrite recipes from the classpath
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0001.1
+    title: Composite Recipe Discovery
+    significance: shall
+    description: The engine shall expose composite recipe structure (recipeList with sub-recipes)
+    references:
+      requirement_ids: ["CORE_0001"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0002
+    title: Recipe Search
+    significance: shall
+    description: The core engine shall support searching recipes by name, description, and tags
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0003
+    title: Recipe Execution
+    significance: shall
+    description: The core engine shall execute selected OpenRewrite recipes against a target project
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0003.1
+    title: Multi-File-Type Parsing
+    significance: shall
+    description: >-
+      The engine shall parse all OpenRewrite-supported file types (Java, XML, YAML,
+      JSON, properties) from project source and resource directories
+    references:
+      requirement_ids: ["CORE_0003"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0004
+    title: Gradle Project Support
+    significance: shall
+    description: >-
+      The core engine shall resolve classpaths, source dirs, resource dirs, and test dirs
+      for Gradle projects via Tooling API
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0005
+    title: Maven Project Support
+    significance: shall
+    description: The core engine shall resolve classpaths and source dirs for Maven projects
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0006
+    title: Git Integration
+    significance: should
+    description: The core engine should detect git repos and support stash-based versioning
+    categories: [functional-suitability, safety]
+    revision: 0.1.0
+
+  - id: CORE_0007
+    title: Save Run Configuration
+    significance: shall
+    description: The tool shall save current recipe setup to a portable YAML file (.atunko.yml)
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0008
+    title: Load Run Configuration
+    significance: shall
+    description: The tool shall load and execute from a saved configuration file
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0009
+    title: Export Configuration
+    significance: should
+    description: The tool should export run configs to Maven/Gradle plugin format
+    categories: [compatibility]
+    revision: 0.1.0

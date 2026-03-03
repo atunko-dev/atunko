@@ -1,0 +1,40 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    // OpenRewrite BOM for version alignment
+    api platform(rootProject.libs.openrewrite.bom)
+
+    // OpenRewrite core
+    api libs.openrewrite.core
+    api libs.openrewrite.java
+    implementation libs.openrewrite.java21
+    implementation libs.openrewrite.xml
+    implementation libs.openrewrite.yaml
+    implementation libs.openrewrite.json
+    implementation libs.openrewrite.properties
+    implementation libs.openrewrite.maven
+    implementation libs.openrewrite.gradle
+
+    // OpenRewrite recipe modules
+    implementation libs.openrewrite.migrate.java
+    implementation libs.openrewrite.spring
+    implementation libs.openrewrite.static.analysis
+    implementation libs.openrewrite.testing.frameworks
+
+    // Jackson YAML for run configuration (explicit — also available transitively via OpenRewrite)
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+
+    // Gradle Tooling API for project scanning
+    implementation libs.gradle.tooling.api
+
+    // SLF4J NOP logger — silences Gradle Tooling API SLF4J warnings during tests
+    testRuntimeOnly libs.slf4j.nop
+}
+
+tasks.named('test') {
+    // Gradle Tooling API's native-platform requires native access
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
+}

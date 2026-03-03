@@ -1,0 +1,401 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/reqstool/reqstool-client/main/src/reqstool/resources/schemas/v1/software_verification_cases.schema.json
+cases:
+  - id: SVC_CORE_0001
+    requirement_ids: ["CORE_0001"]
+    title: Discover all recipes from classpath
+    verification: automated-test
+    description: |
+      GIVEN the tool has recipe modules on its classpath
+      WHEN the RecipeDiscoveryService scans the classpath
+      THEN all recipes from all modules are returned with name and description
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0001.1
+    requirement_ids: ["CORE_0001.1"]
+    title: Discover composite recipe structure
+    verification: automated-test
+    description: |
+      GIVEN the classpath contains composite OpenRewrite recipes
+      WHEN the RecipeDiscoveryService discovers recipes
+      THEN composite recipes expose their sub-recipe list via recipeList
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0002
+    requirement_ids: ["CORE_0002"]
+    title: Search recipes by keyword
+    verification: automated-test
+    description: |
+      GIVEN the recipe catalog contains recipes
+      WHEN the user searches for "spring boot"
+      THEN only recipes matching "spring boot" in name or description are returned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0003
+    requirement_ids: ["CORE_0003"]
+    title: Execute recipe against project
+    verification: automated-test
+    description: |
+      GIVEN a Gradle project with Java sources
+      WHEN the user runs RemoveUnusedImports recipe
+      THEN unused imports are removed from all Java files
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0003.1
+    requirement_ids: ["CORE_0003.1"]
+    title: Parse multi-file-type project sources
+    verification: automated-test
+    description: |
+      GIVEN a project with Java, XML, YAML, JSON, and properties files
+      WHEN the ProjectSourceParser parses the project
+      THEN all file types are parsed into OpenRewrite SourceFile objects
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0004
+    requirement_ids: ["CORE_0004"]
+    title: Resolve Gradle classpath via Tooling API
+    verification: automated-test
+    description: |
+      GIVEN a Gradle project with dependencies
+      WHEN the GradleToolingApiResolver connects to the project
+      THEN compile classpath JAR paths and source directories are returned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0005
+    requirement_ids: ["CORE_0005"]
+    title: Resolve Maven classpath via pom.xml
+    verification: automated-test
+    description: |
+      GIVEN a Maven project with dependencies
+      WHEN the MavenProjectScanner scans the project
+      THEN compile classpath JAR paths and source directories are returned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0007
+    requirement_ids: ["CORE_0007"]
+    title: Save run configuration
+    verification: automated-test
+    description: |
+      GIVEN the user has selected recipes and options
+      WHEN they invoke config save
+      THEN a .atunko.yml file is written with the recipe setup
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0008
+    requirement_ids: ["CORE_0008"]
+    title: Load and execute from saved config
+    verification: automated-test
+    description: |
+      GIVEN a valid .atunko.yml file exists
+      WHEN the user runs with --config .atunko.yml
+      THEN the saved recipes are executed with the saved options
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001
+    requirement_ids: ["TUI_0001"]
+    title: Launch TUI via subcommand
+    verification: automated-test
+    description: |
+      GIVEN the user runs `atunko tui`
+      WHEN the application starts
+      THEN the TUI controller is initialized and launched
+    revision: "0.2.0"
+
+  - id: SVC_TUI_0001.1
+    requirement_ids: ["TUI_0001.1"]
+    title: TUI displays recipe table
+    verification: automated-test
+    description: |
+      GIVEN the TUI is launched with recipes on classpath
+      WHEN the browser view renders
+      THEN a scrollable table shows each recipe with name, description, and tags
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.2
+    requirement_ids: ["TUI_0001.2"]
+    title: TUI shows recipe detail panel
+    verification: automated-test
+    description: |
+      GIVEN the recipe table is displayed
+      WHEN the user highlights a recipe row
+      THEN a side panel shows the recipe's full description, tags, and options
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.3
+    requirement_ids: ["TUI_0001.3"]
+    title: TUI filters recipes by search
+    verification: automated-test
+    description: |
+      GIVEN the recipe table is displayed with multiple recipes
+      WHEN the user types a search query
+      THEN only recipes matching the query in name, description, or tags are shown
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.4
+    requirement_ids: ["TUI_0001.4"]
+    title: TUI shows full recipe detail view
+    verification: automated-test
+    description: |
+      GIVEN a recipe is highlighted in the table
+      WHEN the user presses Enter
+      THEN a full-screen detail view shows the recipe's complete information
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.5
+    requirement_ids: ["TUI_0001.5"]
+    title: TUI supports multi-select
+    verification: automated-test
+    description: |
+      GIVEN the recipe table is displayed
+      WHEN the user toggles selection on multiple recipes
+      THEN the selected recipes are tracked and visually indicated
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.6
+    requirement_ids: ["TUI_0001.6"]
+    title: TUI sorts recipes
+    verification: automated-test
+    description: |
+      GIVEN the recipe table is displayed
+      WHEN the user changes sort order to name or tags
+      THEN the recipe list is reordered accordingly
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.7
+    requirement_ids: ["TUI_0001.7"]
+    title: TUI configures recipe options
+    verification: automated-test
+    description: |
+      GIVEN a recipe with configurable options is selected
+      WHEN the user opens the options editor
+      THEN the recipe's options are displayed and editable
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.8
+    requirement_ids: ["TUI_0001.8"]
+    title: TUI shows dry-run preview
+    verification: automated-test
+    description: |
+      GIVEN one or more recipes are selected
+      WHEN the user initiates a dry run
+      THEN a preview of affected files and changes is displayed without modifying files
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.9
+    requirement_ids: ["TUI_0001.9"]
+    title: TUI executes recipes
+    verification: automated-test
+    description: |
+      GIVEN one or more recipes are selected
+      WHEN the user confirms execution
+      THEN the recipes are applied and results are displayed
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.10
+    requirement_ids: ["TUI_0001.10"]
+    title: TUI saves run configuration
+    verification: automated-test
+    description: |
+      GIVEN one or more recipes are selected with options configured
+      WHEN the user saves the run configuration
+      THEN an .atunko.yml file is written with the current setup
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.11
+    requirement_ids: ["TUI_0001.11"]
+    title: TUI provides tag browser
+    verification: automated-test
+    description: |
+      GIVEN recipes with tags are available
+      WHEN the user opens the tag browser
+      THEN tags are listed and selecting a tag filters the recipe table
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.12
+    requirement_ids: ["TUI_0001.12"]
+    title: TUI supports keyboard navigation
+    verification: automated-test
+    description: |
+      GIVEN the TUI is displayed
+      WHEN the user uses arrow keys, Tab, Enter, and shortcut keys
+      THEN focus moves between elements and actions are triggered as expected
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.13
+    requirement_ids: ["TUI_0001.13"]
+    title: Browse composite recipes with expand/collapse
+    verification: automated-test
+    description: |
+      GIVEN the TUI displays composite recipes
+      WHEN the user expands a composite recipe
+      THEN the sub-recipes are displayed below the parent with collapse support
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.14
+    requirement_ids: ["TUI_0001.14"]
+    title: Run dialog with reorder and toggle
+    verification: automated-test
+    description: |
+      GIVEN the run dialog is open with selected recipes
+      WHEN the user reorders, toggles, or cycles selection
+      THEN the execution order and selection state update accordingly
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.15
+    requirement_ids: ["TUI_0001.15"]
+    title: Debug logging to file
+    verification: automated-test
+    description: |
+      GIVEN the TUI is launched with --log-file option
+      WHEN TUI actions are performed
+      THEN debug output is written to the specified log file
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.16
+    requirement_ids: ["TUI_0001.16"]
+    title: Display recipe coverage indicators
+    verification: automated-test
+    description: |
+      GIVEN a composite recipe is selected
+      WHEN its sub-recipes appear in the recipe list
+      THEN they are visually marked as covered by the composite
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.16.1
+    requirement_ids: ["TUI_0001.16"]
+    title: Recursively compute covered recipes
+    verification: automated-test
+    description: |
+      GIVEN a composite with nested composites is selected
+      WHEN coveredRecipes is computed
+      THEN all sub-recipes at every nesting level are included
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.16.2
+    requirement_ids: ["TUI_0001.16"]
+    title: Show which composites include a recipe
+    verification: automated-test
+    description: |
+      GIVEN a recipe is covered by one or more selected composites
+      WHEN the user highlights that recipe
+      THEN the detail panel shows which composites include it
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0002
+    requirement_ids: ["CLI_0002"]
+    title: List recipes via CLI
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko list`
+      THEN all recipes are listed with selectable format and sort order
+    revision: "0.2.0"
+
+  - id: SVC_CLI_0002.1
+    requirement_ids: ["CLI_0002.1"]
+    title: List recipes — text output
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko list --format text`
+      THEN all recipes are listed as human-readable text with name and description
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0002.2
+    requirement_ids: ["CLI_0002.2"]
+    title: List recipes — JSON output
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko list --format json`
+      THEN output is a valid JSON array of recipe objects
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0002.3
+    requirement_ids: ["CLI_0002.3"]
+    title: List recipes — sorted by name
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko list --sort name`
+      THEN recipes are listed in alphabetical order by name
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0002.4
+    requirement_ids: ["CLI_0002.4"]
+    title: List recipes — sorted by tags
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko list --sort tags`
+      THEN recipes are listed sorted by first tag alphabetically, then by name
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0004
+    requirement_ids: ["CLI_0004"]
+    title: Search recipes via CLI
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko search <query>`
+      THEN matching recipes are returned with selectable format, sort order, and field filter
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0004.1
+    requirement_ids: ["CLI_0004.1"]
+    title: Search recipes — text output
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko search <query> --format text`
+      THEN only matching recipes are listed as human-readable text
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0004.2
+    requirement_ids: ["CLI_0004.2"]
+    title: Search recipes — JSON output
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko search <query> --format json`
+      THEN output is a filtered JSON array of recipe objects
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0004.3
+    requirement_ids: ["CLI_0004.3"]
+    title: Search recipes — sorted by name
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko search <query> --sort name`
+      THEN matching recipes are listed in alphabetical order by name
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0004.4
+    requirement_ids: ["CLI_0004.4"]
+    title: Search recipes — sorted by tags
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko search <query> --sort tags`
+      THEN matching recipes are listed sorted by first tag alphabetically, then by name
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0004.5
+    requirement_ids: ["CLI_0004.5"]
+    title: Search recipes — filter by field
+    verification: automated-test
+    description: |
+      GIVEN recipes on classpath
+      WHEN user runs `atunko search <query> --field tags`
+      THEN only recipes matching the query in the specified field are returned
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0003
+    requirement_ids: ["CLI_0003"]
+    title: Execute recipe via CLI
+    verification: automated-test
+    description: |
+      GIVEN a project directory with Java sources
+      WHEN the user runs `atunko run -r <recipe> --project-dir <path>`
+      THEN the recipe is executed against the project and results are reported
+    revision: "0.1.0"

@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/reqstool/reqstool-client/main/src/reqstool/resources/schemas/v1/requirements.schema.json
+metadata:
+  urn: atunko-core
+  variant: microservice
+  title: Atunko Core Module Requirements
+
+imports:
+  local:
+    - path: ../../../docs/reqstool
+
+filters:
+  atunko:
+    requirement_ids:
+      includes:
+        - CORE_0001
+        - CORE_0001.1
+        - CORE_0002
+        - CORE_0003
+        - CORE_0003.1
+        - CORE_0004
+        - CORE_0005
+        - CORE_0006
+        - CORE_0007
+        - CORE_0008
+        - CORE_0009
