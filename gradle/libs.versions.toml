@@ -6,6 +6,7 @@ tamboui = "0.2.0-SNAPSHOT"
 reqstool-annotations = "1.0.0"
 junit = "5.11.4"
 assertj = "3.27.3"
+slf4j = "2.0.17"
 errorprone = "2.48.0"
 
 [libraries]
@@ -52,6 +53,9 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params" }
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+
+# SLF4J
+slf4j-nop = { module = "org.slf4j:slf4j-nop", version.ref = "slf4j" }
 
 # Error Prone
 errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }

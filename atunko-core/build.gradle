@@ -29,4 +29,12 @@ dependencies {
 
     // Gradle Tooling API for project scanning
     implementation libs.gradle.tooling.api
+
+    // SLF4J NOP logger — silences Gradle Tooling API SLF4J warnings during tests
+    testRuntimeOnly libs.slf4j.nop
+}
+
+tasks.named('test') {
+    // Gradle Tooling API's native-platform requires native access
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
 }
