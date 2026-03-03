@@ -238,8 +238,5 @@ gradle-app.setting
 
 ### Project-specific ###
 
-# Local composite builds
-reqstool-java-gradle-plugin/
-
 # OpenSpec UI local state
 openspec/.openspecui-dashboard-git-refresh.stamp
