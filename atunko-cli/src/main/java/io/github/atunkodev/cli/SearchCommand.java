@@ -54,7 +54,7 @@ public class SearchCommand implements Runnable {
     }
 
     @Override
-    @Requirements({"atunko:CLI_0004"})
+    @Requirements({"atunko:CLI_0004", "atunko:CLI_0004.5"})
     public void run() {
         PrintWriter out = spec.commandLine().getOut();
         Set<RecipeField> searchFields = (fields != null && !fields.isEmpty()) ? fields : ALL_FIELDS;
