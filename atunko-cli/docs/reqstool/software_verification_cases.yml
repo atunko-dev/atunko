@@ -2,18 +2,8 @@
 filters:
   atunko:
     svc_ids:
-      includes:
-        - SVC_CLI_0002
-        - SVC_CLI_0002.1
-        - SVC_CLI_0002.2
-        - SVC_CLI_0002.3
-        - SVC_CLI_0002.4
-        - SVC_CLI_0003
-        - SVC_CLI_0004
-        - SVC_CLI_0004.1
-        - SVC_CLI_0004.2
-        - SVC_CLI_0004.3
-        - SVC_CLI_0004.4
-        - SVC_CLI_0004.5
+      includes: []
+    custom:
+      includes: ids == /SVC_CLI_.*/
 
 cases: []

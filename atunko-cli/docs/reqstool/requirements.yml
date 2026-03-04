@@ -11,16 +11,6 @@ imports:
 filters:
   atunko:
     requirement_ids:
-      includes:
-        - CLI_0002
-        - CLI_0002.1
-        - CLI_0002.2
-        - CLI_0002.3
-        - CLI_0002.4
-        - CLI_0003
-        - CLI_0004
-        - CLI_0004.1
-        - CLI_0004.2
-        - CLI_0004.3
-        - CLI_0004.4
-        - CLI_0004.5
+      includes: []
+    custom:
+      includes: ids == /CLI_.*/
