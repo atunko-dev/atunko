@@ -10,7 +10,5 @@ imports:
 
 filters:
   atunko:
-    requirement_ids:
-      includes: []
     custom:
       includes: ids == /TUI_.*/
