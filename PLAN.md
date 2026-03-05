@@ -6,36 +6,13 @@ Issue: [#18](https://github.com/atunko-dev/atunko/issues/18)
 
 `jbang atunko@atunko-dev tui` should just work — zero-install, no cloning, no building.
 
-## Distribution Strategy: Fat JAR URL (Phase 1) → GAV (Phase 2)
+## Distribution Strategy: GAV (Maven Coordinates)
 
-### Why fat JAR first
+TamboUI 0.1.0 is now on Maven Central. Once TamboUI 0.2.0 is released and atunko is
+published, GAV-based distribution works cleanly. The Gradle Tooling API repo
+(`repo.gradle.org`) is declared in the catalog's `repositories` field.
 
-Two dependencies block GAV (Maven coordinate) distribution today:
-
-| Dependency | Problem |
-|------------|---------|
-| **TamboUI** `0.2.0-SNAPSHOT` | Only on Sonatype snapshots, not Maven Central |
-| **Gradle Tooling API** `9.3.1` | Lives on `repo.gradle.org`, not Maven Central |
-
-JBang supports `--repos` and catalog-level `repositories`, but relying on snapshot repos
-for end-user distribution is fragile. The shadow JAR already bundles everything and
-is ~126 MB (one-time download, JBang caches it).
-
-**Phase 2:** Once TamboUI publishes a release to Maven Central and atunko itself is
-published, switch the catalog alias from a JAR URL to a GAV coordinate
-(`io.github.atunkodev:atunko-cli:VERSION`).
-
-### Fat JAR vs GAV comparison
-
-```
-Fat JAR URL                              GAV (Maven coordinates)
-─────────────────────────────────────    ─────────────────────────────────────
-✓ Works today — shadow JAR exists        ✓ Clean, canonical JBang pattern
-✓ No Maven Central publishing needed     ✓ JBang resolves transitive deps
-✓ Single download, no dep resolution     ✗ Requires Maven Central publishing
-✗ Larger download (~126 MB)              ✗ Snapshot/custom repo deps block it
-✗ Less "JBang-native"                    ✗ ~200 transitive deps = slow first resolve
-```
+**Blocker:** Atunko release is blocked until TamboUI 0.2.0 is published.
 
 ## Catalog Convention: Dedicated `atunko-dev/jbang-catalog` Repo
 
@@ -58,10 +35,10 @@ on GitHub. The dedicated repo pattern is the established convention:
   "catalogs": {},
   "aliases": {
     "atunko": {
-      "script-ref": "https://github.com/atunko-dev/atunko/releases/download/v0.1.0/atunko.jar",
+      "script-ref": "io.github.atunkodev:atunko-cli:VERSION",
       "description": "OpenRewrite TUI + CLI tool — recipe browsing, search, and execution",
       "java": "25+",
-      "main": "io.github.atunkodev.App"
+      "repositories": ["https://repo.gradle.org/gradle/libs-releases"]
     }
   },
   "templates": {}
@@ -69,25 +46,25 @@ on GitHub. The dedicated repo pattern is the established convention:
 ```
 
 Key fields:
-- **`script-ref`**: URL to the shadow JAR attached to the GitHub Release
+- **`script-ref`**: GAV coordinates — JBang resolves from Maven Central + declared repos
 - **`java`**: JBang will auto-provision Java 25 if not available
-- **`main`**: Explicit main class (required for fat JARs without `Main-Class` manifest — verify if shadow JAR has it)
+- **`repositories`**: Gradle Tooling API repo (not on Maven Central)
 - **`description`**: Shown in `jbang alias list`
 
 Arguments pass through naturally — `jbang atunko@atunko-dev tui` passes `tui` to the main class.
 
 ## Implementation Steps
 
-1. **Verify shadow JAR manifest** — check if `Main-Class` is set in the shadow JAR; if so, `main` in the catalog is optional
-2. **Create `atunko-dev/jbang-catalog` repo** — single `jbang-catalog.json` file
-3. **Create a GitHub Release** on `atunko-dev/atunko` with the shadow JAR attached (manual for now, automated later with CI/CD)
-4. **Test end-to-end**: `jbang atunko@atunko-dev tui`, `jbang atunko@atunko-dev list`, etc.
-5. **Document** in README — add JBang as an installation option
+1. **Create `atunko-dev/jbang-catalog` repo** — single `jbang-catalog.json` file
+2. **Configure Maven Central publishing** — Gradle publishing plugin, POM metadata, signing
+3. **Publish atunko** (blocked on TamboUI 0.2.0 release)
+4. **Update catalog version** to match published release
+5. **Test end-to-end**: `jbang atunko@atunko-dev tui`, `jbang atunko@atunko-dev list`, etc.
+6. **Document** in README — add JBang as an installation option
 
 ## Future Enhancements
 
-- **CI/CD automation**: GitHub Actions to build shadow JAR, create release, and update catalog `script-ref` URL on tag push
-- **GAV migration** (Phase 2): Switch to Maven coordinates once dependencies are on Maven Central
+- **CI/CD automation**: GitHub Actions to publish to Maven Central and update catalog on tag push
 - **Version aliases**: `atunko-latest`, `atunko-0.1.0` for pinning
 
 ## References
