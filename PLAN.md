@@ -147,5 +147,12 @@ Run `/reqstool:sync-filters` to ensure all subproject filters are up to date.
 ## Notes
 
 - Vaadin Gradle plugin downloads Node.js on first build (takes a few minutes, cached after)
-- Verify exact Vaadin 24.x and vaadin-boot versions at implementation time
+- Versions locked: Vaadin `24.7.4`, vaadin-boot `13.3`, karibu-testing-v24 `2.2.4`
 - Production mode (`-Pvaadin.productionMode`) bundles frontend — needed for shadow JAR distribution
+
+## Follow-up: TUI Cascade Selection
+
+The Web UI implements cascade-both-ways checkbox selection for the TreeGrid (checking a parent
+checks all children; checking all children checks the parent; unchecking one child puts the
+parent into indeterminate state). This same selection model should be backported to the TUI
+as a separate follow-up change — TUI currently toggles recipes individually with no cascade.

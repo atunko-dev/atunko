@@ -1,0 +1,22 @@
+plugins {
+    id 'java-library'
+    // Note: com.vaadin plugin omitted — incompatible with Gradle 9.x (ResolvedConfiguration.getFiles removed)
+    // Required for production frontend bundling only; dev mode works without it.
+    // Re-enable when Vaadin Gradle plugin adds Gradle 9 support.
+}
+
+dependencies {
+    api project(':atunko-core')
+
+    // Picocli (for WebUiCommand @Command annotation)
+    implementation libs.picocli
+    annotationProcessor libs.picocli.codegen
+
+    // Vaadin
+    implementation platform(libs.vaadin.bom)
+    implementation libs.vaadin.core
+    implementation libs.vaadin.boot
+
+    // Testing
+    testImplementation libs.karibu.testing
+}

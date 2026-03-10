@@ -1,5 +1,82 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/reqstool/reqstool-client/main/src/reqstool/resources/schemas/v1/software_verification_cases.schema.json
 cases:
+  - id: SVC_WEB_0001
+    requirement_ids: ["WEB_0001"]
+    title: Web UI launches embedded server
+    verification: automated-test
+    description: |
+      GIVEN the WebUiCommand is instantiated with a RecipeDiscoveryService
+      WHEN the command is created
+      THEN it can be instantiated without error
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.1
+    requirement_ids: ["WEB_0001.1"]
+    title: TreeGrid displays all recipes when no filter is active
+    verification: automated-test
+    description: |
+      GIVEN the Web UI is loaded with a set of recipes
+      WHEN no search query or tag filter is applied
+      THEN all recipes are displayed in the TreeGrid
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.2
+    requirement_ids: ["WEB_0001.2"]
+    title: Text search and tag filter narrow the recipe list
+    verification: automated-test
+    description: |
+      GIVEN the Web UI is loaded with a set of recipes
+      WHEN a text query is entered or tags are selected in the filter
+      THEN only recipes matching the query (name, description, or tags) and/or
+      having at least one of the selected tags are displayed
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.3
+    requirement_ids: ["WEB_0001.3"]
+    title: Default port is 8080
+    verification: automated-test
+    description: |
+      GIVEN a WebUiCommand is created without specifying a port
+      WHEN the default port value is read
+      THEN it is 8080
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.4
+    requirement_ids: ["WEB_0001.4"]
+    title: Composite recipes are expandable and collapsible
+    verification: automated-test
+    description: |
+      GIVEN the TreeGrid contains a composite recipe with sub-recipes
+      WHEN the user expands the composite recipe row
+      THEN the sub-recipes are visible as child rows
+      AND when the user collapses the row, the sub-recipes are hidden
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.5
+    requirement_ids: ["WEB_0001.5"]
+    title: Cascade-both-ways checkbox selection
+    verification: automated-test
+    description: |
+      GIVEN the TreeGrid contains a composite recipe with sub-recipes
+      WHEN the parent recipe checkbox is selected
+      THEN all child recipe checkboxes are also selected
+      AND when all child checkboxes are selected individually
+      THEN the parent checkbox becomes selected
+      AND when one child checkbox is deselected
+      THEN the parent checkbox becomes indeterminate
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.6
+    requirement_ids: ["WEB_0001.6"]
+    title: Clicking a recipe updates the detail panel
+    verification: automated-test
+    description: |
+      GIVEN the Web UI is loaded with recipes
+      WHEN the user clicks a recipe row in the TreeGrid
+      THEN the detail panel displays the recipe's name, description, tags,
+      recipe list (if composite), and options
+    revision: "0.1.0"
+
   - id: SVC_CORE_0001
     requirement_ids: ["CORE_0001"]
     title: Discover all recipes from classpath

@@ -10,8 +10,84 @@ implementations:
     - path: ../../atunko-core/docs/reqstool
     - path: ../../atunko-cli/docs/reqstool
     - path: ../../atunko-tui/docs/reqstool
+    - path: ../../atunko-web/docs/reqstool
 
 requirements:
+  # Web UI requirements
+  - id: WEB_0001
+    title: Web UI Launch
+    significance: shall
+    description: >-
+      The tool shall provide a browser-based recipe browser via CLI subcommand,
+      launching an embedded Jetty server accessible on localhost
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0001.1
+    title: Web UI — Recipe TreeGrid
+    significance: shall
+    description: >-
+      The Web UI shall display all discovered recipes in a hierarchical tree grid,
+      with composite recipes expandable to show their sub-recipes
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0001.2
+    title: Web UI — Search and Tag Filter
+    significance: shall
+    description: >-
+      The Web UI shall support real-time text search (name, description, tags) and
+      multi-select tag filtering (OR/ANY logic), composing with AND between filters
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0001.3
+    title: Web UI — Port Option
+    significance: shall
+    description: The Web UI subcommand shall accept a configurable port option, defaulting to 8080
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0001.4
+    title: Web UI — Expand/Collapse Composite Recipes
+    significance: shall
+    description: >-
+      The Web UI shall allow expanding and collapsing composite recipes in the tree grid
+      to show or hide their sub-recipe list
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0001.5
+    title: Web UI — Cascade Multi-Select
+    significance: shall
+    description: >-
+      The Web UI shall support multi-select with cascade-both-ways checkbox logic:
+      selecting a parent selects all children; selecting all children selects the parent;
+      deselecting one child puts the parent into indeterminate state
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0001.6
+    title: Web UI — Detail Panel
+    significance: shall
+    description: >-
+      The Web UI shall display a detail panel showing the selected recipe's name,
+      description, tags, recipe list (if composite), and options
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   # TUI requirements
   - id: TUI_0001
     title: TUI Launch
