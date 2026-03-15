@@ -357,6 +357,46 @@ cases:
       THEN the detail panel shows which composites include it
     revision: "0.1.0"
 
+  - id: SVC_TUI_0001.17
+    requirement_ids: ["TUI_0001.17"]
+    title: Selecting composite selects all transitive sub-recipes
+    verification: automated-test
+    description: |
+      GIVEN the TUI browser displays a composite recipe with sub-recipes
+      WHEN the user toggles selection on the composite
+      THEN the composite and all its transitive sub-recipes become selected
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.17.1
+    requirement_ids: ["TUI_0001.17"]
+    title: Selecting all sub-recipes auto-selects the parent composite
+    verification: automated-test
+    description: |
+      GIVEN a composite recipe is unselected and all its sub-recipes are unselected
+      WHEN the user individually selects every sub-recipe of the composite
+      THEN the composite is automatically added to the selected set
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.17.2
+    requirement_ids: ["TUI_0001.17"]
+    title: Deselecting all sub-recipes deselects the parent composite
+    verification: automated-test
+    description: |
+      GIVEN a composite recipe is selected along with all its sub-recipes
+      WHEN the user toggles selection off the composite
+      THEN the composite and all its transitive sub-recipes are deselected
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.17.3
+    requirement_ids: ["TUI_0001.17"]
+    title: Partial child selection renders composite as indeterminate
+    verification: automated-test
+    description: |
+      GIVEN a composite recipe with multiple sub-recipes
+      WHEN only some (but not all) sub-recipes are selected
+      THEN the composite is tracked in the partial (indeterminate) set and rendered with an indeterminate indicator
+    revision: "0.1.0"
+
   - id: SVC_CLI_0002
     requirement_ids: ["CLI_0002"]
     title: List recipes via CLI

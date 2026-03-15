@@ -181,6 +181,7 @@ public final class BrowserView {
                 controller.selectedRecipes(),
                 controller.expandedRecipes(),
                 controller.coveredRecipes(),
+                controller.partialRecipes(),
                 controller.highlightedIndex(),
                 "Recipes",
                 RecipeListRenderer.RenderOptions.BROWSER,
