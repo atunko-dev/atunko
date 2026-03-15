@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /** Pure Java filter logic for the recipe browser — no Vaadin dependencies. */
 public final class RecipeFilter {
@@ -18,7 +17,7 @@ public final class RecipeFilter {
         return recipes.stream()
                 .filter(r -> matchesText(r, query))
                 .filter(r -> matchesTags(r, tags))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @SuppressWarnings("StringSplitter")

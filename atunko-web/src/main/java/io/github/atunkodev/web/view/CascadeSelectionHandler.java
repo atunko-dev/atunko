@@ -96,6 +96,15 @@ public class CascadeSelectionHandler {
         }
     }
 
+    /**
+     * Updates the visual selection state of the parent of {@code changed}.
+     *
+     * <p>When all siblings are selected, all tree nodes for the parent recipe are selected. This
+     * relies on the OpenRewrite data model guarantee that the same {@link RecipeInfo} object always
+     * has the same {@code recipeList()} regardless of where it appears in the tree — so if all
+     * children of one parent instance are selected, the children of every other instance of that
+     * parent are also selected.
+     */
     private void updateParentState(TreeNode changed) {
         TreeNode parent = parentMap.get(changed);
         if (parent == null) {

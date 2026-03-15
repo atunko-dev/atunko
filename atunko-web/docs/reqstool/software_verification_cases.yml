@@ -4,4 +4,7 @@ filters:
     custom:
       includes: ids == /SVC_WEB_.*/
 
+# No additional SVCs defined at the subproject level.
+# All SVC_WEB_* cases are defined in the system-level docs/reqstool/software_verification_cases.yml
+# and included here via the filter above.
 cases: []

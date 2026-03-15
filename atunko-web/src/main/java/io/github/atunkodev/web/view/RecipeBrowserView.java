@@ -121,7 +121,7 @@ public class RecipeBrowserView extends AppLayout {
 
         // Cascade-aware selection listener
         treeGrid.asMultiSelect().addSelectionListener(e -> {
-            if (inCascadeUpdate) {
+            if (inCascadeUpdate || cascadeHandler == null) {
                 return;
             }
             inCascadeUpdate = true;
