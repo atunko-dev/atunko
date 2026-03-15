@@ -57,25 +57,39 @@ don't need to manually install the correct JDK.
 
 ### 4. Custom repository for Gradle Tooling API
 
-**Decision:** Include `repo.gradle.org` in the catalog's `repositories` field.
+**Decision:** Include `repo.gradle.org` in the catalog's `repositories` field using the
+required `"id=url"` format.
 
 **Rationale:** The Gradle Tooling API is only available from Gradle's own repository, not
-Maven Central. JBang supports per-alias `repositories` for exactly this case.
+Maven Central. JBang supports per-alias `repositories` for exactly this case. The format
+must be `"id=url"` per the JBang catalog spec (plain URLs are not valid).
+
+### 5. Distribution approach: Thin JARs (4 modules)
+
+**Decision:** Publish `atunko-core`, `atunko-tui`, `atunko-web`, and `atunko-cli` as
+separate thin JARs to Maven Central. JBang resolves transitive dependencies at runtime.
+
+**Rationale:** Thin JARs enable per-module versioning, standard Maven dependency
+consumption, and are the idiomatic JBang GAV approach. The `repositories` field is still
+required because the Gradle Tooling API (`org.gradle:gradle-tooling-api`) is not on
+Maven Central — it lives only at `repo.gradle.org`.
+
+**Alternative considered:** Shadow JAR (fat JAR) — rejected because it bundles all
+transitive deps into one artifact, prevents modular reuse, and is unnecessary now that all
+other dependencies (including TamboUI) are on Maven Central.
 
 ### Catalog shape
 
 ```json
 {
-  "catalogs": {},
   "aliases": {
     "atunko": {
       "script-ref": "io.github.atunkodev:atunko-cli:VERSION",
-      "description": "OpenRewrite TUI + CLI tool — recipe browsing, search, and execution",
+      "description": "OpenRewrite CLI, TUI and Web UI tool — recipe browsing, search, and execution",
       "java": "25+",
-      "repositories": ["https://repo.gradle.org/gradle/libs-releases"]
+      "repositories": ["gradle-libs=https://repo.gradle.org/gradle/libs-releases"]
     }
-  },
-  "templates": {}
+  }
 }
 ```
 

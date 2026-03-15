@@ -6,15 +6,23 @@
 
 ## 2. JBang Catalog Repo
 
+> **Note:** Tasks 2.x are in the external `atunko-dev/jbang-catalog` repo, not this repo.
+
 - [ ] 2.1 Create `atunko-dev/jbang-catalog` GitHub repo (public, minimal)
 - [ ] 2.2 Add `jbang-catalog.json` with `atunko` alias using GAV coordinates and Gradle repo
 - [ ] 2.3 Add README with catalog description and usage examples
 
 ## 3. Maven Central Publishing Setup
 
-- [ ] 3.1 Configure Gradle for Maven Central publishing (group: `io.github.atunkodev`)
-- [ ] 3.2 Set up POM metadata (description, license, SCM, developers)
-- [ ] 3.3 Configure signing plugin for artifact signing
+- [ ] 3.1 Register/verify Sonatype account and claim `io.github.atunkodev` namespace in Central Portal
+- [ ] 3.2 Generate GPG signing key and publish to public keyserver
+- [ ] 3.3 Apply `com.vanniktech.maven.publish` plugin for Central Portal integration
+- [ ] 3.4 Configure POM metadata (description, license Apache-2.0, SCM, developers)
+- [ ] 3.5 Configure sources and Javadoc JAR publishing (Maven Central requirement)
+- [ ] 3.6 Configure signing plugin with GPG key (in-memory for CI)
+- [ ] 3.7 Add GitHub Secrets: `SIGNING_KEY`, `SIGNING_PASSWORD`, `SONATYPE_USERNAME`, `SONATYPE_PASSWORD`
+- [ ] 3.8 Add GitHub Actions workflow to publish on release tag
+- [ ] 3.9 Validate POM locally with `./gradlew publishToMavenLocal`
 
 ## 4. End-to-End Verification (after atunko is published)
 
