@@ -240,3 +240,7 @@ gradle-app.setting
 
 # OpenSpec UI local state
 openspec/.openspecui-dashboard-git-refresh.stamp
+
+# Vaadin dev-mode generated frontend resources
+**/src/main/frontend/generated/
+**/src/main/frontend/index.html

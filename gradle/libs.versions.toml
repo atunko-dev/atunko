@@ -8,6 +8,9 @@ junit = "5.11.4"
 assertj = "3.27.3"
 slf4j = "2.0.17"
 errorprone = "2.48.0"
+vaadin = "24.7.4"
+vaadin-boot = "13.3"
+karibu-testing = "2.2.4"
 
 [libraries]
 # OpenRewrite BOM
@@ -57,5 +60,14 @@ assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 # SLF4J
 slf4j-nop = { module = "org.slf4j:slf4j-nop", version.ref = "slf4j" }
 
+# Vaadin
+vaadin-bom = { module = "com.vaadin:vaadin-bom", version.ref = "vaadin" }
+vaadin-core = { module = "com.vaadin:vaadin-core" }
+vaadin-boot = { module = "com.github.mvysny.vaadin-boot:vaadin-boot", version.ref = "vaadin-boot" }
+
+# Karibu-Testing
+karibu-testing = { module = "com.github.mvysny.kaributesting:karibu-testing-v24", version.ref = "karibu-testing" }
+
 # Error Prone
 errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
+

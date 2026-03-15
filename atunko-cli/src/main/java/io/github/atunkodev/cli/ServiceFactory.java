@@ -9,6 +9,7 @@ import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.recipe.EnvironmentProvider;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.atunkodev.tui.TuiCommand;
+import io.github.atunkodev.web.WebUiCommand;
 import picocli.CommandLine;
 
 /**
@@ -32,6 +33,9 @@ public class ServiceFactory implements CommandLine.IFactory {
         if (cls == RunCommand.class) {
             return cls.cast(new RunCommand(
                     new RecipeExecutionEngine(environmentProvider), new JavaSourceParser(), new ChangeApplier()));
+        }
+        if (cls == WebUiCommand.class) {
+            return cls.cast(new WebUiCommand(discoveryService));
         }
         if (cls == TuiCommand.class) {
             return cls.cast(new TuiCommand(

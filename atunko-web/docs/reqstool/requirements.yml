@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/reqstool/reqstool-client/main/src/reqstool/resources/schemas/v1/requirements.schema.json
+metadata:
+  urn: atunko-web
+  variant: microservice
+  title: Atunko Web UI Module Requirements
+
+imports:
+  local:
+    - path: ../../../docs/reqstool
+
+filters:
+  atunko:
+    custom:
+      includes: ids == /WEB_.*/
