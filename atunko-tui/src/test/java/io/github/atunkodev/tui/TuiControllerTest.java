@@ -712,15 +712,18 @@ class TuiControllerTest {
     // --- Sub-recipe selection (individual) ---
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.5"})
-    void toggleSelection_selectingComposite_selectsOnlyThatRecipe() {
+    @SVCs({"atunko:SVC_TUI_0001.17"})
+    void toggleSelection_selectingComposite_cascadeSelectsCompositeAndAllSubs() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.expandRecipe("org.test.Composite");
         controller.moveDown(); // highlight Composite (index 1)
 
         controller.toggleSelection();
 
-        assertThat(controller.selectedRecipes()).containsExactly("org.test.Composite");
+        // Cascade-down: composite + all transitive sub-recipes become selected
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder("org.test.Composite", "org.test.Sub1", "org.test.Sub2");
+        assertThat(controller.partialRecipes()).isEmpty();
     }
 
     @Test
@@ -1068,6 +1071,143 @@ class TuiControllerTest {
         List<String> parents = controller.includedIn("org.test.Alpha");
 
         assertThat(parents).isEmpty();
+    }
+
+    // --- Cascade Multi-Select (TUI_0001.17) ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.17"})
+    void toggleSelection_selectingComposite_subRecipesAndCompositeAllSelected() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown(); // highlight Composite (sorted: Alpha, Composite, Gamma)
+
+        controller.toggleSelection();
+
+        // Cascade-down: composite + subs all in selectedRecipes; no partial state
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder("org.test.Composite", "org.test.Sub1", "org.test.Sub2");
+        assertThat(controller.partialRecipes()).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.17.1"})
+    void toggleSelection_selectingAllSubRecipes_cascadeUpSelectsComposite() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+        // Sorted + expanded: Alpha(0), Composite(1), Sub1(2), Sub2(3), Gamma(4)
+        controller.moveDown(); // Composite
+        controller.moveDown(); // Sub1
+
+        controller.toggleSelection(); // select Sub1
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Sub1");
+        assertThat(controller.partialRecipes()).contains("org.test.Composite");
+
+        controller.moveDown(); // Sub2
+        controller.toggleSelection(); // select Sub2
+
+        // All subs selected → cascade-up auto-selects Composite
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder("org.test.Sub1", "org.test.Sub2", "org.test.Composite");
+        assertThat(controller.partialRecipes()).doesNotContain("org.test.Composite");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.17.2"})
+    void toggleSelection_deselectingComposite_alsoDeselectsExplicitlySelectedSubs() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+        // Sorted + expanded: Alpha(0), Composite(1), Sub1(2), Sub2(3), Gamma(4)
+        controller.moveDown(); // Composite
+        controller.moveDown(); // Sub1
+        controller.toggleSelection(); // select Sub1
+        controller.moveDown(); // Sub2
+        controller.toggleSelection(); // select Sub2 → cascade-up selects Composite
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder("org.test.Sub1", "org.test.Sub2", "org.test.Composite");
+
+        // Navigate back to Composite and deselect it (cursor is at Sub2=3, Composite=1: 2 ups)
+        controller.moveUp(); // → Sub1
+        controller.moveUp(); // → Composite
+        controller.toggleSelection(); // deselect Composite → cascade-down removes Sub1, Sub2
+
+        assertThat(controller.selectedRecipes()).isEmpty();
+        assertThat(controller.partialRecipes()).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.17.3"})
+    void toggleSelection_selectingOneSub_compositeBecomesPartial() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+        // Sorted + expanded: Alpha(0), Composite(1), Sub1(2), Sub2(3), Gamma(4)
+        controller.moveDown(); // Composite
+        controller.moveDown(); // Sub1
+
+        controller.toggleSelection(); // select Sub1 only
+
+        // Composite has one selected child and one unselected → indeterminate
+        assertThat(controller.partialRecipes()).contains("org.test.Composite");
+        assertThat(controller.selectedRecipes()).doesNotContain("org.test.Composite");
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Sub1");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.17.3"})
+    void deselectingOneSub_leavesPartialState_onComposite() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+        // Alpha(0), Composite(1), Sub1(2), Sub2(3), Gamma(4)
+        controller.moveDown(); // Composite
+        controller.moveDown(); // Sub1
+        controller.toggleSelection();
+        controller.moveDown(); // Sub2
+        controller.toggleSelection();
+        // Both subs selected → cascade-up selected Composite
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder("org.test.Sub1", "org.test.Sub2", "org.test.Composite");
+
+        // Deselect Sub2 — Composite should become partial
+        controller.toggleSelection();
+
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Sub1");
+        assertThat(controller.partialRecipes()).contains("org.test.Composite");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14"})
+    void runDialog_notAffectedByCascade_simpleToggle() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown(); // Composite (sorted: Alpha, Composite, Gamma)
+        controller.toggleSelection(); // cascade selects Composite + Sub1 + Sub2
+
+        controller.openConfirmRun();
+
+        // Run dialog shows only Composite (sub-recipes deduplicated since composite subsumes them)
+        assertThat(controller.runOrder()).containsExactly("org.test.Composite");
+
+        // Toggle Composite off in run dialog — run dialog uses cascade=false, so only Composite removed
+        controller.toggleRunRecipe();
+        // Sub1 and Sub2 remain in selectedRecipes (run dialog does not cascade-down)
+        assertThat(controller.selectedRecipes()).doesNotContain("org.test.Composite");
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Sub1", "org.test.Sub2");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.5"})
+    void cycleSelection_withCascade_recomputesPartialState() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.expandRecipe("org.test.Composite");
+
+        controller.cycleSelection(); // select all visible
+
+        // All visible selected; recomputePartialState should not mark Composite as partial
+        // (Composite is explicitly in selectedRecipes)
+        assertThat(controller.partialRecipes()).isEmpty();
+
+        controller.cycleSelection(); // deselect all
+
+        assertThat(controller.selectedRecipes()).isEmpty();
+        assertThat(controller.partialRecipes()).isEmpty();
     }
 
     @Test

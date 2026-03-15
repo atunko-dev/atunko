@@ -24,12 +24,13 @@ public final class RecipeListRenderer {
 
     private RecipeListRenderer() {}
 
-    @Requirements({"atunko:TUI_0001.16"})
+    @Requirements({"atunko:TUI_0001.16", "atunko:TUI_0001.17"})
     public static Element renderRecipeList(
             List<DisplayRow> displayRows,
             Set<String> selectedRecipes,
             Set<String> expandedRecipes,
             Set<String> coveredRecipes,
+            Set<String> partialRecipes,
             int highlightedIndex,
             String title,
             RenderOptions options,
@@ -41,9 +42,10 @@ public final class RecipeListRenderer {
         for (DisplayRow displayRow : displayRows) {
             RecipeInfo r = displayRow.recipe();
             boolean selected = selectedRecipes.contains(r.name());
+            boolean partial = partialRecipes.contains(r.name());
             boolean covered = coveredRecipes.contains(r.name());
             boolean expanded = expandedRecipes.contains(r.name());
-            String check = resolveCheckbox(selected, covered);
+            String check = resolveCheckbox(selected, partial, covered);
             String indicator = r.isComposite() ? (expanded ? "\u25bc " : "\u25b6 ") : "  ";
 
             String prefix;
@@ -57,9 +59,9 @@ public final class RecipeListRenderer {
                         : check + indicator;
             }
 
-            var prefixEl = resolvePrefixStyle(prefix, selected, covered);
+            var prefixEl = resolvePrefixStyle(prefix, selected, partial, covered);
             String displayName = cleanDisplayName(r.displayName());
-            var nameEl = resolveNameStyle(displayName, selected, covered, options);
+            var nameEl = resolveNameStyle(displayName, selected, partial, covered, options);
 
             if (options.showTags() && !r.tags().isEmpty() && !displayRow.isSubRecipe()) {
                 var tags = text("  " + String.join(", ", r.tags())).dim();
@@ -82,32 +84,32 @@ public final class RecipeListRenderer {
         return result;
     }
 
-    private static String resolveCheckbox(boolean selected, boolean covered) {
-        if (selected) {
+    private static String resolveCheckbox(boolean selected, boolean partial, boolean covered) {
+        if (selected || covered) {
             return "[x] ";
         }
-        if (covered) {
-            return "[c] ";
+        if (partial) {
+            return "[~] ";
         }
         return "[ ] ";
     }
 
-    private static Element resolvePrefixStyle(String prefix, boolean selected, boolean covered) {
-        if (selected) {
+    private static Element resolvePrefixStyle(String prefix, boolean selected, boolean partial, boolean covered) {
+        if (selected || covered) {
             return text(prefix).fg(Color.LIGHT_GREEN);
         }
-        if (covered) {
-            return text(prefix).dim();
+        if (partial) {
+            return text(prefix).fg(Color.YELLOW);
         }
         return text(prefix).dim();
     }
 
     private static Element resolveNameStyle(
-            String displayName, boolean selected, boolean covered, RenderOptions options) {
-        if (covered && !selected) {
+            String displayName, boolean selected, boolean partial, boolean covered, RenderOptions options) {
+        if (options.dimUnselected() && !selected && !covered) {
             return text(displayName).dim();
         }
-        if (options.dimUnselected() && !selected) {
+        if (!selected && !covered && !partial) {
             return text(displayName).dim();
         }
         return text(displayName);

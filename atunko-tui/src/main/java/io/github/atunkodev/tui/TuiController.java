@@ -41,11 +41,18 @@ public class TuiController {
         private final RecipeSource source;
         private final Set<String> selectedRecipes;
         private final Set<String> expandedRecipes = new LinkedHashSet<>();
+        private final Set<String> partialRecipes = new LinkedHashSet<>();
+        private final boolean cascade;
         private int highlightedIndex;
 
         public RecipeListState(RecipeSource source, Set<String> selectedRecipes) {
+            this(source, selectedRecipes, true);
+        }
+
+        public RecipeListState(RecipeSource source, Set<String> selectedRecipes, boolean cascade) {
             this.source = source;
             this.selectedRecipes = selectedRecipes;
+            this.cascade = cascade;
         }
 
         public List<DisplayRow> displayRows() {
@@ -86,9 +93,30 @@ public class TuiController {
 
         public void toggleSelection() {
             highlightedRow().ifPresent(row -> {
-                String name = row.recipe().name();
-                if (!selectedRecipes.remove(name)) {
+                RecipeInfo recipe = row.recipe();
+                String name = recipe.name();
+                if (selectedRecipes.contains(name)) {
+                    selectedRecipes.remove(name);
+                    if (cascade && recipe.isComposite()) {
+                        // Cascade-down deselect: also remove any sub-recipes that were
+                        // explicitly selected (handles cascade-up scenario where all subs
+                        // were individually selected and then composite is deselected)
+                        Set<String> subs = new LinkedHashSet<>();
+                        collectAllSubRecipeNames(recipe, subs);
+                        selectedRecipes.removeAll(subs);
+                    }
+                } else {
                     selectedRecipes.add(name);
+                    if (cascade && recipe.isComposite()) {
+                        // Cascade-down select: add all transitive sub-recipes so that
+                        // recomputePartialState can correctly compute composite state
+                        Set<String> subs = new LinkedHashSet<>();
+                        collectAllSubRecipeNames(recipe, subs);
+                        selectedRecipes.addAll(subs);
+                    }
+                }
+                if (cascade) {
+                    recomputePartialState();
                 }
             });
         }
@@ -106,6 +134,59 @@ public class TuiController {
             } else {
                 selectedRecipes.addAll(visibleNames);
             }
+            if (cascade) {
+                recomputePartialState();
+            }
+        }
+
+        private static void collectAllSubRecipeNames(RecipeInfo composite, Set<String> result) {
+            for (RecipeInfo sub : composite.recipeList()) {
+                result.add(sub.name());
+                if (sub.isComposite()) {
+                    collectAllSubRecipeNames(sub, result);
+                }
+            }
+        }
+
+        private void recomputePartialState() {
+            partialRecipes.clear();
+            for (RecipeInfo r : source.topLevelRecipes()) {
+                if (r.isComposite()) {
+                    recomputeForComposite(r);
+                }
+            }
+        }
+
+        private void recomputeForComposite(RecipeInfo composite) {
+            for (RecipeInfo sub : composite.recipeList()) {
+                if (sub.isComposite()) {
+                    recomputeForComposite(sub);
+                }
+            }
+            Set<String> allSubs = new LinkedHashSet<>();
+            collectAllSubRecipeNames(composite, allSubs);
+            if (allSubs.isEmpty()) {
+                return;
+            }
+            long selectedCount =
+                    allSubs.stream().filter(selectedRecipes::contains).count();
+            if (selectedCount == allSubs.size()) {
+                // All sub-recipes selected → ensure composite is selected (cascade-up)
+                selectedRecipes.add(composite.name());
+                partialRecipes.remove(composite.name());
+            } else if (selectedCount > 0) {
+                // Some but not all sub-recipes selected → partial/indeterminate
+                selectedRecipes.remove(composite.name());
+                partialRecipes.add(composite.name());
+            } else {
+                // No sub-recipes selected
+                selectedRecipes.remove(composite.name());
+                partialRecipes.remove(composite.name());
+            }
+        }
+
+        public Set<String> partialRecipes() {
+            return Set.copyOf(partialRecipes);
         }
 
         public void expand(String recipeName) {
@@ -394,9 +475,14 @@ public class TuiController {
 
     // --- Selection ---
 
-    @Requirements({"atunko:TUI_0001.5"})
+    @Requirements({"atunko:TUI_0001.5", "atunko:TUI_0001.17"})
     public void toggleSelection() {
         browserState.toggleSelection();
+    }
+
+    @Requirements({"atunko:TUI_0001.17"})
+    public Set<String> partialRecipes() {
+        return browserState.partialRecipes();
     }
 
     @Requirements({"atunko:TUI_0001.5"})
@@ -475,8 +561,20 @@ public class TuiController {
 
     @Requirements({"atunko:TUI_0001.14"})
     public void openConfirmRun() {
-        runOrder = new ArrayList<>(selectedRecipes);
-        runState = new RecipeListState(this::resolveRunRecipes, selectedRecipes);
+        // Deduplicate: omit sub-recipes whose parent composite is also selected,
+        // since running the composite already executes its sub-recipes.
+        Set<String> coveredBySeleectedComposites = new LinkedHashSet<>();
+        for (String name : selectedRecipes) {
+            findRecipe(name).ifPresent(recipe -> {
+                if (recipe.isComposite()) {
+                    collectSubRecipeNames(recipe, coveredBySeleectedComposites);
+                }
+            });
+        }
+        runOrder = selectedRecipes.stream()
+                .filter(name -> !coveredBySeleectedComposites.contains(name))
+                .collect(Collectors.toCollection(ArrayList::new));
+        runState = new RecipeListState(this::resolveRunRecipes, selectedRecipes, false);
         currentScreen = Screen.CONFIRM_RUN;
         LOG.fine(() -> "Opened run dialog with " + runOrder.size() + " recipes");
     }

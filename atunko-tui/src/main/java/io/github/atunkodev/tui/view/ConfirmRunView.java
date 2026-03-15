@@ -74,6 +74,7 @@ public final class ConfirmRunView {
                 selected,
                 controller.runExpandedRecipes(),
                 Set.of(),
+                Set.of(),
                 controller.runHighlightIndex(),
                 "Execution Order",
                 RecipeListRenderer.RenderOptions.RUN_DIALOG,
