@@ -13,6 +13,8 @@ scmVersion {
         prefix = ''           // tags are plain semver: 1.0.0, not v1.0.0
     }
     versionIncrementer 'incrementPatch'
+    versionCreator { version, position -> version }
+    snapshotCreator { version, position -> '-SNAPSHOT' }
 }
 
 allprojects {
