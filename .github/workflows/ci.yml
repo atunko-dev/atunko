@@ -19,8 +19,11 @@ jobs:
           java-version: 25
           cache: gradle
 
+      - name: Test
+        run: ./gradlew test
+
       - name: Build
-        run: ./gradlew build
+        run: ./gradlew build -x test
 
       - name: Upload shadow JAR
         uses: actions/upload-artifact@v4
