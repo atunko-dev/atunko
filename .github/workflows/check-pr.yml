@@ -19,16 +19,18 @@ jobs:
         run: |
           BRANCH="${{ github.head_ref }}"
           echo "Branch: $BRANCH"
-          if [[ "$BRANCH" == "main" ]]; then
-            echo "Skipping check for main branch"
+          if [[ "$BRANCH" == "main" || "$BRANCH" == "master" || "$BRANCH" == "develop" ]]; then
+            echo "Skipping check for protected branch"
             exit 0
           fi
-          if [[ ${#BRANCH} -lt 3 || ${#BRANCH} -gt 80 ]]; then
-            echo "Branch name length must be between 3 and 80 characters"
-            exit 1
-          fi
-          if ! echo "$BRANCH" | grep -qE '^(feat|fix|chore|docs|refactor|test|ci|build|release)/'; then
-            echo "Branch '$BRANCH' must start with one of: feat/, fix/, chore/, docs/, refactor/, test/, ci/, build/, release/"
+          # Conventional Branch spec: type/description
+          # Types: feat|feature, fix|bugfix, hotfix, release, chore
+          # Description: lowercase letters, numbers, hyphens only
+          if ! echo "$BRANCH" | grep -qE '^(feat|feature|fix|bugfix|hotfix|release|chore)/[a-z0-9][a-z0-9.-]*$'; then
+            echo "Branch '$BRANCH' does not follow Conventional Branch spec."
+            echo "Expected format: <type>/<description>"
+            echo "Allowed types: feat, feature, fix, bugfix, hotfix, release, chore"
+            echo "Description: lowercase letters, numbers, hyphens, dots (no consecutive or leading/trailing hyphens/dots)"
             exit 1
           fi
           echo "Branch name is valid"
