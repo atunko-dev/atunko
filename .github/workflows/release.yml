@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.release.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify release targets main or release branch
+        run: |
+          TARGET="${{ github.event.release.target_commitish }}"
+          if [[ "$TARGET" != "main" && "$TARGET" != release/* ]]; then
+            echo "Release target '$TARGET' is not main or a release/* branch"
+            exit 1
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: gradle
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Generate changelog
+        uses: orhun/git-cliff-action@v4
+        id: changelog
+        with:
+          config: cliff.toml
+          args: --latest --strip all
+
+      - name: Upload JAR and update release body
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.changelog.outputs.content }}
+          files: atunko-cli/build/libs/atunko-*.jar
+          fail_on_unmatched_files: true

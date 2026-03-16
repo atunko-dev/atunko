@@ -1,0 +1,34 @@
+name: PR Quality Gates
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  conventional-title:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  branch-naming:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          echo "Branch: $BRANCH"
+          if [[ "$BRANCH" == "main" ]]; then
+            echo "Skipping check for main branch"
+            exit 0
+          fi
+          if [[ ${#BRANCH} -lt 3 || ${#BRANCH} -gt 80 ]]; then
+            echo "Branch name length must be between 3 and 80 characters"
+            exit 1
+          fi
+          if ! echo "$BRANCH" | grep -qE '^(feat|fix|chore|docs|refactor|test|ci|build|release)/'; then
+            echo "Branch '$BRANCH' must start with one of: feat/, fix/, chore/, docs/, refactor/, test/, ci/, build/, release/"
+            exit 1
+          fi
+          echo "Branch name is valid"
