@@ -19,8 +19,8 @@ jobs:
       - name: Verify release targets main or release branch
         run: |
           TARGET="${{ github.event.release.target_commitish }}"
-          if [[ "$TARGET" != "main" && "$TARGET" != release/* ]]; then
-            echo "Release target '$TARGET' is not main or a release/* branch"
+          if [[ "$TARGET" != "main" && "$TARGET" != release/* && "$TARGET" != hotfix/* ]]; then
+            echo "Release target '$TARGET' is not main, a release/*, or hotfix/* branch"
             exit 1
           fi
 

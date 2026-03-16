@@ -21,10 +21,3 @@ jobs:
 
       - name: Build
         run: ./gradlew build
-
-      - name: Upload shadow JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: atunko-jar
-          path: atunko-cli/build/libs/atunko-*.jar
-          if-no-files-found: error
