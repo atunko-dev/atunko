@@ -1,0 +1,23 @@
+name: PR Quality Gates
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  conventional-title:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  branch-naming:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: deepakputhraya/action-branch-name@v1
+        with:
+          allowed_prefixes: "feat,fix,chore,docs,refactor,test,ci,build,release"
+          ignore: main
+          min_length: 3
+          max_length: 80

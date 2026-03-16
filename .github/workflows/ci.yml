@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "release/**"]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # required by axion-release
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: gradle
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Upload shadow JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: atunko-jar
+          path: atunko-cli/build/libs/atunko-*.jar
+          if-no-files-found: error

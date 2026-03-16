@@ -1,0 +1,45 @@
+[changelog]
+header = "# Changelog"
+body = """
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+{% for commit in commits %}
+- {{ commit.message | upper_first }} ([{{ commit.id | truncate(length=7, end="") }}]({{ commit.remote.link }}/commit/{{ commit.id }}))
+{% endfor %}
+{% endfor %}
+"""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+fail_on_unmatched_commit = false
+initial_tag = "0.1.0"
+
+[[git.commit_parsers]]
+message = "^feat"
+group = "Features"
+
+[[git.commit_parsers]]
+message = "^fix"
+group = "Bug Fixes"
+
+[[git.commit_parsers]]
+message = "^refactor"
+group = "Refactor"
+
+[[git.commit_parsers]]
+message = "^perf"
+group = "Performance"
+
+[[git.commit_parsers]]
+message = "^docs|\\(docs\\)"
+group = "Documentation"
+
+[[git.commit_parsers]]
+message = "^test"
+group = "Tests"
+
+[[git.commit_parsers]]
+message = "^revert|^chore|^ci|^build"
+skip = true

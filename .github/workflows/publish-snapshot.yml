@@ -1,0 +1,49 @@
+name: Publish Snapshot
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'release' || github.event.release.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: gradle
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Get SNAPSHOT version
+        id: version
+        run: |
+          VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Delete previous snapshot release (if exists)
+        run: gh release delete "${{ steps.version.outputs.version }}" --yes --cleanup-tag || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create snapshot pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: "Snapshot ${{ steps.version.outputs.version }}"
+          prerelease: true
+          files: atunko-cli/build/libs/atunko-*.jar
+          fail_on_unmatched_files: true

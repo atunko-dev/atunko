@@ -10,7 +10,6 @@ application {
 shadowJar {
     archiveBaseName.set('atunko')
     archiveClassifier.set('')
-    archiveVersion.set('')
     mergeServiceFiles()
     zip64 = true // Vaadin + OpenRewrite exceed the 65535-entry ZIP limit
 }
