@@ -15,22 +15,7 @@ jobs:
   branch-naming:
     runs-on: ubuntu-latest
     steps:
-      - name: Check branch name
-        run: |
-          BRANCH="${{ github.head_ref }}"
-          echo "Branch: $BRANCH"
-          if [[ "$BRANCH" == "main" || "$BRANCH" == "master" || "$BRANCH" == "develop" ]]; then
-            echo "Skipping check for protected branch"
-            exit 0
-          fi
-          # Conventional Branch spec: type/description
-          # Types: feat|feature, fix|bugfix, hotfix, release, chore
-          # Description: lowercase letters, numbers, hyphens only
-          if ! echo "$BRANCH" | grep -qE '^(feat|feature|fix|bugfix|hotfix|release|chore)/[a-z0-9][a-z0-9.-]*$'; then
-            echo "Branch '$BRANCH' does not follow Conventional Branch spec."
-            echo "Expected format: <type>/<description>"
-            echo "Allowed types: feat, feature, fix, bugfix, hotfix, release, chore"
-            echo "Description: lowercase letters, numbers, hyphens, dots (no consecutive or leading/trailing hyphens/dots)"
-            exit 1
-          fi
-          echo "Branch name is valid"
+      - uses: deepakputhraya/action-branch-name@master
+        with:
+          regex: '^(feat|feature|fix|bugfix|hotfix|release|chore)/[a-z0-9][a-z0-9.-]*$'
+          ignore: main,master,develop
