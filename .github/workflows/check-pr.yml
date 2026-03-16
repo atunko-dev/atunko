@@ -15,7 +15,7 @@ jobs:
   branch-naming:
     runs-on: ubuntu-latest
     steps:
-      - uses: deepakputhraya/action-branch-name@master
+      - uses: deepakputhraya/action-branch-name@v1.0.0
         with:
           regex: '^(feat|feature|fix|bugfix|hotfix|release|chore)/[a-z0-9][a-z0-9.-]*$'
           ignore: main,master,develop
