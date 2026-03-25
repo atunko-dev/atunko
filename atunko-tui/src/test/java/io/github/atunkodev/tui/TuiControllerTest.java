@@ -20,23 +20,23 @@ import org.junit.jupiter.api.io.TempDir;
 class TuiControllerTest {
 
     private static final RecipeInfo ALPHA =
-            new RecipeInfo("org.test.Alpha", "Alpha Recipe", "First recipe", Set.of("java", "testing"));
+            RecipeInfo.of("org.test.Alpha", "Alpha Recipe", "First recipe", Set.of("java", "testing"));
     private static final RecipeInfo BETA =
-            new RecipeInfo("org.test.Beta", "Beta Recipe", "Second recipe", Set.of("spring"));
+            RecipeInfo.of("org.test.Beta", "Beta Recipe", "Second recipe", Set.of("spring"));
     private static final RecipeInfo GAMMA =
-            new RecipeInfo("org.test.Gamma", "Gamma Recipe", "Third recipe", Set.of("java"));
+            RecipeInfo.of("org.test.Gamma", "Gamma Recipe", "Third recipe", Set.of("java"));
 
     private static final RecipeInfo SUB_1 =
-            new RecipeInfo("org.test.Sub1", "Sub Recipe 1", "First sub-recipe", Set.of("java"));
+            RecipeInfo.of("org.test.Sub1", "Sub Recipe 1", "First sub-recipe", Set.of("java"));
     private static final RecipeInfo SUB_2 =
-            new RecipeInfo("org.test.Sub2", "Sub Recipe 2", "Second sub-recipe", Set.of("java"));
-    private static final RecipeInfo COMPOSITE = new RecipeInfo(
+            RecipeInfo.of("org.test.Sub2", "Sub Recipe 2", "Second sub-recipe", Set.of("java"));
+    private static final RecipeInfo COMPOSITE = RecipeInfo.of(
             "org.test.Composite", "Composite Recipe", "A composite recipe", Set.of("java"), List.of(SUB_1, SUB_2));
 
     // Nested composite: OUTER contains COMPOSITE and SUB_3
     private static final RecipeInfo SUB_3 =
-            new RecipeInfo("org.test.Sub3", "Sub Recipe 3", "Third sub-recipe", Set.of("java"));
-    private static final RecipeInfo OUTER = new RecipeInfo(
+            RecipeInfo.of("org.test.Sub3", "Sub Recipe 3", "Third sub-recipe", Set.of("java"));
+    private static final RecipeInfo OUTER = RecipeInfo.of(
             "org.test.Outer", "Outer Composite", "A nested composite", Set.of("java"), List.of(COMPOSITE, SUB_3));
 
     private static final List<RecipeInfo> RECIPES = List.of(ALPHA, BETA, GAMMA);
@@ -366,7 +366,7 @@ class TuiControllerTest {
         controller.saveRunConfig(configFile);
 
         RunConfig loaded = service.load(configFile);
-        assertThat(loaded.recipes()).containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
+        assertThat(loaded.recipeNames()).containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
     }
 
     // --- Cycle Selection ---
@@ -907,8 +907,8 @@ class TuiControllerTest {
 
     // A recipe that appears both at top-level and as a sub-recipe of a composite
     private static final RecipeInfo COMMON =
-            new RecipeInfo("org.test.Common", "Common Recipe", "Appears everywhere", Set.of("java"));
-    private static final RecipeInfo COMPOSITE_WITH_COMMON = new RecipeInfo(
+            RecipeInfo.of("org.test.Common", "Common Recipe", "Appears everywhere", Set.of("java"));
+    private static final RecipeInfo COMPOSITE_WITH_COMMON = RecipeInfo.of(
             "org.test.CompositeCommon",
             "Composite With Common",
             "Contains Common",
@@ -940,7 +940,7 @@ class TuiControllerTest {
     }
 
     // A composite that appears both at top-level and nested inside another composite
-    private static final RecipeInfo NESTED_HOST = new RecipeInfo(
+    private static final RecipeInfo NESTED_HOST = RecipeInfo.of(
             "org.test.NestedHost", "Nested Host", "Contains Composite", Set.of("java"), List.of(COMPOSITE, SUB_3));
     private static final List<RecipeInfo> RECIPES_WITH_DUPLICATE_COMPOSITE = List.of(COMPOSITE, NESTED_HOST);
 

@@ -17,17 +17,17 @@ import org.junit.jupiter.api.Test;
 class RecipeBrowserViewTest {
 
     private static final RecipeInfo ALPHA =
-            new RecipeInfo("org.test.Alpha", "Alpha Recipe", "First recipe about spring", Set.of("java", "spring"));
+            RecipeInfo.of("org.test.Alpha", "Alpha Recipe", "First recipe about spring", Set.of("java", "spring"));
     private static final RecipeInfo BETA =
-            new RecipeInfo("org.test.Beta", "Beta Recipe", "Second recipe", Set.of("spring"));
+            RecipeInfo.of("org.test.Beta", "Beta Recipe", "Second recipe", Set.of("spring"));
     private static final RecipeInfo GAMMA =
-            new RecipeInfo("org.test.Gamma", "Gamma Recipe", "Third recipe", Set.of("java"));
+            RecipeInfo.of("org.test.Gamma", "Gamma Recipe", "Third recipe", Set.of("java"));
 
     private static final RecipeInfo CHILD_1 =
-            new RecipeInfo("org.test.Child1", "Child One", "First child", Set.of("java"));
+            RecipeInfo.of("org.test.Child1", "Child One", "First child", Set.of("java"));
     private static final RecipeInfo CHILD_2 =
-            new RecipeInfo("org.test.Child2", "Child Two", "Second child", Set.of("java"));
-    private static final RecipeInfo COMPOSITE = new RecipeInfo(
+            RecipeInfo.of("org.test.Child2", "Child Two", "Second child", Set.of("java"));
+    private static final RecipeInfo COMPOSITE = RecipeInfo.of(
             "org.test.Composite", "Composite Recipe", "A composite recipe", Set.of("java"), List.of(CHILD_1, CHILD_2));
 
     private static final Routes ROUTES = new Routes().autoDiscoverViews("io.github.atunkodev.web");

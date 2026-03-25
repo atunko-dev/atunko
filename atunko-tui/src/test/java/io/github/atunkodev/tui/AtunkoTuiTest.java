@@ -14,7 +14,7 @@ import org.junit.jupiter.api.io.TempDir;
 class AtunkoTuiTest {
 
     private static final RecipeInfo ALPHA =
-            new RecipeInfo("org.test.Alpha", "Alpha Recipe", "First recipe", Set.of("java"));
+            RecipeInfo.of("org.test.Alpha", "Alpha Recipe", "First recipe", Set.of("java"));
     private static final List<RecipeInfo> RECIPES = List.of(ALPHA);
 
     @Test

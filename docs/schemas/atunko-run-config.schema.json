@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/atunko-dev/atunko/main/docs/schemas/atunko-run-config.schema.json",
+  "title": "Atunko Run Configuration",
+  "description": "Schema for .atunko.yml run configuration files",
+  "type": "object",
+  "required": ["version", "recipes"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Configuration format version"
+    },
+    "recipes": {
+      "type": "array",
+      "description": "List of recipes to execute",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Fully qualified OpenRewrite recipe name"
+          },
+          "options": {
+            "type": "object",
+            "description": "Recipe option values (key-value pairs)",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

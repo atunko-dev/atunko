@@ -15,6 +15,7 @@ import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
+import org.openrewrite.config.OptionDescriptor;
 
 @Requirements({"atunko:TUI_0001.4", "atunko:TUI_0001.7"})
 public final class DetailView {
@@ -44,6 +45,20 @@ public final class DetailView {
                 text("Tags:").bold(),
                 text(recipe.tags().isEmpty() ? "(none)" : String.join(", ", recipe.tags()))
                         .fg(Color.LIGHT_CYAN));
+
+        if (!recipe.options().isEmpty()) {
+            detailContent.add(text(""));
+            detailContent.add(text("Options:").bold());
+            for (OptionDescriptor opt : recipe.options()) {
+                String required = opt.isRequired() ? " (required)" : "";
+                detailContent.add(row(
+                        text("  " + opt.getName()).fg(Color.LIGHT_YELLOW),
+                        text(" [" + opt.getType() + "]" + required).dim()));
+                if (opt.getDescription() != null) {
+                    detailContent.add(text("    " + opt.getDescription()).dim());
+                }
+            }
+        }
 
         if (recipe.isComposite()) {
             detailContent.add(text(""));

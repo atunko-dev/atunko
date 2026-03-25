@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -21,8 +22,9 @@ class RunConfigServiceTest {
     @Test
     @SVCs({"atunko:SVC_CORE_0007"})
     void save_writesYamlFile() throws IOException {
-        RunConfig config = new RunConfig(
-                List.of("org.openrewrite.java.cleanup.RemoveUnusedImports", "org.openrewrite.java.format.AutoFormat"));
+        RunConfig config = new RunConfig(List.of(
+                new RecipeConfig("org.openrewrite.java.cleanup.RemoveUnusedImports"),
+                new RecipeConfig("org.openrewrite.java.format.AutoFormat")));
 
         Path file = tempDir.resolve(".atunko.yml");
         service.save(config, file);
@@ -54,7 +56,7 @@ class RunConfigServiceTest {
         Path file = tempDir.resolve(".atunko.yml");
         Files.writeString(file, "old content");
 
-        RunConfig config = new RunConfig(List.of("org.openrewrite.java.cleanup.RemoveUnusedImports"));
+        RunConfig config = new RunConfig(List.of(new RecipeConfig("org.openrewrite.java.cleanup.RemoveUnusedImports")));
         service.save(config, file);
 
         String content = Files.readString(file);
@@ -65,15 +67,16 @@ class RunConfigServiceTest {
     @Test
     @SVCs({"atunko:SVC_CORE_0008"})
     void load_readsYamlFile() throws IOException {
-        RunConfig original = new RunConfig(
-                List.of("org.openrewrite.java.cleanup.RemoveUnusedImports", "org.openrewrite.java.format.AutoFormat"));
+        RunConfig original = new RunConfig(List.of(
+                new RecipeConfig("org.openrewrite.java.cleanup.RemoveUnusedImports"),
+                new RecipeConfig("org.openrewrite.java.format.AutoFormat")));
 
         Path file = tempDir.resolve(".atunko.yml");
         service.save(original, file);
 
         RunConfig loaded = service.load(file);
 
-        assertThat(loaded.recipes()).containsExactlyElementsOf(original.recipes());
+        assertThat(loaded.recipeNames()).containsExactlyElementsOf(original.recipeNames());
         assertThat(loaded.version()).isEqualTo(RunConfig.CURRENT_VERSION);
     }
 
@@ -99,19 +102,63 @@ class RunConfigServiceTest {
         Path file = tempDir.resolve(".atunko.yml");
         Files.writeString(file, "version: 1\nrecipes:\n");
 
-        // Jackson cannot deserialize bare "recipes:" (null) into a List — callers must provide a list
         assertThatThrownBy(() -> service.load(file)).isInstanceOf(Exception.class);
     }
 
     @Test
-    @SVCs({"atunko:SVC_CORE_0008"})
-    void load_yamlWithoutVersion_usesDefaults() throws IOException {
+    @SVCs({"atunko:SVC_CORE_0007.1"})
+    void save_withOptions_includesOptionValuesInYaml() throws IOException {
+        RunConfig config = new RunConfig(List.of(
+                new RecipeConfig("org.openrewrite.java.ChangeMethodName", Map.of("newMethodName", "baz")),
+                new RecipeConfig("org.openrewrite.java.RemoveUnusedImports")));
+
         Path file = tempDir.resolve(".atunko.yml");
-        Files.writeString(file, "recipes:\n- org.openrewrite.java.RemoveUnusedImports\n");
+        service.save(config, file);
+
+        String content = Files.readString(file);
+        assertThat(content).contains("newMethodName");
+        assertThat(content).contains("baz");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0007.1", "atunko:SVC_CORE_0008.1"})
+    void roundTrip_withOptions_preservesOptionValues() throws IOException {
+        RecipeConfig withOptions =
+                new RecipeConfig("org.openrewrite.java.ChangeMethodName", Map.of("newMethodName", "baz"));
+        RecipeConfig withoutOptions = new RecipeConfig("org.openrewrite.java.RemoveUnusedImports");
+        RunConfig original = new RunConfig(List.of(withOptions, withoutOptions));
+
+        Path file = tempDir.resolve(".atunko.yml");
+        service.save(original, file);
+        RunConfig loaded = service.load(file);
+
+        assertThat(loaded.recipes()).hasSize(2);
+        assertThat(loaded.recipes().get(0).name()).isEqualTo("org.openrewrite.java.ChangeMethodName");
+        assertThat(loaded.recipes().get(0).options()).containsEntry("newMethodName", "baz");
+        assertThat(loaded.recipes().get(0).hasOptions()).isTrue();
+        assertThat(loaded.recipes().get(1).name()).isEqualTo("org.openrewrite.java.RemoveUnusedImports");
+        assertThat(loaded.recipes().get(1).hasOptions()).isFalse();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0008.1"})
+    void load_yamlWithOptions_parsesOptionValues() throws IOException {
+        Path file = tempDir.resolve(".atunko.yml");
+        Files.writeString(file, """
+            version: 1
+            recipes:
+              - name: org.openrewrite.java.ChangeMethodName
+                options:
+                  oldMethodName: foo
+                  newMethodName: bar
+              - name: org.openrewrite.java.RemoveUnusedImports
+            """);
 
         RunConfig loaded = service.load(file);
 
-        assertThat(loaded).isNotNull();
-        assertThat(loaded.recipes()).containsExactly("org.openrewrite.java.RemoveUnusedImports");
+        assertThat(loaded.recipes()).hasSize(2);
+        assertThat(loaded.recipes().get(0).options()).containsEntry("oldMethodName", "foo");
+        assertThat(loaded.recipes().get(0).options()).containsEntry("newMethodName", "bar");
+        assertThat(loaded.recipes().get(1).options()).isEmpty();
     }
 }

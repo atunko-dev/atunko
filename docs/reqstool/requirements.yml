@@ -381,6 +381,17 @@ requirements:
     categories: [functional-suitability]
     revision: 0.1.0
 
+  - id: CORE_0001.2
+    title: Recipe Option Discovery
+    significance: shall
+    description: >-
+      The engine shall expose recipe option metadata (name, type, description,
+      required, example, valid values) for all discovered recipes
+    references:
+      requirement_ids: ["CORE_0001"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
   - id: CORE_0002
     title: Recipe Search
     significance: shall
@@ -401,6 +412,16 @@ requirements:
     description: >-
       The engine shall parse all OpenRewrite-supported file types (Java, XML, YAML,
       JSON, properties) from project source and resource directories
+    references:
+      requirement_ids: ["CORE_0003"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0003.2
+    title: Recipe Execution with Options
+    significance: shall
+    description: >-
+      The engine shall apply user-configured option values when executing recipes
     references:
       requirement_ids: ["CORE_0003"]
     categories: [functional-suitability]
@@ -436,10 +457,30 @@ requirements:
     categories: [functional-suitability]
     revision: 0.1.0
 
+  - id: CORE_0007.1
+    title: Save Run Config with Options
+    significance: shall
+    description: >-
+      The run configuration file shall include configured option values per recipe
+    references:
+      requirement_ids: ["CORE_0007"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
   - id: CORE_0008
     title: Load Run Configuration
     significance: shall
     description: The tool shall load and execute from a saved configuration file
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0008.1
+    title: Load Run Config with Options
+    significance: shall
+    description: >-
+      The tool shall load and apply option values from a saved configuration file
+    references:
+      requirement_ids: ["CORE_0008"]
     categories: [functional-suitability]
     revision: 0.1.0
 

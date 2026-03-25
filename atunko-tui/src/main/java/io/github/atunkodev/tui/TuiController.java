@@ -1,5 +1,6 @@
 package io.github.atunkodev.tui;
 
+import io.github.atunkodev.core.config.RecipeConfig;
 import io.github.atunkodev.core.config.RunConfig;
 import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ChangeApplier;
@@ -582,7 +583,7 @@ public class TuiController {
     private List<RecipeInfo> resolveRunRecipes() {
         List<RecipeInfo> result = new ArrayList<>();
         for (String name : runOrder) {
-            result.add(findRecipe(name).orElse(new RecipeInfo(name, name, null, Set.of())));
+            result.add(findRecipe(name).orElse(RecipeInfo.of(name, name, null, Set.of())));
         }
         return result;
     }
@@ -784,7 +785,9 @@ public class TuiController {
 
     @Requirements({"atunko:TUI_0001.10"})
     public void saveRunConfig(Path file) throws IOException {
-        RunConfig config = new RunConfig(List.copyOf(selectedRecipes));
+        List<RecipeConfig> configs =
+                selectedRecipes.stream().map(RecipeConfig::new).toList();
+        RunConfig config = new RunConfig(configs);
         runConfigService.save(config, file);
     }
 

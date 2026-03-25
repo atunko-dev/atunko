@@ -97,6 +97,16 @@ cases:
       THEN composite recipes expose their sub-recipe list via recipeList
     revision: "0.1.0"
 
+  - id: SVC_CORE_0001.2
+    requirement_ids: ["CORE_0001.2"]
+    title: Discover recipe option metadata
+    verification: automated-test
+    description: |
+      GIVEN recipes with configurable options on the classpath
+      WHEN the RecipeDiscoveryService discovers recipes
+      THEN option metadata (name, type, description, required) is available on RecipeInfo
+    revision: "0.1.0"
+
   - id: SVC_CORE_0002
     requirement_ids: ["CORE_0002"]
     title: Search recipes by keyword
@@ -125,6 +135,16 @@ cases:
       GIVEN a project with Java, XML, YAML, JSON, and properties files
       WHEN the ProjectSourceParser parses the project
       THEN all file types are parsed into OpenRewrite SourceFile objects
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0003.2
+    requirement_ids: ["CORE_0003.2"]
+    title: Execute recipe with configured option values
+    verification: automated-test
+    description: |
+      GIVEN a recipe with configurable options
+      WHEN the recipe is executed with user-configured option values
+      THEN the option values are applied to the recipe before execution
     revision: "0.1.0"
 
   - id: SVC_CORE_0004
@@ -157,6 +177,16 @@ cases:
       THEN a .atunko.yml file is written with the recipe setup
     revision: "0.1.0"
 
+  - id: SVC_CORE_0007.1
+    requirement_ids: ["CORE_0007.1"]
+    title: Save run configuration with option values
+    verification: automated-test
+    description: |
+      GIVEN the user has selected recipes with configured option values
+      WHEN they invoke config save
+      THEN the .atunko.yml file includes option values per recipe
+    revision: "0.1.0"
+
   - id: SVC_CORE_0008
     requirement_ids: ["CORE_0008"]
     title: Load and execute from saved config
@@ -165,6 +195,16 @@ cases:
       GIVEN a valid .atunko.yml file exists
       WHEN the user runs with --config .atunko.yml
       THEN the saved recipes are executed with the saved options
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0008.1
+    requirement_ids: ["CORE_0008.1"]
+    title: Load run configuration with option values
+    verification: automated-test
+    description: |
+      GIVEN a valid .atunko.yml file with option values per recipe
+      WHEN the configuration is loaded
+      THEN option values are preserved in the RunConfig
     revision: "0.1.0"
 
   - id: SVC_TUI_0001

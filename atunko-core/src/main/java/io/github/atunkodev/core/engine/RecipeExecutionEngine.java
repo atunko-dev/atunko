@@ -3,6 +3,7 @@ package io.github.atunkodev.core.engine;
 import io.github.atunkodev.core.recipe.EnvironmentProvider;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
+import java.util.Map;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.RecipeRun;
@@ -25,7 +26,15 @@ public class RecipeExecutionEngine {
 
     @Requirements({"atunko:CORE_0003"})
     public ExecutionResult execute(String recipeName, List<SourceFile> sources) {
+        return execute(recipeName, Map.of(), sources);
+    }
+
+    @Requirements({"atunko:CORE_0003", "atunko:CORE_0003.2"})
+    public ExecutionResult execute(String recipeName, Map<String, Object> options, List<SourceFile> sources) {
         Recipe recipe = environmentProvider.get().activateRecipes(recipeName);
+        if (options != null && !options.isEmpty()) {
+            recipe = recipe.withOptions(options);
+        }
         RecipeRun run = recipe.run(new InMemoryLargeSourceSet(sources), new InMemoryExecutionContext());
 
         List<FileChange> changes = run.getChangeset().getAllResults().stream()

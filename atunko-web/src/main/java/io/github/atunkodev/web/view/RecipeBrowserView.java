@@ -8,6 +8,7 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -232,6 +233,16 @@ public class RecipeBrowserView extends AppLayout {
         detailPanel.add(new Paragraph(recipe.description()));
         Span tags = new Span("Tags: " + String.join(", ", recipe.tags()));
         detailPanel.add(tags);
+        if (!recipe.options().isEmpty()) {
+            detailPanel.add(new H4("Options"));
+            recipe.options().forEach(opt -> {
+                String required = opt.isRequired() ? " (required)" : "";
+                detailPanel.add(new Span(opt.getName() + " [" + opt.getType() + "]" + required));
+                if (opt.getDescription() != null) {
+                    detailPanel.add(new Span(opt.getDescription()));
+                }
+            });
+        }
         if (recipe.isComposite()) {
             detailPanel.add(new Span("Recipe List:"));
             recipe.recipeList().forEach(child -> detailPanel.add(new Span("• " + child.displayName())));

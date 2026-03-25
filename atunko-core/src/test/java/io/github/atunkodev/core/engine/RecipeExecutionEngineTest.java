@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.SourceFile;
@@ -59,5 +60,32 @@ class RecipeExecutionEngineTest {
         ExecutionResult result = engine.execute("org.openrewrite.java.RemoveUnusedImports", sources);
 
         assertThat(result.changes()).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0003.2"})
+    void execute_withOptions_appliesOptionValues() {
+        List<SourceFile> sources = JavaParser.fromJavaVersion()
+                .build()
+                .parse(new InMemoryExecutionContext(), """
+                    package com.example;
+
+                    public class Foo {
+                        public void oldName() {}
+                    }
+                    """)
+                .toList();
+
+        ExecutionResult result = engine.execute(
+                "org.openrewrite.java.ChangeMethodName",
+                Map.of(
+                        "methodPattern", "com.example.Foo oldName()",
+                        "newMethodName", "newName"),
+                sources);
+
+        assertThat(result.changes()).isNotEmpty();
+        FileChange change = result.changes().getFirst();
+        assertThat(change.after()).contains("newName");
+        assertThat(change.after()).doesNotContain("oldName");
     }
 }
