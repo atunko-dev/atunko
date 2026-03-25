@@ -2,7 +2,6 @@ package io.github.atunkodev.web;
 
 import com.github.mvysny.vaadinboot.VaadinBoot;
 import com.github.mvysny.vaadinboot.common.WebServer;
-import com.vaadin.open.Open;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
@@ -34,11 +33,26 @@ public class WebUiCommand implements Runnable {
                 @Override
                 protected void onStarted(WebServer server) throws IOException {
                     super.onStarted(server);
-                    Open.open("http://localhost:" + port);
+                    openBrowser("http://localhost:" + port);
                 }
             }.withPort(port).run();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to start Web UI", e);
+            throw new RuntimeException("Failed to start Web UI: " + e.getMessage(), e);
+        }
+    }
+
+    private static void openBrowser(String url) {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        try {
+            if (os.contains("mac")) {
+                new ProcessBuilder("open", url).start();
+            } else if (os.contains("win")) {
+                new ProcessBuilder("rundll32", "url.dll,FileProtocolHandler", url).start();
+            } else {
+                new ProcessBuilder("xdg-open", url).start();
+            }
+        } catch (IOException ignored) {
+            // Browser open is best-effort; server is already running
         }
     }
 }

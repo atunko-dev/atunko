@@ -9,6 +9,7 @@ import static dev.tamboui.toolkit.Toolkit.text;
 
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.style.Color;
+import dev.tamboui.style.Overflow;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import io.github.atunkodev.core.recipe.RecipeInfo;
@@ -40,7 +41,8 @@ public final class DetailView {
                 row(text("Display Name: ").bold(), text(RecipeListRenderer.cleanDisplayName(recipe.displayName()))),
                 text(""),
                 text("Description:").bold(),
-                text(recipe.description() != null ? recipe.description() : "(none)"),
+                text(recipe.description() != null ? recipe.description() : "(none)")
+                        .overflow(Overflow.WRAP_WORD),
                 text(""),
                 text("Tags:").bold(),
                 text(recipe.tags().isEmpty() ? "(none)" : String.join(", ", recipe.tags()))
@@ -55,7 +57,7 @@ public final class DetailView {
                         text("  " + opt.getName()).fg(Color.LIGHT_YELLOW),
                         text(" [" + opt.getType() + "]" + required).dim()));
                 if (opt.getDescription() != null) {
-                    detailContent.add(text("    " + opt.getDescription()).dim());
+                    detailContent.add(text("    " + opt.getDescription()).dim().overflow(Overflow.WRAP_WORD));
                 }
             }
         }
@@ -76,9 +78,10 @@ public final class DetailView {
         List<String> parents = controller.includedIn(recipe.name());
         if (!parents.isEmpty()) {
             detailContent.add(text(""));
-            detailContent.add(row(
-                    text("Included in: ").bold().fg(Color.LIGHT_YELLOW),
-                    text(String.join(", ", parents)).fg(Color.LIGHT_YELLOW)));
+            detailContent.add(text("Included in:").bold().fg(Color.LIGHT_YELLOW));
+            for (String parent : parents) {
+                detailContent.add(text("  " + parent).fg(Color.LIGHT_YELLOW).overflow(Overflow.WRAP_WORD));
+            }
         }
 
         Element centerContent;
