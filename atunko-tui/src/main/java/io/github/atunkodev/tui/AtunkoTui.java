@@ -1,6 +1,8 @@
 package io.github.atunkodev.tui;
 
+import dev.tamboui.css.engine.StyleEngine;
 import dev.tamboui.toolkit.app.ToolkitApp;
+import dev.tamboui.toolkit.app.ToolkitRunner;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.tui.TuiConfig;
 import dev.tamboui.tui.error.ErrorAction;
@@ -22,14 +24,16 @@ public class AtunkoTui extends ToolkitApp {
 
     private final TuiController controller;
     private final Path logFile;
+    private final ThemeConfig themeConfig;
 
     public AtunkoTui(TuiController controller) {
-        this(controller, null);
+        this(controller, null, ThemeConfig.DEFAULT);
     }
 
-    public AtunkoTui(TuiController controller, Path logFile) {
+    public AtunkoTui(TuiController controller, Path logFile, ThemeConfig themeConfig) {
         this.controller = controller;
         this.logFile = logFile;
+        this.themeConfig = themeConfig;
         if (logFile != null) {
             configureLogging(logFile);
         }
@@ -59,8 +63,34 @@ public class AtunkoTui extends ToolkitApp {
         return TuiConfig.defaults();
     }
 
+    @Override
+    public void run() throws Exception {
+        StyleEngine styleEngine = createStyleEngine();
+        try (ToolkitRunner r = ToolkitRunner.builder()
+                .config(configure())
+                .styleEngine(styleEngine)
+                .build()) {
+            onStart();
+            r.run(this::render);
+        } finally {
+            onStop();
+        }
+    }
+
     public void requestQuit() {
         quit();
+    }
+
+    private StyleEngine createStyleEngine() throws IOException {
+        StyleEngine engine = StyleEngine.create();
+        if (themeConfig.isUserCss()) {
+            engine.loadStylesheet(themeConfig.cssFile());
+        } else {
+            engine.loadStylesheet("dark", "/themes/dark.tcss");
+            engine.loadStylesheet("light", "/themes/light.tcss");
+            engine.setActiveStylesheet(themeConfig.themeName());
+        }
+        return engine;
     }
 
     private static void configureLogging(Path logFile) {

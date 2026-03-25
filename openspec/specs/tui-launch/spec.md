@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+Provide an interactive terminal user interface (TUI) for browsing, searching, selecting, and executing OpenRewrite recipes via the `atunko tui` CLI subcommand.
+
+## Requirements
 
 ### Requirement: TUI_0001
 The system SHALL implement TUI_0001.

@@ -6,7 +6,6 @@ import static dev.tamboui.toolkit.Toolkit.row;
 import static dev.tamboui.toolkit.Toolkit.text;
 
 import dev.tamboui.layout.Constraint;
-import dev.tamboui.style.Color;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.elements.Column;
 import java.util.List;
@@ -62,16 +61,13 @@ public final class HelpOverlay {
     public static Element render(List<Section> sections) {
         Column cols = column();
         for (Section section : sections) {
-            cols.add(text(" " + section.title()).bold().fg(Color.LIGHT_CYAN));
+            cols.add(text(" " + section.title()).addClass("help-title"));
             for (Entry entry : section.entries()) {
-                cols.add(row(text("  " + padRight(entry.key(), 8)).fg(Color.LIGHT_YELLOW), text(entry.description())));
+                cols.add(row(text("  " + padRight(entry.key(), 8)).addClass("help-key"), text(entry.description())));
             }
             cols.add(text(""));
         }
-        return panel("Help — press any key to close", cols)
-                .rounded()
-                .borderColor(Color.LIGHT_CYAN)
-                .constraint(Constraint.percentage(60));
+        return panel("Help — press any key to close", cols).addClass("panel").constraint(Constraint.percentage(60));
     }
 
     private static String padRight(String s, int width) {

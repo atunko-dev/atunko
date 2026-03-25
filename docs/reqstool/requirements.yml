@@ -261,6 +261,18 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: TUI_0001.18
+    title: TUI — CSS Theming
+    significance: shall
+    description: >-
+      The TUI shall support CSS-based theming via TamboUI TCSS stylesheets,
+      shipping bundled dark and light themes, with user-provided CSS file support
+      and theme selection via --theme CLI flag
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   # CLI requirements — list/search/run
   - id: CLI_0002
     title: CLI Recipe Listing

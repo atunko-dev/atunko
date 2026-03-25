@@ -7,7 +7,6 @@ import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
 
 import dev.tamboui.layout.Constraint;
-import dev.tamboui.style.Color;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import io.github.atunkodev.tui.TuiController;
@@ -33,13 +32,13 @@ public final class ConfirmRunView {
             centerContent = row(spacer(), HelpOverlay.render(HelpOverlay.RUN_DIALOG_HELP), spacer());
         } else if (hasRecipes) {
             centerContent = column(
-                    row(text("Project: ").bold(), text(projectPath)),
+                    row(text("Project: ").addClass("detail-label"), text(projectPath)),
                     text(""),
                     renderRecipeList(controller, displayRows, selected));
         } else {
             centerContent = column(
                     text(""),
-                    text(" No recipes selected.").bold().fg(Color.LIGHT_YELLOW),
+                    text(" No recipes selected.").addClass("warning"),
                     text(" Use Space to select recipes, then press r to run."));
         }
 
@@ -51,16 +50,13 @@ public final class ConfirmRunView {
 
         return column(dock().top(
                                 row(
-                                        text(" Run Recipes ")
-                                                .bold()
-                                                .fg(Color.WHITE)
-                                                .bg(Color.BLUE),
+                                        text(" Run Recipes ").addClass("screen-title"),
                                         spacer(),
                                         text(selectedCount + "/" + totalCount + " selected ")
-                                                .fg(Color.LIGHT_GREEN)),
+                                                .addClass("coverage-indicator")),
                                 Constraint.length(1))
                         .center(centerContent)
-                        .bottom(text(" " + footer).fg(Color.WHITE).bg(Color.indexed(236)), Constraint.length(1))
+                        .bottom(text(" " + footer).addClass("status-bar"), Constraint.length(1))
                         .constraint(Constraint.fill()))
                 .id("confirm-run")
                 .focusable()

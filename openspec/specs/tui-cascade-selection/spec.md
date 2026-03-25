@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+Support cascade-both-ways checkbox selection for composite recipes in the TUI, propagating selection state between parent and child recipes.
+
+## Requirements
 
 ### Requirement: TUI_0001.17
 The system SHALL implement TUI_0001.17.
