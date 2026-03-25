@@ -8,9 +8,9 @@ junit = "5.11.4"
 assertj = "3.27.3"
 slf4j = "2.0.17"
 errorprone = "2.48.0"
-vaadin = "24.7.4"
-vaadin-boot = "13.3"
-karibu-testing = "2.2.4"
+vaadin = "25.1.0"
+vaadin-boot = "13.6"
+karibu-testing = "2.7.0"
 
 [libraries]
 # OpenRewrite BOM

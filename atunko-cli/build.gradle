@@ -12,6 +12,7 @@ shadowJar {
     archiveClassifier.set('')
     mergeServiceFiles()
     zip64 = true // Vaadin + OpenRewrite exceed the 65535-entry ZIP limit
+    dependsOn ':atunko-web:vaadinBuildFrontend'
 }
 
 tasks.named('test') {
@@ -26,4 +27,7 @@ dependencies {
     // Picocli
     implementation libs.picocli
     annotationProcessor libs.picocli.codegen
+
+    // SLF4J → JUL bridge so Vaadin/Jetty logs go to java.util.logging
+    runtimeOnly 'org.slf4j:slf4j-jdk14:2.0.17'
 }

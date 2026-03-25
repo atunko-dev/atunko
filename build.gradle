@@ -4,7 +4,7 @@ plugins {
     id 'com.palantir.java-format-spotless' version '2.89.0' apply false
     id 'net.ltgt.errorprone' version '5.0.0' apply false
     id 'io.github.reqstool.gradle-plugin' version '0.1.0' apply false
-    // id 'com.vaadin' version '24.7.4' apply false  // incompatible with Gradle 9.x
+    id 'com.vaadin' version '25.1.0' apply false
     id 'pl.allegro.tech.build.axion-release' version '1.18.2'
 }
 
