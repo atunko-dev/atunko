@@ -1,0 +1,138 @@
+/* atunko dark theme — default */
+
+/* Palette variables */
+$bg-primary: indexed(236);
+$fg-primary: white;
+$fg-accent: light-cyan;
+$fg-success: light-green;
+$fg-warning: light-yellow;
+$fg-partial: yellow;
+$bg-title: blue;
+$bg-highlight: blue;
+$bg-title-search: light-yellow;
+$bg-title-success: light-green;
+$bg-title-dryrun: light-yellow;
+
+/* Root */
+.app {
+    background: $bg-primary;
+    color: $fg-primary;
+}
+
+/* Screen title bar */
+.screen-title {
+    color: white;
+    background: $bg-title;
+    text-style: bold;
+}
+
+.screen-title.search-mode {
+    color: black;
+    background: $bg-title-search;
+}
+
+.screen-title.success-mode {
+    color: white;
+    background: $bg-title-success;
+}
+
+.screen-title.dryrun-mode {
+    color: black;
+    background: $bg-title-dryrun;
+}
+
+/* Status bar / footer */
+.status-bar {
+    color: white;
+    background: $bg-primary;
+}
+
+/* Panel borders */
+.panel {
+    border-type: rounded;
+    border-color: $fg-accent;
+}
+
+/* List highlight (selected/focused row) */
+.list-item:selected {
+    color: white;
+    background: $bg-highlight;
+    text-style: bold;
+}
+
+/* Recipe list selected prefix [x] */
+.selected {
+    color: $fg-success;
+}
+
+/* Recipe list partial prefix [~] */
+.partial {
+    color: $fg-partial;
+}
+
+/* Recipe list unselected / dim */
+.unselected {
+    text-style: dim;
+}
+
+/* Section headers */
+.section-header {
+    text-style: bold;
+}
+
+/* Recipe name */
+.recipe-name {
+    color: $fg-accent;
+}
+
+/* Recipe description */
+.recipe-description {
+    color: $fg-primary;
+}
+
+/* Tags */
+.tag {
+    text-style: dim;
+}
+
+/* Coverage / summary count */
+.coverage-indicator {
+    color: $fg-success;
+    text-style: bold;
+}
+
+/* Help overlay */
+.help-title {
+    color: $fg-accent;
+    text-style: bold;
+}
+
+.help-key {
+    color: $fg-warning;
+}
+
+/* Warning / empty state */
+.warning {
+    color: $fg-warning;
+    text-style: bold;
+}
+
+/* Tag indicator (browser) */
+.tag-indicator {
+    color: black;
+    background: $fg-accent;
+}
+
+/* Detail view labels */
+.detail-label {
+    text-style: bold;
+}
+
+.detail-value {
+    color: $fg-accent;
+}
+
+/* Included-in / coverage info */
+.included-in {
+    color: $fg-warning;
+}
