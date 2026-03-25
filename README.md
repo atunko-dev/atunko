@@ -30,18 +30,23 @@ cd atunko
 ./gradlew :atunko-cli:shadowJar
 ```
 
-The fat JAR is produced at `atunko-cli/build/libs/atunko.jar`.
+The fat JAR is produced at `atunko-cli/build/libs/atunko.jar`. Copy or symlink it
+somewhere convenient:
+
+```bash
+cp atunko-cli/build/libs/atunko.jar .
+```
 
 ## Usage
 
 ### Interactive TUI
 
 ```bash
-# Launch the interactive recipe browser (default command)
-java -jar atunko-cli/build/libs/atunko.jar tui
+# Launch the interactive recipe browser
+java -jar atunko.jar tui
 
 # Launch with debug logging to a file
-java -jar atunko-cli/build/libs/atunko.jar tui --log-file tui.log
+java -jar atunko.jar tui --log-file tui.log
 ```
 
 Options: `--log-file <path>` — write TUI debug output to a file (useful for troubleshooting).
@@ -88,10 +93,10 @@ to run sub-recipes individually.
 
 ```bash
 # List all available recipes
-java -jar atunko-cli/build/libs/atunko.jar list
+java -jar atunko.jar list
 
 # List with sorting and output format
-java -jar atunko-cli/build/libs/atunko.jar list --sort tags --format table
+java -jar atunko.jar list --sort tags --format table
 ```
 
 Options: `--sort <name|tags>`, `--format <text|table>`.
@@ -100,11 +105,11 @@ Options: `--sort <name|tags>`, `--format <text|table>`.
 
 ```bash
 # Search for recipes by keyword
-java -jar atunko-cli/build/libs/atunko.jar search "spring boot"
-java -jar atunko-cli/build/libs/atunko.jar search "unused imports"
+java -jar atunko.jar search "spring boot"
+java -jar atunko.jar search "unused imports"
 
 # Search in specific fields
-java -jar atunko-cli/build/libs/atunko.jar search "spring" --field name --format table
+java -jar atunko.jar search "spring" --field name --format table
 ```
 
 Options: `--field <name|description|tags|all>`, `--sort <name|tags>`, `--format <text|table>`.
@@ -113,7 +118,7 @@ Options: `--field <name|description|tags|all>`, `--sort <name|tags>`, `--format 
 
 ```bash
 # Run a recipe against a project
-java -jar atunko-cli/build/libs/atunko.jar run -r org.openrewrite.java.RemoveUnusedImports --project-dir /path/to/project
+java -jar atunko.jar run -r org.openrewrite.java.RemoveUnusedImports --project-dir /path/to/project
 ```
 
 Options:
@@ -122,17 +127,6 @@ Options:
 - `--project-dir` — Path to the project directory (required). Uses the Gradle Tooling
   API to resolve source dirs, resource dirs, test dirs, and compile classpath for each
   module. Supports `build.gradle`, `build.gradle.kts`, and multi-module projects.
-
-### Development shortcut
-
-During development you can run commands directly via Gradle:
-
-```bash
-./gradlew :atunko-cli:run                           # Launch TUI (default)
-./gradlew :atunko-cli:run --args="list"             # List all recipes
-./gradlew :atunko-cli:run --args="search 'spring'"  # Search recipes
-./gradlew :atunko-cli:run --args="run -r org.openrewrite.java.RemoveUnusedImports --project-dir ."
-```
 
 ## Architecture
 
