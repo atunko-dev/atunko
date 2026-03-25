@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+Provide a browser-based web UI for browsing, searching, and managing OpenRewrite recipes via the `atunko web` CLI subcommand.
+
+## Requirements
 
 ### Requirement: WEB_0001
 The system SHALL implement WEB_0001.

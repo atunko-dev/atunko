@@ -397,6 +397,56 @@ cases:
       THEN the composite is tracked in the partial (indeterminate) set and rendered with an indeterminate indicator
     revision: "0.1.0"
 
+  - id: SVC_TUI_0001.18
+    requirement_ids: ["TUI_0001.18"]
+    title: Default theme is dark
+    verification: automated-test
+    description: |
+      GIVEN the TUI is launched without specifying a theme
+      WHEN no --theme flag or --css-file flag is provided
+      THEN the dark theme stylesheet is loaded from bundled resources
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.18.1
+    requirement_ids: ["TUI_0001.18"]
+    title: Light theme via --theme flag
+    verification: automated-test
+    description: |
+      GIVEN the TUI is launched with --theme light
+      WHEN the StyleEngine is initialized
+      THEN the light theme stylesheet is loaded from bundled resources
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.18.2
+    requirement_ids: ["TUI_0001.18"]
+    title: User CSS file via --css-file flag
+    verification: automated-test
+    description: |
+      GIVEN the TUI is launched with --css-file pointing to a valid TCSS file
+      WHEN the StyleEngine is initialized
+      THEN the user-provided CSS file is loaded and replaces the bundled theme
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.18.3
+    requirement_ids: ["TUI_0001.18"]
+    title: XDG config CSS auto-loaded
+    verification: automated-test
+    description: |
+      GIVEN ~/.config/atunko/theme.tcss exists and no --css-file flag is specified
+      WHEN the TUI is launched
+      THEN the XDG config CSS file is loaded and replaces the bundled theme
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.18.4
+    requirement_ids: ["TUI_0001.18"]
+    title: Theme flag selects bundled theme
+    verification: automated-test
+    description: |
+      GIVEN the TUI is launched with --theme dark or --theme light
+      WHEN the StyleEngine is initialized
+      THEN the corresponding bundled theme stylesheet is loaded
+    revision: "0.1.0"
+
   - id: SVC_CLI_0002
     requirement_ids: ["CLI_0002"]
     title: List recipes via CLI

@@ -11,7 +11,6 @@ import static dev.tamboui.toolkit.Toolkit.text;
 import static dev.tamboui.toolkit.Toolkit.textInput;
 
 import dev.tamboui.layout.Constraint;
-import dev.tamboui.style.Color;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.widgets.input.TextInputState;
@@ -46,6 +45,7 @@ public final class BrowserView {
                         .bottom(renderStatusBar(controller, displayRows), Constraint.length(1))
                         .constraint(Constraint.fill()))
                 .id("browser")
+                .addClass("app")
                 .focusable()
                 .onKeyEvent(event -> handleKeyEvent(controller, app, event));
     }
@@ -152,13 +152,12 @@ public final class BrowserView {
             SEARCH_STATE.setText(controller.searchQuery());
         }
         var headerLabel = controller.isSearchMode()
-                ? text(" SEARCH ").bold().fg(Color.BLACK).bg(Color.LIGHT_YELLOW)
-                : text(" atunko ").bold().fg(Color.WHITE).bg(Color.BLUE);
+                ? text(" SEARCH ").addClass("screen-title", "search-mode")
+                : text(" atunko ").addClass("screen-title");
         var tagIndicator = controller.selectedTags().isEmpty()
                 ? spacer()
                 : text(" tags:" + String.join(",", controller.selectedTags()) + " ")
-                        .fg(Color.BLACK)
-                        .bg(Color.LIGHT_CYAN);
+                        .addClass("tag-indicator");
         return row(
                 headerLabel,
                 text(" "),
@@ -195,36 +194,31 @@ public final class BrowserView {
                 .map(recipe -> {
                     var content = column(
                             text(RecipeListRenderer.cleanDisplayName(recipe.displayName()))
-                                    .bold()
-                                    .fg(Color.LIGHT_CYAN),
+                                    .addClass("recipe-name"),
                             text(""),
-                            text(recipe.name()).dim(),
+                            text(recipe.name()).addClass("unselected"),
                             text(""),
                             text(recipe.description() != null ? recipe.description() : ""),
                             text(""),
                             row(
-                                    text("Tags: ").bold(),
+                                    text("Tags: ").addClass("detail-label"),
                                     text(recipe.tags().isEmpty() ? "none" : String.join(", ", recipe.tags()))
-                                            .fg(Color.LIGHT_CYAN)),
+                                            .addClass("detail-value")),
                             recipe.isComposite()
                                     ? text("Composite: " + recipe.recipeList().size() + " sub-recipes")
-                                            .fg(Color.LIGHT_CYAN)
+                                            .addClass("detail-value")
                                     : text(""));
                     java.util.List<String> parents = controller.includedIn(recipe.name());
                     if (!parents.isEmpty()) {
                         content.add(text(""));
                         content.add(row(
-                                text("Included in: ").bold().fg(Color.LIGHT_YELLOW),
-                                text(String.join(", ", parents)).fg(Color.LIGHT_YELLOW)));
+                                text("Included in: ").addClass("detail-label", "included-in"),
+                                text(String.join(", ", parents)).addClass("included-in")));
                     }
-                    return (Element) panel("Detail", content)
-                            .rounded()
-                            .borderColor(Color.LIGHT_CYAN)
-                            .constraint(Constraint.fill(1));
+                    return (Element) panel("Detail", content).addClass("panel").constraint(Constraint.fill(1));
                 })
                 .orElse(panel("Detail", text("No recipe selected"))
-                        .rounded()
-                        .borderColor(Color.LIGHT_CYAN)
+                        .addClass("panel")
                         .constraint(Constraint.fill(1)));
     }
 
@@ -232,6 +226,6 @@ public final class BrowserView {
         int selected = controller.selectedRecipes().size();
         long parentCount = displayRows.stream().filter(r -> !r.isSubRecipe()).count();
         String status = parentCount + " recipes | " + selected + " selected | ?:help q:quit";
-        return text(" " + status).fg(Color.WHITE).bg(Color.indexed(236));
+        return text(" " + status).addClass("status-bar");
     }
 }

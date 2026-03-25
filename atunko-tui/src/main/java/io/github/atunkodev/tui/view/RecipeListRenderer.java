@@ -6,8 +6,6 @@ import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
 
 import dev.tamboui.layout.Constraint;
-import dev.tamboui.style.Color;
-import dev.tamboui.style.Style;
 import dev.tamboui.toolkit.element.Element;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
@@ -35,8 +33,7 @@ public final class RecipeListRenderer {
             String title,
             RenderOptions options,
             Constraint constraint) {
-        var recipeList =
-                list().highlightStyle(Style.EMPTY.fg(Color.WHITE).bg(Color.BLUE).bold());
+        var recipeList = list().addClass("list-item");
 
         int parentIndex = 0;
         for (DisplayRow displayRow : displayRows) {
@@ -64,7 +61,7 @@ public final class RecipeListRenderer {
             var nameEl = resolveNameStyle(displayName, selected, partial, covered, options);
 
             if (options.showTags() && !r.tags().isEmpty() && !displayRow.isSubRecipe()) {
-                var tags = text("  " + String.join(", ", r.tags())).dim();
+                var tags = text("  " + String.join(", ", r.tags())).addClass("tag");
                 recipeList.add(row(prefixEl, nameEl, spacer(), tags));
             } else {
                 recipeList.add(row(prefixEl, nameEl));
@@ -74,8 +71,7 @@ public final class RecipeListRenderer {
         var result = recipeList
                 .selected(highlightedIndex)
                 .title(title)
-                .rounded()
-                .borderColor(Color.LIGHT_CYAN)
+                .addClass("panel")
                 .autoScroll();
 
         if (constraint != null) {
@@ -96,21 +92,21 @@ public final class RecipeListRenderer {
 
     private static Element resolvePrefixStyle(String prefix, boolean selected, boolean partial, boolean covered) {
         if (selected || covered) {
-            return text(prefix).fg(Color.LIGHT_GREEN);
+            return text(prefix).addClass("selected");
         }
         if (partial) {
-            return text(prefix).fg(Color.YELLOW);
+            return text(prefix).addClass("partial");
         }
-        return text(prefix).dim();
+        return text(prefix).addClass("unselected");
     }
 
     private static Element resolveNameStyle(
             String displayName, boolean selected, boolean partial, boolean covered, RenderOptions options) {
         if (options.dimUnselected() && !selected && !covered) {
-            return text(displayName).dim();
+            return text(displayName).addClass("unselected");
         }
         if (!selected && !covered && !partial) {
-            return text(displayName).dim();
+            return text(displayName).addClass("unselected");
         }
         return text(displayName);
     }
