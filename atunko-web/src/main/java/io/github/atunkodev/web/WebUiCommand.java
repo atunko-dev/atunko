@@ -23,7 +23,7 @@ public class WebUiCommand implements Runnable {
     }
 
     @Override
-    @Requirements({"atunko:WEB_0001"})
+    @Requirements({"atunko:WEB_0001", "atunko:WEB_0001.3"})
     public void run() {
         RecipeHolder.init(discoveryService.discoverAll());
         try {
