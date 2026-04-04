@@ -2,6 +2,7 @@ package io.github.atunkodev.web.view;
 
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import io.github.atunkodev.core.recipe.RecipeInfo;
+import io.github.reqstool.annotations.Requirements;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import java.util.Set;
  * <p>Public API uses {@link RecipeInfo} — the handler maps to all {@link TreeNode} instances
  * wrapping that recipe so that duplicates at different tree positions stay in sync.
  */
+@Requirements({"atunko:WEB_0001.5"})
 public class CascadeSelectionHandler {
 
     private final TreeGrid<TreeNode> grid;

@@ -20,6 +20,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.web.RecipeHolder;
+import io.github.reqstool.annotations.Requirements;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +31,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 @Route("")
+@Requirements({"atunko:WEB_0001.1"})
 public class RecipeBrowserView extends AppLayout {
 
     private final TreeGrid<TreeNode> treeGrid = new TreeGrid<>();
@@ -93,6 +95,7 @@ public class RecipeBrowserView extends AppLayout {
         return split;
     }
 
+    @Requirements({"atunko:WEB_0001.1", "atunko:WEB_0001.4"})
     private void buildTreeGrid() {
         treeGrid.setSizeFull();
         treeGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
@@ -215,16 +218,19 @@ public class RecipeBrowserView extends AppLayout {
         return RecipeFilter.filter(allRecipes, currentTextQuery, currentTagFilter);
     }
 
+    @Requirements({"atunko:WEB_0001.2"})
     public void applyTextFilter(String query) {
         currentTextQuery = query;
         applyFilters();
     }
 
+    @Requirements({"atunko:WEB_0001.2"})
     public void applyTagFilter(Set<String> tags) {
         currentTagFilter = tags;
         applyFilters();
     }
 
+    @Requirements({"atunko:WEB_0001.6"})
     public void selectForDetail(RecipeInfo recipe) {
         detailRecipe = recipe;
         detailPanel.removeAll();
