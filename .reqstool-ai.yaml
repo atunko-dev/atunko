@@ -5,10 +5,18 @@ system:
   path: docs/reqstool
 modules:
   core:
-    path: core/docs/reqstool
+    path: atunko-core/docs/reqstool
     req_prefix: CORE_
     svc_prefix: SVC_CORE_
-  app:
-    path: app/docs/reqstool
+  cli:
+    path: atunko-cli/docs/reqstool
     req_prefix: CLI_
     svc_prefix: SVC_CLI_
+  tui:
+    path: atunko-tui/docs/reqstool
+    req_prefix: TUI_
+    svc_prefix: SVC_TUI_
+  web:
+    path: atunko-web/docs/reqstool
+    req_prefix: WEB_
+    svc_prefix: SVC_WEB_

@@ -38,28 +38,6 @@ atunko/
 ./gradlew checkstyleTest           # Run Checkstyle on test source
 ```
 
-## Development Approach
-
-- **reqstool** is the SSOT for requirements and verification cases
-  - Requirements: `docs/reqstool/requirements.yml`
-  - SVCs: `docs/reqstool/software_verification_cases.yml`
-- **OpenSpec** links to reqstool — no duplicated requirements or scenarios
-  - Spec conventions: `.claude/reqstool-openspec-conventions.md`
-- Tests use `@SVCs` annotations from reqstool to link test methods to verification cases
-
-## Implementation Order
-
-Always follow this order when implementing features or changes:
-
-1. **reqstool** — Add/update requirements and SVCs in `docs/reqstool/`, update subproject filters
-2. **OpenSpec** — Add/update specs and changes in `openspec/` (if applicable)
-3. **Tests** — Write tests first (TDD), annotated with `@SVCs`
-4. **Implementation** — Write code to make the tests pass
-5. **Documentation** — Update README, Antora docs, etc.
-6. **Build verification** — `./gradlew spotlessApply && ./gradlew build`
-
-Never skip ahead to implementation before completing the earlier steps.
-
 ## Code Quality
 
 Three layers of automated quality checks run on every build:
@@ -103,4 +81,5 @@ Three layers of automated quality checks run on every build:
 
 ## reqstool
 
-When working with reqstool, **always read `.claude/reqstool-conventions.md` first**.
+Requirements and SVCs are tracked via the official reqstool-ai plugin (config: `.reqstool-ai.yaml`).
+Use `/reqstool:add-req`, `/reqstool:add-svc`, `/reqstool:status` for traceability work.
