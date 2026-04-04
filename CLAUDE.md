@@ -81,4 +81,5 @@ Three layers of automated quality checks run on every build:
 
 ## reqstool
 
-When working with reqstool, **always read `.claude/reqstool-conventions.md` first**.
+Requirements and SVCs are tracked via the official reqstool-ai plugin (config: `.reqstool-ai.yaml`).
+Use `/reqstool:add-req`, `/reqstool:add-svc`, `/reqstool:status` for traceability work.
