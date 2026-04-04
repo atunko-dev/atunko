@@ -77,6 +77,37 @@ cases:
       recipe list (if composite), and options
     revision: "0.1.0"
 
+  - id: SVC_WEB_0001.7
+    requirement_ids: ["WEB_0001.1"]
+    title: Status bar displays current recipe count
+    verification: automated-test
+    description: |
+      GIVEN the Web UI is loaded with recipes
+      WHEN a filter is applied or the view is first loaded
+      THEN the status bar shows "Showing N recipes" reflecting the current visible count
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.8
+    requirement_ids: ["WEB_0001.6"]
+    title: Detail panel displays full recipe information
+    verification: automated-test
+    description: |
+      GIVEN the Web UI is loaded with recipes
+      WHEN a recipe is selected
+      THEN the detail panel shows the recipe name, description, tags, and child list (if composite)
+      AND when no recipe is selected, the panel shows a placeholder message
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.9
+    requirement_ids: ["WEB_0001.5"]
+    title: Cascade selection handles edge cases correctly
+    verification: automated-test
+    description: |
+      GIVEN a deep or complex recipe hierarchy (3+ levels, shared recipes appearing under multiple parents)
+      WHEN a parent recipe is selected
+      THEN cascade propagates to all descendants without duplication or infinite recursion
+    revision: "0.1.0"
+
   - id: SVC_CORE_0001
     requirement_ids: ["CORE_0001"]
     title: Discover all recipes from classpath
