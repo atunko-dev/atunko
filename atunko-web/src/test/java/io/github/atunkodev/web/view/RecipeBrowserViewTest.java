@@ -11,6 +11,7 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.web.RecipeHolder;
 import io.github.reqstool.annotations.SVCs;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
@@ -49,7 +50,7 @@ class RecipeBrowserViewTest {
     private static final Routes ROUTES = new Routes().autoDiscoverViews("io.github.atunkodev.web");
 
     private RecipeBrowserView setupView(List<RecipeInfo> recipes) {
-        RecipeHolder.init(recipes);
+        RecipeHolder.init(recipes, Path.of("."));
         MockVaadin.setup(ROUTES);
         return _get(RecipeBrowserView.class);
     }

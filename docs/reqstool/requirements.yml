@@ -88,6 +88,17 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: WEB_0001.7
+    title: Web UI — Project Directory Option
+    significance: shall
+    description: >-
+      The Web UI subcommand shall accept a --project-dir option specifying the target project
+      directory for recipe execution, defaulting to the current working directory
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   # TUI requirements
   - id: TUI_0001
     title: TUI Launch
