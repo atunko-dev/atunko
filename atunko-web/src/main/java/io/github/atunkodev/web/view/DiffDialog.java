@@ -5,12 +5,14 @@ import com.github.difflib.UnifiedDiffUtils;
 import com.github.difflib.patch.Patch;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -59,7 +61,9 @@ public class DiffDialog extends Dialog {
             selectChange(changes.get(0));
         }
 
-        getFooter().add(new Button("Close", e -> close()));
+        Button closeButton = new Button("Close", VaadinIcon.CLOSE.create(), e -> close());
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        getFooter().add(closeButton);
     }
 
     // --- Layout ---

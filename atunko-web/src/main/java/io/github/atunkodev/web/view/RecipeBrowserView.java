@@ -3,6 +3,7 @@ package io.github.atunkodev.web.view;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -11,8 +12,11 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
@@ -48,8 +52,9 @@ public class RecipeBrowserView extends AppLayout {
     private final VerticalLayout detailPanel = new VerticalLayout();
     private final MultiSelectComboBox<String> tagFilter = new MultiSelectComboBox<>();
     private final TextField searchField = new TextField();
-    private final Button dryRunButton = new Button("Dry Run");
-    private final Button executeButton = new Button("Execute");
+    private final Button dryRunButton = new Button("Dry Run", VaadinIcon.EYE.create());
+    private final Button executeButton = new Button("Execute", VaadinIcon.PLAY.create());
+    private final ProgressBar progressBar = new ProgressBar();
 
     private List<RecipeInfo> allRecipes;
     private String currentTextQuery = "";
@@ -108,10 +113,17 @@ public class RecipeBrowserView extends AppLayout {
 
     @Requirements({"atunko:WEB_0001.9"})
     private Component buildStatusBar() {
+        dryRunButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
         dryRunButton.addClickListener(e -> runRecipes(true));
+
+        executeButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
         executeButton.addClickListener(e -> runRecipes(false));
 
-        HorizontalLayout bar = new HorizontalLayout(statusBar, dryRunButton, executeButton);
+        progressBar.setIndeterminate(true);
+        progressBar.setVisible(false);
+        progressBar.setWidth("200px");
+
+        HorizontalLayout bar = new HorizontalLayout(statusBar, progressBar, dryRunButton, executeButton);
         bar.setWidthFull();
         bar.setAlignItems(HorizontalLayout.Alignment.CENTER);
         return bar;
@@ -239,30 +251,41 @@ public class RecipeBrowserView extends AppLayout {
         }
         Set<RecipeInfo> selected = cascadeHandler.getSelectedItems();
         if (selected.isEmpty()) {
+            Notification.show("No recipes selected", 3000, Notification.Position.MIDDLE);
             return;
         }
 
-        ProjectInfo projectInfo = SessionHolder.getProjectInfo();
-        Path projectDir = SessionHolder.getProjectDir();
-        List<SourceFile> sources;
-        if (projectInfo != null) {
-            sources = AppServices.getSourceParser().parse(projectInfo);
-        } else {
-            sources = AppServices.getSourceParser().parse(new ProjectInfo(List.of(), List.of(projectDir)));
-        }
+        dryRunButton.setEnabled(false);
+        executeButton.setEnabled(false);
+        progressBar.setVisible(true);
 
-        List<FileChange> allChanges = new ArrayList<>();
-        for (RecipeInfo recipe : selected) {
-            ExecutionResult result = AppServices.getEngine().execute(recipe.name(), sources);
-            allChanges.addAll(result.changes());
-        }
-        ExecutionResult combined = new ExecutionResult(allChanges);
+        try {
+            ProjectInfo projectInfo = SessionHolder.getProjectInfo();
+            Path projectDir = SessionHolder.getProjectDir();
+            List<SourceFile> sources;
+            if (projectInfo != null) {
+                sources = AppServices.getSourceParser().parse(projectInfo);
+            } else {
+                sources = AppServices.getSourceParser().parse(new ProjectInfo(List.of(), List.of(projectDir)));
+            }
 
-        if (!dryRun && AppServices.getChangeApplier() != null) {
-            AppServices.getChangeApplier().apply(projectDir, combined.changes());
-        }
+            List<FileChange> allChanges = new ArrayList<>();
+            for (RecipeInfo recipe : selected) {
+                ExecutionResult result = AppServices.getEngine().execute(recipe.name(), sources);
+                allChanges.addAll(result.changes());
+            }
+            ExecutionResult combined = new ExecutionResult(allChanges);
 
-        new DiffDialog(combined, dryRun).open();
+            if (!dryRun && AppServices.getChangeApplier() != null) {
+                AppServices.getChangeApplier().apply(projectDir, combined.changes());
+            }
+
+            new DiffDialog(combined, dryRun).open();
+        } finally {
+            progressBar.setVisible(false);
+            dryRunButton.setEnabled(true);
+            executeButton.setEnabled(true);
+        }
     }
 
     // --- Testability hooks ---
