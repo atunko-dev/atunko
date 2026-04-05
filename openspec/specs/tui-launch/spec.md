@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+Provide an interactive TUI via CLI subcommand with recipe browsing, hierarchical tree display, search, tag filtering, cascade multi-select, detail panel, sorting, bulk select, coverage indicators, and recipe execution.
+
+## Requirements
 
 ### Requirement: TUI_0001
 The system SHALL implement TUI_0001.

@@ -1,6 +1,6 @@
 ## Purpose
 
-Execute recipes via `atunko run` CLI subcommand.
+Execute OpenRewrite recipes against a target project via the `atunko run` CLI subcommand, applying transformations to source files on disk.
 
 ## Requirements
 

@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+Cascade-both-ways checkbox multi-select for the TUI recipe tree, where selecting a parent selects all children and selecting all children selects the parent, with indeterminate state for partial selection.
+
+## Requirements
 
 ### Requirement: TUI_0001.17
 The system SHALL implement TUI_0001.17.
