@@ -15,6 +15,9 @@ The system SHALL pass SVC_CORE_0004.2.
 #### Scenario: SVC_CORE_0004.3
 The system SHALL pass SVC_CORE_0004.3.
 
+#### Scenario: SVC_CORE_0004.4
+The system SHALL pass SVC_CORE_0004.4.
+
 ### Requirement: CORE_GRADLE_0001
 The system SHALL implement CORE_GRADLE_0001.
 

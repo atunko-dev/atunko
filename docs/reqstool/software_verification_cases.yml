@@ -239,6 +239,16 @@ cases:
       THEN compile classpath JAR paths and source directories are returned
     revision: "0.1.0"
 
+  - id: SVC_CORE_0004.4
+    requirement_ids: ["CORE_0004"]
+    title: SessionHolder stores and returns projectDir and ProjectInfo
+    verification: automated-test
+    description: |
+      GIVEN SessionHolder.init() has been called with a project directory and ProjectInfo
+      WHEN getProjectDir() and getProjectInfo() are called
+      THEN the stored values are returned; before init(), projectDir defaults to "." and projectInfo is null
+    revision: "0.1.0"
+
   - id: SVC_CORE_0007
     requirement_ids: ["CORE_0007"]
     title: Save run configuration

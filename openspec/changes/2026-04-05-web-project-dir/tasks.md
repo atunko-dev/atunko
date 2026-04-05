@@ -20,6 +20,7 @@
 - [x] 2.6 Add test: `detect_noBuildFiles_throwsIllegalArgument` — `@SVCs({"atunko:SVC_CORE_0004.3"})`
 - [x] 2.7 Update `GradleProjectScannerTest`: `@SVCs` → `SVC_CORE_GRADLE_0001`
 - [x] 2.8 Update `MavenProjectScannerTest`: `@SVCs` → `SVC_CORE_MAVEN_0001`
+- [x] 2.9 Create `SessionHolderTest` with 5 tests — `@SVCs({"atunko:SVC_CORE_0004.4"})`
 
 ## 3. TUI Refactor
 
