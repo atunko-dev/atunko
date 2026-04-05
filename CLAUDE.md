@@ -80,7 +80,7 @@ Three layers of automated quality checks run on every build:
 ## Web UI Conventions
 
 - **Buttons**: Use `VaadinIcon` for all action buttons. Use `LUMO_SMALL` for all buttons;
-  add `LUMO_PRIMARY` for the main action (e.g. Execute). Never use `LUMO_TERTIARY_INLINE`.
+  add `LUMO_PRIMARY` for all buttons (uniform filled look). Never use `LUMO_TERTIARY_INLINE`.
 - **Progress**: Use a centered modal `Dialog` with an indeterminate `ProgressBar` for
   long-running operations. Run execution in a background thread with `UI.access()` push.
   Disable action buttons while running.

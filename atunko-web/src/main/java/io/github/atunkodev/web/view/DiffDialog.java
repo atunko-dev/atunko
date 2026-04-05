@@ -62,7 +62,7 @@ public class DiffDialog extends Dialog {
         }
 
         Button closeButton = new Button("Close", VaadinIcon.CLOSE.create(), e -> close());
-        closeButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        closeButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
         getFooter().add(closeButton);
     }
 
