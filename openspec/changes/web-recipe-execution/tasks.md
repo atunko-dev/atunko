@@ -30,7 +30,7 @@
 
 ## 6. Quality
 
-- [ ] 6.1 Run `./gradlew spotlessApply`
-- [ ] 6.2 Run `./gradlew build` — all tests green
-- [ ] 6.3 Run `reqstool status local -p docs/reqstool`
-- [ ] 6.4 Run `openspec validate --all --strict`
+- [x] 6.1 Run `./gradlew spotlessApply`
+- [x] 6.2 Run `./gradlew build` — all tests green
+- [x] 6.3 Run `reqstool status local -p docs/reqstool`
+- [x] 6.4 Run `openspec validate --all --strict`
