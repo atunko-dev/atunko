@@ -108,6 +108,26 @@ cases:
       THEN cascade propagates to all descendants without duplication or infinite recursion
     revision: "0.1.0"
 
+  - id: SVC_WEB_0001.10
+    requirement_ids: ["WEB_0001.7"]
+    title: Default project directory is current working directory
+    verification: automated-test
+    description: |
+      GIVEN a WebUiCommand is created without specifying --project-dir
+      WHEN the default project directory value is read
+      THEN it is Path.of(".")
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.11
+    requirement_ids: ["WEB_0001.7"]
+    title: Custom project directory is applied
+    verification: automated-test
+    description: |
+      GIVEN a WebUiCommand is created
+      WHEN --project-dir /some/path is passed as an argument
+      THEN getProjectDir() returns Path.of("/some/path")
+    revision: "0.1.0"
+
   - id: SVC_CORE_0001
     requirement_ids: ["CORE_0001"]
     title: Discover all recipes from classpath
@@ -160,22 +180,73 @@ cases:
 
   - id: SVC_CORE_0004
     requirement_ids: ["CORE_0004"]
+    title: Auto-detect build system and select scanner
+    verification: automated-test
+    description: |
+      GIVEN a project directory
+      WHEN ProjectScannerFactory.detect() is called
+      THEN the appropriate ProjectScanner implementation is returned
+      OR an IllegalArgumentException is thrown when no recognized build files are found
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0004.1
+    requirement_ids: ["CORE_0004"]
+    title: Factory returns GradleProjectScanner for Gradle project
+    verification: automated-test
+    description: |
+      GIVEN a directory containing Gradle build files (settings.gradle or build.gradle variants)
+      WHEN ProjectScannerFactory.detect() is called
+      THEN a GradleProjectScanner instance is returned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0004.2
+    requirement_ids: ["CORE_0004"]
+    title: Factory returns MavenProjectScanner for Maven project
+    verification: automated-test
+    description: |
+      GIVEN a directory containing pom.xml
+      WHEN ProjectScannerFactory.detect() is called
+      THEN a MavenProjectScanner instance is returned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0004.3
+    requirement_ids: ["CORE_0004"]
+    title: Factory throws for unknown build system
+    verification: automated-test
+    description: |
+      GIVEN a directory with no recognized build files (no pom.xml, no Gradle files)
+      WHEN ProjectScannerFactory.detect() is called
+      THEN an IllegalArgumentException is thrown with a descriptive message
+    revision: "0.1.0"
+
+  - id: SVC_CORE_GRADLE_0001
+    requirement_ids: ["CORE_GRADLE_0001"]
     title: Resolve Gradle classpath via Tooling API
     verification: automated-test
     description: |
       GIVEN a Gradle project with dependencies
-      WHEN the GradleToolingApiResolver connects to the project
+      WHEN the GradleProjectScanner scans the project
       THEN compile classpath JAR paths and source directories are returned
     revision: "0.1.0"
 
-  - id: SVC_CORE_0005
-    requirement_ids: ["CORE_0005"]
+  - id: SVC_CORE_MAVEN_0001
+    requirement_ids: ["CORE_MAVEN_0001"]
     title: Resolve Maven classpath via pom.xml
     verification: automated-test
     description: |
       GIVEN a Maven project with dependencies
       WHEN the MavenProjectScanner scans the project
       THEN compile classpath JAR paths and source directories are returned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0004.4
+    requirement_ids: ["CORE_0004"]
+    title: SessionHolder stores and returns projectDir and ProjectInfo
+    verification: automated-test
+    description: |
+      GIVEN SessionHolder.init() has been called with a project directory and ProjectInfo
+      WHEN getProjectDir() and getProjectInfo() are called
+      THEN the stored values are returned; before init(), projectDir defaults to "." and projectInfo is null
     revision: "0.1.0"
 
   - id: SVC_CORE_0007

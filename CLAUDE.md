@@ -22,6 +22,10 @@ atunko/
 
 **Dependency graph:** `atunko-cli` → `atunko-tui` → `atunko-core`
 
+**Shared implementation principle:** Always implement shared logic in `atunko-core`. Both
+`atunko-tui` and `atunko-web` must use core — never duplicate business logic between them.
+If TUI and Web UI need the same behaviour, it belongs in core.
+
 ## Build Commands
 
 ```bash

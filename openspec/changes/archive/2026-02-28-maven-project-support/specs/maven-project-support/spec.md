@@ -4,8 +4,8 @@ Resolve classpaths and source directories from Maven projects using `mvn depende
 
 ## ADDED Requirements
 
-### Requirement: CORE_0005
-The system SHALL implement CORE_0005.
+### Requirement: CORE_MAVEN_0001
+The system SHALL implement CORE_MAVEN_0001.
 
-#### Scenario: SVC_CORE_0005
-The system SHALL pass SVC_CORE_0005.
+#### Scenario: SVC_CORE_MAVEN_0001
+The system SHALL pass SVC_CORE_MAVEN_0001.

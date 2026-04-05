@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.reqstool.annotations.SVCs;
+import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
@@ -39,5 +40,20 @@ class WebUiCommandTest {
         WebUiCommand command = new WebUiCommand(emptyDiscovery());
         new CommandLine(command).parseArgs("--port", "9090");
         assertThat(command.getPort()).isEqualTo(9090);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.10"})
+    void command_defaultProjectDirIsCurrent() {
+        WebUiCommand command = new WebUiCommand(emptyDiscovery());
+        assertThat(command.getProjectDir()).isEqualTo(Path.of("."));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.11"})
+    void command_customProjectDirIsApplied() {
+        WebUiCommand command = new WebUiCommand(emptyDiscovery());
+        new CommandLine(command).parseArgs("--project-dir", "/some/project");
+        assertThat(command.getProjectDir()).isEqualTo(Path.of("/some/project"));
     }
 }

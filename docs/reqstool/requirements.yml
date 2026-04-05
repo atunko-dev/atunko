@@ -88,6 +88,17 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: WEB_0001.7
+    title: Web UI — Project Directory Option
+    significance: shall
+    description: >-
+      The Web UI subcommand shall accept a --project-dir option specifying the target project
+      directory for recipe execution, defaulting to the current working directory
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   # TUI requirements
   - id: TUI_0001
     title: TUI Launch
@@ -407,20 +418,36 @@ requirements:
     revision: 0.1.0
 
   - id: CORE_0004
+    title: Project Scanning — Build System Auto-Detection
+    significance: shall
+    description: >-
+      The core engine shall auto-detect which build system (Gradle, Maven) is in use for a given
+      project directory and select the appropriate scanner, failing fast with a clear error if no
+      recognized build files are found.
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_GRADLE_0001
     title: Gradle Project Support
     significance: shall
     description: >-
       The core engine shall resolve classpaths, source dirs, resource dirs, and test dirs
       for Gradle projects via Tooling API
+    references:
+      requirement_ids: ["CORE_0004"]
     categories: [functional-suitability]
     revision: 0.1.0
 
-  - id: CORE_0005
+  - id: CORE_MAVEN_0001
     title: Maven Project Support
     significance: shall
     description: The core engine shall resolve classpaths and source dirs for Maven projects
+    references:
+      requirement_ids: ["CORE_0004"]
     categories: [functional-suitability]
     revision: 0.1.0
+
+  # CORE_0005 is intentionally vacant — was Maven Project Support, now CORE_MAVEN_0001
 
   - id: CORE_0006
     title: Git Integration
