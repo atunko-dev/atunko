@@ -25,7 +25,8 @@ public final class RecipeFilter {
         if (query == null || query.isBlank()) {
             return true;
         }
-        String haystack = (recipe.displayName() + " " + recipe.description() + " " + String.join(" ", recipe.tags()))
+        String haystack = (recipe.name() + " " + recipe.displayName() + " " + recipe.description() + " "
+                        + String.join(" ", recipe.tags()))
                 .toLowerCase(Locale.ROOT);
         for (String word : WHITESPACE.split(query.toLowerCase(Locale.ROOT).trim())) {
             if (!haystack.contains(word)) {
