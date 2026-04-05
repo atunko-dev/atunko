@@ -5,6 +5,7 @@ import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.HeaderRow;
@@ -54,7 +55,6 @@ public class RecipeBrowserView extends AppLayout {
     private final TextField searchField = new TextField();
     private final Button dryRunButton = new Button("Dry Run", VaadinIcon.EYE.create());
     private final Button executeButton = new Button("Execute", VaadinIcon.PLAY.create());
-    private final ProgressBar progressBar = new ProgressBar();
 
     private List<RecipeInfo> allRecipes;
     private String currentTextQuery = "";
@@ -119,11 +119,7 @@ public class RecipeBrowserView extends AppLayout {
         executeButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY_INLINE);
         executeButton.addClickListener(e -> runRecipes(false));
 
-        progressBar.setIndeterminate(true);
-        progressBar.setVisible(false);
-        progressBar.setWidth("200px");
-
-        HorizontalLayout bar = new HorizontalLayout(statusBar, progressBar, dryRunButton, executeButton);
+        HorizontalLayout bar = new HorizontalLayout(statusBar, dryRunButton, executeButton);
         bar.setWidthFull();
         bar.setAlignItems(HorizontalLayout.Alignment.CENTER);
         return bar;
@@ -257,7 +253,19 @@ public class RecipeBrowserView extends AppLayout {
 
         dryRunButton.setEnabled(false);
         executeButton.setEnabled(false);
-        progressBar.setVisible(true);
+
+        Dialog progressDialog = new Dialog();
+        progressDialog.setCloseOnEsc(false);
+        progressDialog.setCloseOnOutsideClick(false);
+        progressDialog.setHeaderTitle(dryRun ? "Running Dry Run..." : "Executing Recipes...");
+        ProgressBar dialogProgress = new ProgressBar();
+        dialogProgress.setIndeterminate(true);
+        dialogProgress.setWidth("300px");
+        VerticalLayout progressContent =
+                new VerticalLayout(new Span(selected.size() + " recipe(s) selected"), dialogProgress);
+        progressContent.setAlignItems(VerticalLayout.Alignment.CENTER);
+        progressDialog.add(progressContent);
+        progressDialog.open();
 
         try {
             ProjectInfo projectInfo = SessionHolder.getProjectInfo();
@@ -280,9 +288,10 @@ public class RecipeBrowserView extends AppLayout {
                 AppServices.getChangeApplier().apply(projectDir, combined.changes());
             }
 
+            progressDialog.close();
             new DiffDialog(combined, dryRun).open();
         } finally {
-            progressBar.setVisible(false);
+            progressDialog.close();
             dryRunButton.setEnabled(true);
             executeButton.setEnabled(true);
         }

@@ -77,6 +77,16 @@ Three layers of automated quality checks run on every build:
 - **Gradle Tooling API** (`9.3.1`) — project scanning (from Gradle's repo)
 - **reqstool annotations** (`1.0.0`) — requirements traceability
 
+## Web UI Conventions
+
+- **Buttons**: Use `VaadinIcon` for all action buttons. Use consistent theme variants:
+  `ButtonVariant.LUMO_SMALL` + `ButtonVariant.LUMO_TERTIARY_INLINE` for uniform appearance.
+- **Progress**: Use a centered modal `Dialog` with an indeterminate `ProgressBar` for
+  long-running operations (recipe execution, dry run). Disable action buttons while running.
+- **Icons**: Vaadin Icons (`VaadinIcon` enum, ~600 icons) — built-in, no extra dependency.
+- **Diff display**: Uses diff2html (`@NpmPackage`) + java-diff-utils for GitHub-style
+  side-by-side diff rendering in `DiffDialog`.
+
 ## Testing
 
 - JUnit 5 + AssertJ
