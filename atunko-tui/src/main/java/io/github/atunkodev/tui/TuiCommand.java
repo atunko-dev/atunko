@@ -3,8 +3,9 @@ package io.github.atunkodev.tui;
 import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
-import io.github.atunkodev.core.project.GradleProjectScanner;
+import io.github.atunkodev.core.project.ProjectScannerFactory;
 import io.github.atunkodev.core.project.ProjectSourceParser;
+import io.github.atunkodev.core.project.SessionHolder;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.reqstool.annotations.Requirements;
@@ -19,7 +20,6 @@ public class TuiCommand implements Runnable {
     private final RecipeDiscoveryService discoveryService;
     private final RunConfigService runConfigService;
     private final RecipeExecutionEngine engine;
-    private final GradleProjectScanner projectScanner;
     private final ProjectSourceParser sourceParser;
     private final ChangeApplier changeApplier;
 
@@ -33,13 +33,11 @@ public class TuiCommand implements Runnable {
             RecipeDiscoveryService discoveryService,
             RunConfigService runConfigService,
             RecipeExecutionEngine engine,
-            GradleProjectScanner projectScanner,
             ProjectSourceParser sourceParser,
             ChangeApplier changeApplier) {
         this.discoveryService = discoveryService;
         this.runConfigService = runConfigService;
         this.engine = engine;
-        this.projectScanner = projectScanner;
         this.sourceParser = sourceParser;
         this.changeApplier = changeApplier;
     }
@@ -47,9 +45,10 @@ public class TuiCommand implements Runnable {
     @Override
     @Requirements({"atunko:TUI_0001"})
     public void run() {
+        SessionHolder.init(projectDir, ProjectScannerFactory.detect(projectDir).scan(projectDir));
         List<RecipeInfo> recipes = discoveryService.discoverAll();
-        TuiController controller = new TuiController(
-                recipes, runConfigService, engine, projectScanner, sourceParser, changeApplier, projectDir);
+        TuiController controller =
+                new TuiController(recipes, runConfigService, engine, sourceParser, changeApplier, projectDir);
         AtunkoTui tui = new AtunkoTui(controller, logFile);
         try {
             tui.run();

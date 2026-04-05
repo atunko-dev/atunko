@@ -6,9 +6,9 @@ import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
-import io.github.atunkodev.core.project.GradleProjectScanner;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
+import io.github.atunkodev.core.project.SessionHolder;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.reqstool.annotations.Requirements;
@@ -266,7 +266,6 @@ public class TuiController {
     private final List<RecipeInfo> allRecipes;
     private final RunConfigService runConfigService;
     private final RecipeExecutionEngine engine;
-    private final GradleProjectScanner projectScanner;
     private final ProjectSourceParser sourceParser;
     private final ChangeApplier changeApplier;
     private final Path projectDir;
@@ -291,21 +290,19 @@ public class TuiController {
     }
 
     public TuiController(List<RecipeInfo> allRecipes, RunConfigService runConfigService) {
-        this(allRecipes, runConfigService, null, null, null, null, Path.of("."));
+        this(allRecipes, runConfigService, null, null, null, Path.of("."));
     }
 
     public TuiController(
             List<RecipeInfo> allRecipes,
             RunConfigService runConfigService,
             RecipeExecutionEngine engine,
-            GradleProjectScanner projectScanner,
             ProjectSourceParser sourceParser,
             ChangeApplier changeApplier,
             Path projectDir) {
         this.allRecipes = List.copyOf(allRecipes);
         this.runConfigService = runConfigService;
         this.engine = engine;
-        this.projectScanner = projectScanner;
         this.sourceParser = sourceParser;
         this.changeApplier = changeApplier;
         this.projectDir = projectDir;
@@ -755,8 +752,8 @@ public class TuiController {
         LOG.fine(() -> "Running " + (dryRun ? "dry-run" : "execution") + " for " + runOrder.size() + " recipes");
 
         List<SourceFile> sources;
-        if (projectScanner != null) {
-            ProjectInfo projectInfo = projectScanner.scan(projectDir);
+        ProjectInfo projectInfo = SessionHolder.getProjectInfo();
+        if (projectInfo != null) {
             sources = sourceParser.parse(projectInfo);
         } else {
             sources = sourceParser.parse(new ProjectInfo(List.of(), List.of(projectDir)));

@@ -9,11 +9,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class MavenProjectScanner {
+public class MavenProjectScanner implements ProjectScanner {
 
     private static final int TIMEOUT_MINUTES = 5;
 
-    @Requirements({"atunko:CORE_0005"})
+    @Requirements({"atunko:CORE_MAVEN_0001"})
     public ProjectInfo scan(Path projectDir) {
         Path absoluteDir = projectDir.toAbsolutePath().normalize();
         Path pomFile = absoluteDir.resolve("pom.xml");

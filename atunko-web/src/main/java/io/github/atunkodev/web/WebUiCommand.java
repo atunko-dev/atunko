@@ -1,6 +1,9 @@
 package io.github.atunkodev.web;
 
 import com.github.mvysny.vaadinboot.VaadinBoot;
+import io.github.atunkodev.core.project.ProjectInfo;
+import io.github.atunkodev.core.project.ProjectScannerFactory;
+import io.github.atunkodev.core.project.SessionHolder;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.reqstool.annotations.Requirements;
 import java.nio.file.Path;
@@ -33,7 +36,9 @@ public class WebUiCommand implements Runnable {
     @Override
     @Requirements({"atunko:WEB_0001", "atunko:WEB_0001.3", "atunko:WEB_0001.7"})
     public void run() {
-        RecipeHolder.init(discoveryService.discoverAll(), projectDir);
+        RecipeHolder.init(discoveryService.discoverAll());
+        ProjectInfo projectInfo = ProjectScannerFactory.detect(projectDir).scan(projectDir);
+        SessionHolder.init(projectDir, projectInfo);
         try {
             new VaadinBoot().withPort(port).run();
         } catch (Exception e) {
