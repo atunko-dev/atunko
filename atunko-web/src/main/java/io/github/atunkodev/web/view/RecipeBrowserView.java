@@ -1,8 +1,12 @@
 package io.github.atunkodev.web.view;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.HeaderRow;
@@ -10,7 +14,11 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
@@ -18,9 +26,15 @@ import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
+import io.github.atunkodev.core.AppServices;
+import io.github.atunkodev.core.engine.ExecutionResult;
+import io.github.atunkodev.core.engine.FileChange;
+import io.github.atunkodev.core.project.ProjectInfo;
+import io.github.atunkodev.core.project.SessionHolder;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.web.RecipeHolder;
 import io.github.reqstool.annotations.Requirements;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import org.openrewrite.SourceFile;
 
 @Route("")
 @Requirements({"atunko:WEB_0001.1"})
@@ -39,6 +54,8 @@ public class RecipeBrowserView extends AppLayout {
     private final VerticalLayout detailPanel = new VerticalLayout();
     private final MultiSelectComboBox<String> tagFilter = new MultiSelectComboBox<>();
     private final TextField searchField = new TextField();
+    private final Button dryRunButton = new Button("Dry Run", VaadinIcon.EYE.create());
+    private final Button executeButton = new Button("Execute", VaadinIcon.PLAY.create());
 
     private List<RecipeInfo> allRecipes;
     private String currentTextQuery = "";
@@ -50,7 +67,9 @@ public class RecipeBrowserView extends AppLayout {
     public RecipeBrowserView() {
         allRecipes = RecipeHolder.getRecipes();
 
-        addToNavbar(new H2("atunko"));
+        H2 title = new H2("atunko");
+        title.getStyle().set("margin", "0 auto");
+        addToNavbar(title);
 
         VerticalLayout content = new VerticalLayout();
         content.setSizeFull();
@@ -59,7 +78,7 @@ public class RecipeBrowserView extends AppLayout {
 
         content.add(buildSearchBar());
         content.addAndExpand(buildSplitLayout());
-        content.add(statusBar);
+        content.add(buildStatusBar());
 
         setContent(content);
 
@@ -95,6 +114,20 @@ public class RecipeBrowserView extends AppLayout {
         return split;
     }
 
+    @Requirements({"atunko:WEB_0001.9"})
+    private Component buildStatusBar() {
+        dryRunButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
+        dryRunButton.addClickListener(e -> runRecipes(true));
+
+        executeButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
+        executeButton.addClickListener(e -> runRecipes(false));
+
+        HorizontalLayout bar = new HorizontalLayout(statusBar, dryRunButton, executeButton);
+        bar.setWidthFull();
+        bar.setAlignItems(HorizontalLayout.Alignment.CENTER);
+        return bar;
+    }
+
     @Requirements({"atunko:WEB_0001.1", "atunko:WEB_0001.4"})
     private void buildTreeGrid() {
         treeGrid.setSizeFull();
@@ -110,7 +143,6 @@ public class RecipeBrowserView extends AppLayout {
                 .setHeader("Tags")
                 .setSortable(false);
 
-        // Tag filter in the Tags column header
         Set<String> allTags =
                 allRecipes.stream().flatMap(r -> r.tags().stream()).collect(Collectors.toCollection(TreeSet::new));
         tagFilter.setPlaceholder("Filter by tag...");
@@ -122,7 +154,6 @@ public class RecipeBrowserView extends AppLayout {
         HeaderRow filterRow = treeGrid.appendHeaderRow();
         filterRow.getCell(tagsColumn).setComponent(tagFilter);
 
-        // Cascade-aware selection listener
         treeGrid.asMultiSelect().addSelectionListener(e -> {
             if (inCascadeUpdate || cascadeHandler == null) {
                 return;
@@ -191,11 +222,11 @@ public class RecipeBrowserView extends AppLayout {
         Set<String> addedChildPaths = new HashSet<>();
         for (RecipeInfo child : parent.recipeList()) {
             if (ancestors.contains(child)) {
-                continue; // cycle guard
+                continue;
             }
             String childPath = parentNode.path() + "/" + child.name();
             if (!addedChildPaths.add(childPath)) {
-                continue; // duplicate entry in recipeList
+                continue;
             }
             TreeNode childNode = new TreeNode(child, childPath);
             treeData.addItem(parentNode, childNode);
@@ -210,6 +241,76 @@ public class RecipeBrowserView extends AppLayout {
         if (!children.isEmpty()) {
             childrenMap.put(parentNode, children);
         }
+    }
+
+    @Requirements({"atunko:WEB_0001.9"})
+    void runRecipes(boolean dryRun) {
+        if (AppServices.getEngine() == null || AppServices.getSourceParser() == null) {
+            return;
+        }
+        Set<RecipeInfo> selected = cascadeHandler.getSelectedItems();
+        if (selected.isEmpty()) {
+            Notification.show("No recipes selected", 3000, Notification.Position.MIDDLE);
+            return;
+        }
+
+        dryRunButton.setEnabled(false);
+        executeButton.setEnabled(false);
+
+        Dialog progressDialog = new Dialog();
+        progressDialog.setCloseOnEsc(false);
+        progressDialog.setCloseOnOutsideClick(false);
+        progressDialog.setHeaderTitle(dryRun ? "Running Dry Run..." : "Executing Recipes...");
+        ProgressBar bar = new ProgressBar();
+        bar.setIndeterminate(true);
+        bar.setWidth("300px");
+        VerticalLayout progressContent = new VerticalLayout(new Span(selected.size() + " recipe(s) selected"), bar);
+        progressContent.setAlignItems(VerticalLayout.Alignment.CENTER);
+        progressDialog.add(progressContent);
+        progressDialog.open();
+
+        UI ui = UI.getCurrent();
+        Set<RecipeInfo> selectedCopy = Set.copyOf(selected);
+
+        new Thread(() -> {
+                    try {
+                        ProjectInfo projectInfo = SessionHolder.getProjectInfo();
+                        Path projectDir = SessionHolder.getProjectDir();
+                        List<SourceFile> sources;
+                        if (projectInfo != null) {
+                            sources = AppServices.getSourceParser().parse(projectInfo);
+                        } else {
+                            sources = AppServices.getSourceParser()
+                                    .parse(new ProjectInfo(List.of(), List.of(projectDir)));
+                        }
+
+                        List<FileChange> allChanges = new ArrayList<>();
+                        for (RecipeInfo recipe : selectedCopy) {
+                            ExecutionResult result = AppServices.getEngine().execute(recipe.name(), sources);
+                            allChanges.addAll(result.changes());
+                        }
+                        ExecutionResult combined = new ExecutionResult(allChanges);
+
+                        if (!dryRun && AppServices.getChangeApplier() != null) {
+                            AppServices.getChangeApplier().apply(projectDir, combined.changes());
+                        }
+
+                        ui.access(() -> {
+                            progressDialog.close();
+                            new DiffDialog(combined, dryRun).open();
+                            dryRunButton.setEnabled(true);
+                            executeButton.setEnabled(true);
+                        });
+                    } catch (Exception e) {
+                        ui.access(() -> {
+                            progressDialog.close();
+                            Notification.show("Error: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                            dryRunButton.setEnabled(true);
+                            executeButton.setEnabled(true);
+                        });
+                    }
+                })
+                .start();
     }
 
     // --- Testability hooks ---
@@ -258,5 +359,13 @@ public class RecipeBrowserView extends AppLayout {
 
     public Set<RecipeInfo> getSelectedRecipes() {
         return cascadeHandler.getSelectedItems();
+    }
+
+    public Button getDryRunButton() {
+        return dryRunButton;
+    }
+
+    public Button getExecuteButton() {
+        return executeButton;
     }
 }

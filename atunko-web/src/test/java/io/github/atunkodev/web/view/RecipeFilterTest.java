@@ -124,4 +124,11 @@ class RecipeFilterTest {
         assertThat(RecipeFilter.filter(recipes, "groovy", Set.of())).isEmpty();
         assertThat(RecipeFilter.filter(recipes, "", Set.of("groovy"))).isEmpty();
     }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.2"})
+    void matchesText_fullyQualifiedName_matches() {
+        assertThat(RecipeFilter.matchesText(SPRING, "o.t.Spring")).isTrue();
+        assertThat(RecipeFilter.matchesText(SPRING, "o.t.Kotlin")).isFalse();
+    }
 }

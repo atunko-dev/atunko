@@ -34,7 +34,11 @@ public class ServiceFactory implements CommandLine.IFactory {
                     new RecipeExecutionEngine(environmentProvider), new JavaSourceParser(), new ChangeApplier()));
         }
         if (cls == WebUiCommand.class) {
-            return cls.cast(new WebUiCommand(discoveryService));
+            return cls.cast(new WebUiCommand(
+                    discoveryService,
+                    new RecipeExecutionEngine(environmentProvider),
+                    new ProjectSourceParser(),
+                    new ChangeApplier()));
         }
         if (cls == TuiCommand.class) {
             return cls.cast(new TuiCommand(

@@ -11,6 +11,7 @@ errorprone = "2.48.0"
 vaadin = "25.1.0"
 vaadin-boot = "13.6"
 karibu-testing = "2.7.0"
+javadiffutils = "4.12"
 
 [libraries]
 # OpenRewrite BOM
@@ -67,6 +68,9 @@ vaadin-boot = { module = "com.github.mvysny.vaadin-boot:vaadin-boot", version.re
 
 # Karibu-Testing
 karibu-testing = { module = "com.github.mvysny.kaributesting:karibu-testing-v24", version.ref = "karibu-testing" }
+
+# java-diff-utils
+javadiffutils = { module = "io.github.java-diff-utils:java-diff-utils", version.ref = "javadiffutils" }
 
 # Error Prone
 errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
