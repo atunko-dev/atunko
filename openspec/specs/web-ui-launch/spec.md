@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+Provide a browser-based recipe browser via CLI subcommand, launching an embedded Jetty server on localhost with hierarchical TreeGrid display, cascade multi-select, text search, tag filtering, and detail panel.
+
+## Requirements
 
 ### Requirement: WEB_0001
 The system SHALL implement WEB_0001.
