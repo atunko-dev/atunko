@@ -14,6 +14,8 @@ dependencies {
     implementation platform(libs.vaadin.bom)
     implementation libs.vaadin.core
     implementation libs.vaadin.boot
+    implementation 'com.vaadin:vaadin-dev'
+    implementation libs.javadiffutils
 
     // Testing
     testImplementation libs.karibu.testing

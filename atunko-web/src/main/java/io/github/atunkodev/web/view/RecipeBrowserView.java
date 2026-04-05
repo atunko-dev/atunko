@@ -4,15 +4,12 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -135,7 +132,6 @@ public class RecipeBrowserView extends AppLayout {
                 .setHeader("Tags")
                 .setSortable(false);
 
-        // Tag filter in the Tags column header
         Set<String> allTags =
                 allRecipes.stream().flatMap(r -> r.tags().stream()).collect(Collectors.toCollection(TreeSet::new));
         tagFilter.setPlaceholder("Filter by tag...");
@@ -147,7 +143,6 @@ public class RecipeBrowserView extends AppLayout {
         HeaderRow filterRow = treeGrid.appendHeaderRow();
         filterRow.getCell(tagsColumn).setComponent(tagFilter);
 
-        // Cascade-aware selection listener
         treeGrid.asMultiSelect().addSelectionListener(e -> {
             if (inCascadeUpdate || cascadeHandler == null) {
                 return;
@@ -216,11 +211,11 @@ public class RecipeBrowserView extends AppLayout {
         Set<String> addedChildPaths = new HashSet<>();
         for (RecipeInfo child : parent.recipeList()) {
             if (ancestors.contains(child)) {
-                continue; // cycle guard
+                continue;
             }
             String childPath = parentNode.path() + "/" + child.name();
             if (!addedChildPaths.add(childPath)) {
-                continue; // duplicate entry in recipeList
+                continue;
             }
             TreeNode childNode = new TreeNode(child, childPath);
             treeData.addItem(parentNode, childNode);
@@ -267,40 +262,7 @@ public class RecipeBrowserView extends AppLayout {
             AppServices.getChangeApplier().apply(projectDir, combined.changes());
         }
 
-        showResultDialog(combined, dryRun);
-    }
-
-    private void showResultDialog(ExecutionResult result, boolean dryRun) {
-        Dialog dialog = new Dialog();
-        dialog.setWidth("80vw");
-        dialog.setHeight("70vh");
-
-        String title = dryRun ? "Dry Run Preview" : "Execution Results";
-        dialog.setHeaderTitle(title);
-
-        VerticalLayout body = new VerticalLayout();
-        body.setSizeFull();
-        body.setPadding(false);
-
-        if (result.changes().isEmpty()) {
-            body.add(new Span("No changes produced."));
-        } else {
-            body.add(new Span(result.changes().size() + " file(s) changed:"));
-            for (FileChange change : result.changes()) {
-                body.add(new H4(change.path().toString()));
-                if (change.after() == null) {
-                    body.add(new Span("(deleted)"));
-                } else {
-                    Pre pre = new Pre(change.after());
-                    pre.getStyle().set("overflow", "auto").set("max-height", "200px");
-                    body.add(pre);
-                }
-            }
-        }
-
-        dialog.add(body);
-        dialog.getFooter().add(new Button("Close", e -> dialog.close()));
-        dialog.open();
+        new DiffDialog(combined, dryRun).open();
     }
 
     // --- Testability hooks ---
