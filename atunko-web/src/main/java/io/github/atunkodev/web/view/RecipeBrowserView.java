@@ -64,7 +64,9 @@ public class RecipeBrowserView extends AppLayout {
     public RecipeBrowserView() {
         allRecipes = RecipeHolder.getRecipes();
 
-        addToNavbar(new H2("atunko"));
+        H2 title = new H2("atunko");
+        title.getStyle().set("margin", "0 auto");
+        addToNavbar(title);
 
         VerticalLayout content = new VerticalLayout();
         content.setSizeFull();
