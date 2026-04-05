@@ -128,6 +128,26 @@ cases:
       THEN getProjectDir() returns Path.of("/some/path")
     revision: "0.1.0"
 
+  - id: SVC_WEB_0001.12
+    requirement_ids: ["WEB_0001.8"]
+    title: AppServices initialised at Web UI startup
+    verification: automated-test
+    description: |
+      GIVEN the WebUiCommand is run
+      WHEN AppServices.init() is called with engine, sourceParser, and changeApplier
+      THEN AppServices.getEngine(), getSourceParser(), and getChangeApplier() return the injected instances
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.13
+    requirement_ids: ["WEB_0001.9"]
+    title: Web UI executes recipes and previews dry-run results
+    verification: automated-test
+    description: |
+      GIVEN the Web UI is loaded with a project dir and selected recipes
+      WHEN the user clicks Execute or Dry Run
+      THEN the recipes are run (or previewed) and the resulting file changes are displayed
+    revision: "0.1.0"
+
   - id: SVC_CORE_0001
     requirement_ids: ["CORE_0001"]
     title: Discover all recipes from classpath

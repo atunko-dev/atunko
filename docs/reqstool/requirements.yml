@@ -99,6 +99,29 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: WEB_0001.8
+    title: Web UI — Execution Services Initialisation
+    significance: shall
+    description: >-
+      The Web UI shall initialise shared execution services (RecipeExecutionEngine,
+      ProjectSourceParser, ChangeApplier) at startup via AppServices, making them
+      available to all Vaadin views without duplication
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: WEB_0001.9
+    title: Web UI — Recipe Execution and Dry-Run Preview
+    significance: shall
+    description: >-
+      The Web UI shall allow the user to execute selected recipes against the target project
+      and optionally preview the resulting file changes (dry-run) before applying them
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   # TUI requirements
   - id: TUI_0001
     title: TUI Launch
