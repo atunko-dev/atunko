@@ -8,12 +8,22 @@ import com.github.mvysny.kaributesting.v10.MockVaadin;
 import com.github.mvysny.kaributesting.v10.Routes;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.treegrid.TreeGrid;
+import io.github.atunkodev.core.AppServices;
+import io.github.atunkodev.core.engine.ChangeApplier;
+import io.github.atunkodev.core.engine.ExecutionResult;
+import io.github.atunkodev.core.engine.FileChange;
+import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.project.ProjectInfo;
+import io.github.atunkodev.core.project.ProjectSourceParser;
+import io.github.atunkodev.core.project.SessionHolder;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.web.RecipeHolder;
 import io.github.reqstool.annotations.SVCs;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class RecipeBrowserViewTest {
@@ -52,6 +62,12 @@ class RecipeBrowserViewTest {
         RecipeHolder.init(recipes);
         MockVaadin.setup(ROUTES);
         return _get(RecipeBrowserView.class);
+    }
+
+    @BeforeEach
+    void resetServices() {
+        AppServices.init(null, null, null);
+        SessionHolder.init(Path.of("."), null);
     }
 
     @AfterEach
@@ -229,5 +245,73 @@ class RecipeBrowserViewTest {
         long count =
                 view.getSelectedRecipes().stream().filter(r -> r.equals(SHARED)).count();
         assertThat(count).isEqualTo(1);
+    }
+
+    // --- Dry Run / Execute buttons (SVC_WEB_0001.13) ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.13"})
+    void dryRunButton_isPresent() {
+        RecipeBrowserView view = setupView(List.of(ALPHA));
+        assertThat(view.getDryRunButton().getText()).isEqualTo("Dry Run");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.13"})
+    void executeButton_isPresent() {
+        RecipeBrowserView view = setupView(List.of(ALPHA));
+        assertThat(view.getExecuteButton().getText()).isEqualTo("Execute");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.13"})
+    void runRecipes_noServicesInitialised_doesNotThrow() {
+        RecipeBrowserView view = setupView(List.of(ALPHA));
+        view.getCascadeHandler().selectItem(ALPHA);
+        // AppServices not initialised — should be a no-op, not throw
+        view.runRecipes(true);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.13"})
+    void runRecipes_noSelection_doesNotThrow() {
+        RecipeExecutionEngine engine = new RecipeExecutionEngine(null);
+        AppServices.init(engine, new ProjectSourceParser(), new ChangeApplier());
+        SessionHolder.init(Path.of("."), new ProjectInfo(List.of(), List.of(Path.of("."))));
+        RecipeBrowserView view = setupView(List.of(ALPHA));
+        // Nothing selected — should be a no-op, not throw
+        view.runRecipes(true);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.13"})
+    void runRecipes_dryRun_doesNotApplyChanges() {
+        List<FileChange>[] appliedChanges = new List[] {null};
+        ChangeApplier trackingApplier = new ChangeApplier() {
+            @Override
+            public void apply(Path projectDir, List<FileChange> changes) {
+                appliedChanges[0] = changes;
+            }
+        };
+        RecipeExecutionEngine noOpEngine = new RecipeExecutionEngine(null) {
+            @Override
+            public ExecutionResult execute(String recipeName, List<org.openrewrite.SourceFile> sources) {
+                return new ExecutionResult(List.of());
+            }
+        };
+        ProjectSourceParser noOpParser = new ProjectSourceParser() {
+            @Override
+            public List<org.openrewrite.SourceFile> parse(io.github.atunkodev.core.project.ProjectInfo info) {
+                return List.of();
+            }
+        };
+        AppServices.init(noOpEngine, noOpParser, trackingApplier);
+        SessionHolder.init(Path.of("."), new ProjectInfo(List.of(), List.of(Path.of("."))));
+
+        RecipeBrowserView view = setupView(List.of(ALPHA));
+        view.getCascadeHandler().selectItem(ALPHA);
+        view.runRecipes(true);
+
+        assertThat(appliedChanges[0]).isNull();
     }
 }

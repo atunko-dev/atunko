@@ -2,14 +2,19 @@ package io.github.atunkodev.web.view;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -18,9 +23,15 @@ import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
+import io.github.atunkodev.core.AppServices;
+import io.github.atunkodev.core.engine.ExecutionResult;
+import io.github.atunkodev.core.engine.FileChange;
+import io.github.atunkodev.core.project.ProjectInfo;
+import io.github.atunkodev.core.project.SessionHolder;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.web.RecipeHolder;
 import io.github.reqstool.annotations.Requirements;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import org.openrewrite.SourceFile;
 
 @Route("")
 @Requirements({"atunko:WEB_0001.1"})
@@ -39,6 +51,8 @@ public class RecipeBrowserView extends AppLayout {
     private final VerticalLayout detailPanel = new VerticalLayout();
     private final MultiSelectComboBox<String> tagFilter = new MultiSelectComboBox<>();
     private final TextField searchField = new TextField();
+    private final Button dryRunButton = new Button("Dry Run");
+    private final Button executeButton = new Button("Execute");
 
     private List<RecipeInfo> allRecipes;
     private String currentTextQuery = "";
@@ -59,7 +73,7 @@ public class RecipeBrowserView extends AppLayout {
 
         content.add(buildSearchBar());
         content.addAndExpand(buildSplitLayout());
-        content.add(statusBar);
+        content.add(buildStatusBar());
 
         setContent(content);
 
@@ -93,6 +107,17 @@ public class RecipeBrowserView extends AppLayout {
         split.addToPrimary(leftPane);
         split.addToSecondary(detailPanel);
         return split;
+    }
+
+    @Requirements({"atunko:WEB_0001.9"})
+    private Component buildStatusBar() {
+        dryRunButton.addClickListener(e -> runRecipes(true));
+        executeButton.addClickListener(e -> runRecipes(false));
+
+        HorizontalLayout bar = new HorizontalLayout(statusBar, dryRunButton, executeButton);
+        bar.setWidthFull();
+        bar.setAlignItems(HorizontalLayout.Alignment.CENTER);
+        return bar;
     }
 
     @Requirements({"atunko:WEB_0001.1", "atunko:WEB_0001.4"})
@@ -212,6 +237,72 @@ public class RecipeBrowserView extends AppLayout {
         }
     }
 
+    @Requirements({"atunko:WEB_0001.9"})
+    void runRecipes(boolean dryRun) {
+        if (AppServices.getEngine() == null || AppServices.getSourceParser() == null) {
+            return;
+        }
+        Set<RecipeInfo> selected = cascadeHandler.getSelectedItems();
+        if (selected.isEmpty()) {
+            return;
+        }
+
+        ProjectInfo projectInfo = SessionHolder.getProjectInfo();
+        Path projectDir = SessionHolder.getProjectDir();
+        List<SourceFile> sources;
+        if (projectInfo != null) {
+            sources = AppServices.getSourceParser().parse(projectInfo);
+        } else {
+            sources = AppServices.getSourceParser().parse(new ProjectInfo(List.of(), List.of(projectDir)));
+        }
+
+        List<FileChange> allChanges = new ArrayList<>();
+        for (RecipeInfo recipe : selected) {
+            ExecutionResult result = AppServices.getEngine().execute(recipe.name(), sources);
+            allChanges.addAll(result.changes());
+        }
+        ExecutionResult combined = new ExecutionResult(allChanges);
+
+        if (!dryRun && AppServices.getChangeApplier() != null) {
+            AppServices.getChangeApplier().apply(projectDir, combined.changes());
+        }
+
+        showResultDialog(combined, dryRun);
+    }
+
+    private void showResultDialog(ExecutionResult result, boolean dryRun) {
+        Dialog dialog = new Dialog();
+        dialog.setWidth("80vw");
+        dialog.setHeight("70vh");
+
+        String title = dryRun ? "Dry Run Preview" : "Execution Results";
+        dialog.setHeaderTitle(title);
+
+        VerticalLayout body = new VerticalLayout();
+        body.setSizeFull();
+        body.setPadding(false);
+
+        if (result.changes().isEmpty()) {
+            body.add(new Span("No changes produced."));
+        } else {
+            body.add(new Span(result.changes().size() + " file(s) changed:"));
+            for (FileChange change : result.changes()) {
+                body.add(new H4(change.path().toString()));
+                if (change.after() == null) {
+                    body.add(new Span("(deleted)"));
+                } else {
+                    Pre pre = new Pre(change.after());
+                    pre.getStyle().set("overflow", "auto").set("max-height", "200px");
+                    body.add(pre);
+                }
+            }
+        }
+
+        dialog.add(body);
+        dialog.getFooter().add(new Button("Close", e -> dialog.close()));
+        dialog.open();
+    }
+
     // --- Testability hooks ---
 
     public List<RecipeInfo> getVisibleRecipes() {
@@ -258,5 +349,13 @@ public class RecipeBrowserView extends AppLayout {
 
     public Set<RecipeInfo> getSelectedRecipes() {
         return cascadeHandler.getSelectedItems();
+    }
+
+    public Button getDryRunButton() {
+        return dryRunButton;
+    }
+
+    public Button getExecuteButton() {
+        return executeButton;
     }
 }
