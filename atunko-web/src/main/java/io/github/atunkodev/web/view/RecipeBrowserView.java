@@ -113,10 +113,10 @@ public class RecipeBrowserView extends AppLayout {
 
     @Requirements({"atunko:WEB_0001.9"})
     private Component buildStatusBar() {
-        dryRunButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        dryRunButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY_INLINE);
         dryRunButton.addClickListener(e -> runRecipes(true));
 
-        executeButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
+        executeButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY_INLINE);
         executeButton.addClickListener(e -> runRecipes(false));
 
         progressBar.setIndeterminate(true);
