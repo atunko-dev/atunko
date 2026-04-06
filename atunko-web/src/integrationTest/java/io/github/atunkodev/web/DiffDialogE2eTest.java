@@ -8,8 +8,8 @@ import com.microsoft.playwright.options.AriaRole;
 import org.junit.jupiter.api.Test;
 
 /**
- * Playwright e2e tests for features that require real browser rendering: diff2html JavaScript
- * rendering, side-by-side diff layout.
+ * Playwright integration tests for features that require real browser rendering: diff2html
+ * JavaScript rendering, side-by-side diff layout.
  */
 class DiffDialogE2eTest extends PlaywrightTestBase {
 
@@ -24,20 +24,26 @@ class DiffDialogE2eTest extends PlaywrightTestBase {
     void dryRunRendersDiff2htmlSideBySide() {
         navigateTo("/");
 
-        // Select the leaf recipe in the tree grid
-        page.locator("vaadin-grid-tree-toggle").first().click();
+        // Wait for the grid to be fully loaded
+        page.locator("vaadin-grid-cell-content").first().waitFor();
+
+        // Select the recipe by clicking the row's checkbox
+        page.locator("vaadin-grid-tree-column vaadin-checkbox, vaadin-checkbox")
+                .first()
+                .click();
 
         // Click Dry Run button
         page.getByRole(AriaRole.BUTTON, new GetByRoleOptions().setName("Dry Run"))
                 .click();
 
         // RunOrderDialog opens — click Confirm
-        page.getByRole(AriaRole.BUTTON, new GetByRoleOptions().setName("Confirm"))
-                .click();
+        Locator confirmButton = page.getByRole(AriaRole.BUTTON, new GetByRoleOptions().setName("Confirm"));
+        confirmButton.waitFor();
+        confirmButton.click();
 
-        // Wait for the DiffDialog to appear with diff2html content
+        // Wait for the DiffDialog to appear with diff2html content (may take time in CI)
         Locator diffWrapper = page.locator(".d2h-wrapper");
-        diffWrapper.first().waitFor();
+        diffWrapper.first().waitFor(new Locator.WaitForOptions().setTimeout(60000));
 
         // Verify diff2html rendered with side-by-side layout
         assertThat(diffWrapper.first()).isVisible();
