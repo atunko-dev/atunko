@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atunko.dev/schemas/run.schema.json",
+  "title": "atunko Run Configuration",
+  "description": "Schema for atunko run configuration files (atunko/runs/*.yaml)",
+  "type": "object",
+  "required": ["version", "recipes"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of this run configuration"
+    },
+    "recipes": {
+      "type": "array",
+      "description": "List of recipes to execute",
+      "items": {
+        "$ref": "#/$defs/recipeEntry"
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "recipeEntry": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Fully qualified OpenRewrite recipe name"
+        },
+        "options": {
+          "type": "object",
+          "description": "Recipe-specific options (key-value pairs)",
+          "additionalProperties": true
+        },
+        "exclude": {
+          "type": "array",
+          "description": "Sub-recipes to exclude from a composite recipe",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

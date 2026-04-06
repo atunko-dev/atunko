@@ -9,6 +9,8 @@ import com.github.mvysny.kaributesting.v10.Routes;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import io.github.atunkodev.core.AppServices;
+import io.github.atunkodev.core.config.RecipeEntry;
+import io.github.atunkodev.core.config.RunConfig;
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
@@ -17,6 +19,7 @@ import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
 import io.github.atunkodev.core.recipe.RecipeInfo;
+import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.web.RecipeHolder;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Path;
@@ -245,6 +248,165 @@ class RecipeBrowserViewTest {
         long count =
                 view.getSelectedRecipes().stream().filter(r -> r.equals(SHARED)).count();
         assertThat(count).isEqualTo(1);
+    }
+
+    // --- Bulk select/deselect (SVC_WEB_0001.22, SVC_WEB_0001.23) ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.22"})
+    void selectAll_selectsAllVisibleRecipes() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
+        view.selectAllVisible();
+        assertThat(view.getSelectedRecipes()).containsExactlyInAnyOrder(ALPHA, BETA, GAMMA);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.23"})
+    void deselectAll_clearsAllSelections() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
+        view.selectAllVisible();
+        view.deselectAll();
+        assertThat(view.getSelectedRecipes()).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.22"})
+    void selectAll_respectsActiveFilter() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
+        view.applyTextFilter("Alpha");
+        view.selectAllVisible();
+        assertThat(view.getSelectedRecipes()).containsExactly(ALPHA);
+    }
+
+    // --- Sorting (SVC_WEB_0001.20, SVC_WEB_0001.21) ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.20"})
+    void sortByName_ordersAlphabetically() {
+        RecipeBrowserView view = setupView(List.of(GAMMA, ALPHA, BETA));
+        view.applySortOrder(SortOrder.NAME);
+        List<String> names =
+                view.getVisibleRecipes().stream().map(RecipeInfo::name).toList();
+        assertThat(names).containsExactly("org.test.Alpha", "org.test.Beta", "org.test.Gamma");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.21"})
+    void sortByTags_groupsByFirstTag() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
+        view.applySortOrder(SortOrder.TAGS);
+        List<String> names =
+                view.getVisibleRecipes().stream().map(RecipeInfo::name).toList();
+        // ALPHA tags: java, spring → first tag min = "java"
+        // BETA tags: spring → first tag = "spring"
+        // GAMMA tags: java → first tag = "java"
+        // Sorted: java group (ALPHA, GAMMA by name), then spring group (BETA)
+        assertThat(names).containsExactly("org.test.Alpha", "org.test.Gamma", "org.test.Beta");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.20"})
+    void sortChange_preservesFilter() {
+        RecipeBrowserView view = setupView(List.of(GAMMA, ALPHA, BETA));
+        view.applyTextFilter("Alpha");
+        view.applySortOrder(SortOrder.NAME);
+        assertThat(view.getVisibleRecipes()).containsExactly(ALPHA);
+    }
+
+    // --- Coverage indicators (SVC_WEB_0001.24, SVC_WEB_0001.25) ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.24"})
+    void coverageIndicator_selectAll_childrenAreCovered() {
+        RecipeBrowserView view = setupView(List.of(COMPOSITE, GAMMA));
+        view.selectAllVisible();
+        assertThat(view.getCoveredRecipes()).contains(CHILD_1, CHILD_2);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.25"})
+    void coverageIndicator_deselectAll_noCoveredRecipes() {
+        RecipeBrowserView view = setupView(List.of(COMPOSITE, GAMMA));
+        view.selectAllVisible();
+        view.deselectAll();
+        assertThat(view.getCoveredRecipes()).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.24"})
+    void coverageIndicator_compositeItselfNotCovered() {
+        RecipeBrowserView view = setupView(List.of(COMPOSITE));
+        view.selectAllVisible();
+        assertThat(view.getCoveredRecipes()).doesNotContain(COMPOSITE);
+    }
+
+    // --- Included-in reverse lookup (SVC_WEB_0001.26, SVC_WEB_0001.27) ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.26"})
+    void detailPanel_includedRecipe_showsIncludedInSection() {
+        RecipeBrowserView view = setupView(List.of(COMPOSITE));
+        view.selectForDetail(CHILD_1);
+        List<String> texts = _find(Span.class).stream().map(Span::getText).toList();
+        assertThat(texts).anyMatch(t -> t.startsWith("Included in:") && t.contains("Composite Recipe"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.27"})
+    void detailPanel_notIncludedRecipe_noIncludedInSection() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, COMPOSITE));
+        view.selectForDetail(ALPHA);
+        List<String> texts = _find(Span.class).stream().map(Span::getText).toList();
+        assertThat(texts).noneMatch(t -> t.startsWith("Included in:"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.26"})
+    void detailPanel_sharedRecipe_showsMultipleParents() {
+        RecipeBrowserView view = setupView(List.of(PARENT_A, PARENT_B));
+        view.selectForDetail(SHARED);
+        List<String> texts = _find(Span.class).stream().map(Span::getText).toList();
+        assertThat(texts).anyMatch(t -> t.startsWith("Included in:") && t.contains("ParentA") && t.contains("ParentB"));
+    }
+
+    // --- Save/Load run config (SVC_WEB_0001.17, SVC_WEB_0001.18, SVC_WEB_0001.19) ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.17"})
+    void applyRunConfig_selectsMatchingRecipes() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
+        RunConfig config = new RunConfig(List.of(new RecipeEntry("org.test.Alpha"), new RecipeEntry("org.test.Gamma")));
+        view.applyRunConfig(config);
+        assertThat(view.getSelectedRecipes()).containsExactlyInAnyOrder(ALPHA, GAMMA);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.18"})
+    void applyRunConfig_ignoresUnknownRecipes() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
+        RunConfig config =
+                new RunConfig(List.of(new RecipeEntry("org.test.Alpha"), new RecipeEntry("org.test.NonExistent")));
+        view.applyRunConfig(config);
+        assertThat(view.getSelectedRecipes()).containsExactly(ALPHA);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.19"})
+    void applyRunConfig_resolvesChildRecipeName() {
+        RecipeBrowserView view = setupView(List.of(COMPOSITE));
+        RunConfig config = new RunConfig(List.of(new RecipeEntry("org.test.Child1")));
+        view.applyRunConfig(config);
+        assertThat(view.getSelectedRecipes()).contains(CHILD_1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.17"})
+    void applyRunConfig_clearsExistingSelectionFirst() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
+        view.getCascadeHandler().selectItem(BETA);
+        RunConfig config = new RunConfig(List.of(new RecipeEntry("org.test.Alpha")));
+        view.applyRunConfig(config);
+        assertThat(view.getSelectedRecipes()).containsExactly(ALPHA);
     }
 
     // --- Dry Run / Execute buttons (SVC_WEB_0001.13) ---

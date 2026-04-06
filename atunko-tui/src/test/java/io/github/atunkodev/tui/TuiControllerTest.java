@@ -366,7 +366,8 @@ class TuiControllerTest {
         controller.saveRunConfig(configFile);
 
         RunConfig loaded = service.load(configFile);
-        assertThat(loaded.recipes()).containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
+        assertThat(loaded.recipes().stream().map(r -> r.name()).toList())
+                .containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
     }
 
     // --- Cycle Selection ---
