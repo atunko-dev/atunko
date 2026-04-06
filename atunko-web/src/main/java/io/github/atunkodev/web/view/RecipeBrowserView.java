@@ -49,6 +49,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.openrewrite.SourceFile;
@@ -75,6 +77,7 @@ public class RecipeBrowserView extends AppLayout {
     private Set<RecipeInfo> coveredRecipes = Set.of();
     private SortOrder currentSortOrder = SortOrder.NAME;
     private final RunConfigService runConfigService = new RunConfigService();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public RecipeBrowserView() {
         allRecipes = RecipeHolder.getRecipes();
@@ -318,13 +321,18 @@ public class RecipeBrowserView extends AppLayout {
             return;
         }
 
-        new RunOrderDialog(selected, dryRun, ordered -> executeRecipes(ordered, dryRun)).open();
-    }
-
-    private void executeRecipes(List<RecipeInfo> recipes, boolean dryRun) {
         dryRunButton.setEnabled(false);
         executeButton.setEnabled(false);
 
+        Runnable onCancel = () -> {
+            dryRunButton.setEnabled(true);
+            executeButton.setEnabled(true);
+        };
+
+        new RunOrderDialog(selected, dryRun, ordered -> executeRecipes(ordered, dryRun), onCancel).open();
+    }
+
+    private void executeRecipes(List<RecipeInfo> recipes, boolean dryRun) {
         Dialog progressDialog = new Dialog();
         progressDialog.setCloseOnEsc(false);
         progressDialog.setCloseOnOutsideClick(false);
@@ -339,57 +347,54 @@ public class RecipeBrowserView extends AppLayout {
 
         UI ui = UI.getCurrent();
 
-        new Thread(() -> {
+        executor.submit(() -> {
+            try {
+                ProjectInfo projectInfo = SessionHolder.getProjectInfo();
+                Path projectDir = SessionHolder.getProjectDir();
+                List<SourceFile> sources;
+                if (projectInfo != null) {
+                    sources = AppServices.getSourceParser().parse(projectInfo);
+                } else {
+                    sources = AppServices.getSourceParser().parse(new ProjectInfo(List.of(), List.of(projectDir)));
+                }
+
+                List<FileChange> allChanges = new ArrayList<>();
+                List<String> failedRecipes = new ArrayList<>();
+                for (RecipeInfo recipe : recipes) {
                     try {
-                        ProjectInfo projectInfo = SessionHolder.getProjectInfo();
-                        Path projectDir = SessionHolder.getProjectDir();
-                        List<SourceFile> sources;
-                        if (projectInfo != null) {
-                            sources = AppServices.getSourceParser().parse(projectInfo);
-                        } else {
-                            sources = AppServices.getSourceParser()
-                                    .parse(new ProjectInfo(List.of(), List.of(projectDir)));
-                        }
-
-                        List<FileChange> allChanges = new ArrayList<>();
-                        List<String> failedRecipes = new ArrayList<>();
-                        for (RecipeInfo recipe : recipes) {
-                            try {
-                                ExecutionResult result = AppServices.getEngine().execute(recipe.name(), sources);
-                                allChanges.addAll(result.changes());
-                            } catch (Exception recipeEx) {
-                                failedRecipes.add(recipe.displayName() + ": " + recipeEx.getMessage());
-                            }
-                        }
-                        ExecutionResult combined = new ExecutionResult(allChanges);
-
-                        if (!dryRun && AppServices.getChangeApplier() != null) {
-                            AppServices.getChangeApplier().apply(projectDir, combined.changes());
-                        }
-
-                        ui.access(() -> {
-                            progressDialog.close();
-                            new DiffDialog(combined, dryRun).open();
-                            if (!failedRecipes.isEmpty()) {
-                                Notification.show(
-                                        failedRecipes.size() + " recipe(s) failed:\n"
-                                                + String.join("\n", failedRecipes),
-                                        8000,
-                                        Notification.Position.MIDDLE);
-                            }
-                            dryRunButton.setEnabled(true);
-                            executeButton.setEnabled(true);
-                        });
-                    } catch (Exception e) {
-                        ui.access(() -> {
-                            progressDialog.close();
-                            Notification.show("Error: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
-                            dryRunButton.setEnabled(true);
-                            executeButton.setEnabled(true);
-                        });
+                        ExecutionResult result = AppServices.getEngine().execute(recipe.name(), sources);
+                        allChanges.addAll(result.changes());
+                    } catch (Exception recipeEx) {
+                        failedRecipes.add(recipe.displayName() + ": " + recipeEx.getMessage());
                     }
-                })
-                .start();
+                }
+                ExecutionResult combined = new ExecutionResult(allChanges);
+
+                if (!dryRun && AppServices.getChangeApplier() != null) {
+                    AppServices.getChangeApplier().apply(projectDir, combined.changes());
+                }
+
+                ui.access(() -> {
+                    progressDialog.close();
+                    new DiffDialog(combined, dryRun).open();
+                    if (!failedRecipes.isEmpty()) {
+                        Notification.show(
+                                failedRecipes.size() + " recipe(s) failed:\n" + String.join("\n", failedRecipes),
+                                8000,
+                                Notification.Position.MIDDLE);
+                    }
+                    dryRunButton.setEnabled(true);
+                    executeButton.setEnabled(true);
+                });
+            } catch (Exception e) {
+                ui.access(() -> {
+                    progressDialog.close();
+                    Notification.show("Error: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                    dryRunButton.setEnabled(true);
+                    executeButton.setEnabled(true);
+                });
+            }
+        });
     }
 
     // --- Testability hooks ---

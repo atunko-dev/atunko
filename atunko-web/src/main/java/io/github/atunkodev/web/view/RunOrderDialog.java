@@ -23,10 +23,13 @@ public class RunOrderDialog extends Dialog {
     private final List<RecipeInfo> originalRecipes;
     private final Grid<RecipeInfo> orderGrid = new Grid<>();
     private final Consumer<List<RecipeInfo>> onConfirm;
+    private final Runnable onCancel;
     private boolean flattened = false;
 
-    public RunOrderDialog(Set<RecipeInfo> selected, boolean dryRun, Consumer<List<RecipeInfo>> onConfirm) {
+    public RunOrderDialog(
+            Set<RecipeInfo> selected, boolean dryRun, Consumer<List<RecipeInfo>> onConfirm, Runnable onCancel) {
         this.onConfirm = onConfirm;
+        this.onCancel = onCancel;
         this.originalRecipes = selected.stream()
                 .sorted((a, b) -> a.displayName().compareToIgnoreCase(b.displayName()))
                 .toList();
@@ -78,7 +81,10 @@ public class RunOrderDialog extends Dialog {
         content.setPadding(false);
         add(content);
 
-        Button cancelButton = new Button("Cancel", VaadinIcon.CLOSE.create(), e -> close());
+        Button cancelButton = new Button("Cancel", VaadinIcon.CLOSE.create(), e -> {
+            close();
+            onCancel.run();
+        });
         cancelButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
 
         Button confirmButton = new Button("Confirm", VaadinIcon.CHECK.create(), e -> {

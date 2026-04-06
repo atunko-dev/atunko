@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
  * Playwright integration tests for features that require real browser rendering: diff2html
  * JavaScript rendering, side-by-side diff layout.
  */
-class DiffDialogE2eTest extends PlaywrightTestBase {
+class DiffDialogIntegrationTest extends PlaywrightTestBase {
 
     @Test
     void pageLoadsRecipeBrowserVisible() {
@@ -28,9 +28,7 @@ class DiffDialogE2eTest extends PlaywrightTestBase {
         page.locator("vaadin-grid-cell-content").first().waitFor();
 
         // Select the recipe by clicking the row's checkbox
-        page.locator("vaadin-grid-tree-column vaadin-checkbox, vaadin-checkbox")
-                .first()
-                .click();
+        page.locator("vaadin-grid vaadin-checkbox").first().click();
 
         // Click Dry Run button
         page.getByRole(AriaRole.BUTTON, new GetByRoleOptions().setName("Dry Run"))

@@ -677,7 +677,7 @@ class RecipeBrowserViewTest {
     @SVCs({"atunko:SVC_WEB_0001.14"})
     void runOrderDialogFlattenCheckboxExpandsComposites() {
         List<RecipeInfo> confirmed = new java.util.ArrayList<>();
-        RunOrderDialog dialog = new RunOrderDialog(Set.of(COMPOSITE), true, confirmed::addAll);
+        RunOrderDialog dialog = new RunOrderDialog(Set.of(COMPOSITE), true, confirmed::addAll, () -> {});
 
         // Initially has COMPOSITE
         assertThat(dialog.getOrderedRecipes()).containsExactly(COMPOSITE);
@@ -693,7 +693,7 @@ class RecipeBrowserViewTest {
     @Test
     @SVCs({"atunko:SVC_WEB_0001.14"})
     void runOrderDialogUnflattenRestoresOriginal() {
-        RunOrderDialog dialog = new RunOrderDialog(Set.of(COMPOSITE), true, _ -> {});
+        RunOrderDialog dialog = new RunOrderDialog(Set.of(COMPOSITE), true, _ -> {}, () -> {});
 
         _setValue(_get(dialog, Checkbox.class), true);
         _setValue(_get(dialog, Checkbox.class), false);
@@ -706,7 +706,7 @@ class RecipeBrowserViewTest {
     @SVCs({"atunko:SVC_WEB_0001.16"})
     void runOrderDialogConfirmButtonInvokesCallback() {
         List<RecipeInfo> confirmed = new java.util.ArrayList<>();
-        RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA, BETA), true, confirmed::addAll);
+        RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA, BETA), true, confirmed::addAll, () -> {});
 
         _click(_get(dialog, Button.class, spec -> spec.withText("Confirm")));
 
@@ -717,7 +717,7 @@ class RecipeBrowserViewTest {
     @SVCs({"atunko:SVC_WEB_0001.16"})
     void runOrderDialogCancelButtonDoesNotInvokeCallback() {
         List<RecipeInfo> confirmed = new java.util.ArrayList<>();
-        RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA), true, confirmed::addAll);
+        RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA), true, confirmed::addAll, () -> {});
 
         _click(_get(dialog, Button.class, spec -> spec.withText("Cancel")));
 
@@ -892,7 +892,7 @@ class RecipeBrowserViewTest {
     @Test
     @SVCs({"atunko:SVC_WEB_0001.15"})
     void runOrderDialogClickMoveUpReordersRecipes() {
-        RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA, BETA), true, _ -> {});
+        RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA, BETA), true, _ -> {}, () -> {});
         List<RecipeInfo> initial = dialog.getOrderedRecipes();
         RecipeInfo second = initial.get(1);
 
@@ -906,7 +906,7 @@ class RecipeBrowserViewTest {
     @Test
     @SVCs({"atunko:SVC_WEB_0001.15"})
     void runOrderDialogClickMoveDownReordersRecipes() {
-        RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA, BETA), true, _ -> {});
+        RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA, BETA), true, _ -> {}, () -> {});
         List<RecipeInfo> initial = dialog.getOrderedRecipes();
         RecipeInfo first = initial.get(0);
 
