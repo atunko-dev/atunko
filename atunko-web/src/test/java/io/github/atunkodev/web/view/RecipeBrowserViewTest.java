@@ -1,16 +1,27 @@
 package io.github.atunkodev.web.view;
 
+import static com.github.mvysny.kaributesting.v10.LocatorJ._click;
 import static com.github.mvysny.kaributesting.v10.LocatorJ._find;
 import static com.github.mvysny.kaributesting.v10.LocatorJ._get;
+import static com.github.mvysny.kaributesting.v10.LocatorJ._setValue;
+import static com.github.mvysny.kaributesting.v10.NotificationsKt.clearNotifications;
+import static com.github.mvysny.kaributesting.v10.NotificationsKt.expectNotifications;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.mvysny.kaributesting.v10.MockVaadin;
 import com.github.mvysny.kaributesting.v10.Routes;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import io.github.atunkodev.core.AppServices;
 import io.github.atunkodev.core.config.RecipeEntry;
 import io.github.atunkodev.core.config.RunConfig;
+import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
@@ -22,12 +33,15 @@ import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.web.RecipeHolder;
 import io.github.reqstool.annotations.SVCs;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class RecipeBrowserViewTest {
 
@@ -475,5 +489,334 @@ class RecipeBrowserViewTest {
         view.runRecipes(true);
 
         assertThat(appliedChanges[0]).isNull();
+    }
+
+    // ==========================================================================
+    // Karibu UI interaction tests — buttons, dialogs, notifications, form input
+    // ==========================================================================
+
+    // --- Button click: Select All / Deselect All ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.22"})
+    void clickSelectAllButton_selectsAllVisibleRecipes() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
+        clearNotifications();
+        _click(_get(Button.class, spec -> spec.withText("Select All")));
+        assertThat(view.getSelectedRecipes()).containsExactlyInAnyOrder(ALPHA, BETA, GAMMA);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.23"})
+    void clickDeselectAllButton_clearsAllSelections() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
+        view.selectAllVisible();
+        _click(_get(Button.class, spec -> spec.withText("Deselect All")));
+        assertThat(view.getSelectedRecipes()).isEmpty();
+    }
+
+    // --- Button click: Save with no selection → notification ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.17"})
+    void clickSaveButton_noSelection_showsNotification() {
+        setupView(List.of(ALPHA));
+        clearNotifications();
+        _click(_get(Button.class, spec -> spec.withText("Save")));
+        expectNotifications("No recipes selected");
+    }
+
+    // --- Button click: Save dialog flow with @TempDir ---
+
+    @TempDir
+    Path tempDir;
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.17"})
+    void clickSaveButton_withSelection_opensDialogAndSavesFile() throws IOException {
+        SessionHolder.init(tempDir, null);
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
+        view.selectAllVisible();
+        clearNotifications();
+
+        // Click Save button → opens save dialog
+        _click(_get(Button.class, spec -> spec.withText("Save")));
+
+        // Fill in the name field inside the dialog
+        _setValue(_get(TextField.class, spec -> spec.withLabel("Name")), "my-test-config");
+
+        // Click the Save button inside the dialog (different from the status bar Save)
+        List<Button> saveButtons = _find(Button.class, spec -> spec.withText("Save"));
+        // The dialog Save button is the second one (first is status bar)
+        Button dialogSaveButton = saveButtons.stream()
+                .filter(b -> b.getParent().isPresent()
+                        && b.getParent().get().getParent().isPresent())
+                .reduce((first, second) -> second)
+                .orElseThrow();
+        _click(dialogSaveButton);
+
+        // Verify file was created
+        Path savedFile = tempDir.resolve("atunko/runs/my-test-config.yaml");
+        assertThat(savedFile).exists();
+
+        // Verify notification
+        expectNotifications("Saved: my-test-config.yaml");
+
+        // Verify file content round-trips
+        RunConfigService service = new RunConfigService();
+        RunConfig loaded = service.load(savedFile);
+        assertThat(loaded.recipes()).hasSize(2);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.17"})
+    void saveDialog_emptyName_showsValidationNotification() {
+        RecipeBrowserView view = setupView(List.of(ALPHA));
+        view.selectAllVisible();
+        clearNotifications();
+
+        _click(_get(Button.class, spec -> spec.withText("Save")));
+
+        // Leave name field empty (default) and click dialog Save
+        List<Button> saveButtons = _find(Button.class, spec -> spec.withText("Save"));
+        Button dialogSaveButton = saveButtons.stream()
+                .filter(b -> b.getParent().isPresent()
+                        && b.getParent().get().getParent().isPresent())
+                .reduce((first, second) -> second)
+                .orElseThrow();
+        _click(dialogSaveButton);
+
+        expectNotifications("Name is required");
+    }
+
+    // --- Button click: Load with no runs dir → notification ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.18"})
+    void clickLoadButton_noRunsDir_showsNotification() {
+        SessionHolder.init(tempDir, null);
+        setupView(List.of(ALPHA));
+        clearNotifications();
+        _click(_get(Button.class, spec -> spec.withText("Load")));
+        expectNotifications("No saved runs found");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.18"})
+    void clickLoadButton_emptyRunsDir_showsNotification() throws IOException {
+        SessionHolder.init(tempDir, null);
+        Files.createDirectories(tempDir.resolve("atunko/runs"));
+        setupView(List.of(ALPHA));
+        clearNotifications();
+        _click(_get(Button.class, spec -> spec.withText("Load")));
+        expectNotifications("No saved runs found");
+    }
+
+    // --- Form input: search field via _setValue ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.2"})
+    void searchField_setValue_filtersRecipes() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
+        _setValue(_get(TextField.class, spec -> spec.withPlaceholder("Search recipes...")), "Alpha");
+        assertThat(view.getVisibleRecipes()).containsExactly(ALPHA);
+    }
+
+    // --- Form input: sort dropdown via _setValue ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.20"})
+    @SuppressWarnings("unchecked")
+    void sortDropdown_setValue_reordersRecipes() {
+        RecipeBrowserView view = setupView(List.of(GAMMA, ALPHA, BETA));
+        // Find the sort select and change its value via Karibu
+        List<Select> selects = _find(Select.class);
+        Select<SortOrder> sortSelect = selects.stream()
+                .filter(s -> s.getValue() instanceof SortOrder)
+                .findFirst()
+                .orElseThrow();
+        _setValue(sortSelect, SortOrder.TAGS);
+
+        List<String> names =
+                view.getVisibleRecipes().stream().map(RecipeInfo::name).toList();
+        // ALPHA(java,spring), GAMMA(java), BETA(spring) → java group first, then spring
+        assertThat(names).containsExactly("org.test.Alpha", "org.test.Gamma", "org.test.Beta");
+    }
+
+    // --- Notification: Dry Run with no selection ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.13"})
+    void clickDryRunButton_noSelection_showsNotification() {
+        RecipeExecutionEngine engine = new RecipeExecutionEngine(null);
+        AppServices.init(engine, new ProjectSourceParser(), new ChangeApplier());
+        SessionHolder.init(Path.of("."), new ProjectInfo(List.of(), List.of(Path.of("."))));
+        setupView(List.of(ALPHA));
+        clearNotifications();
+        _click(_get(Button.class, spec -> spec.withText("Dry Run")));
+        expectNotifications("No recipes selected");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.13"})
+    void clickExecuteButton_noSelection_showsNotification() {
+        RecipeExecutionEngine engine = new RecipeExecutionEngine(null);
+        AppServices.init(engine, new ProjectSourceParser(), new ChangeApplier());
+        SessionHolder.init(Path.of("."), new ProjectInfo(List.of(), List.of(Path.of("."))));
+        setupView(List.of(ALPHA));
+        clearNotifications();
+        _click(_get(Button.class, spec -> spec.withText("Execute")));
+        expectNotifications("No recipes selected");
+    }
+
+    // --- RunOrderDialog: button interactions ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.14"})
+    void runOrderDialog_flattenCheckbox_expandsComposites() {
+        List<RecipeInfo> confirmed = new java.util.ArrayList<>();
+        RunOrderDialog dialog = new RunOrderDialog(Set.of(COMPOSITE), true, confirmed::addAll);
+
+        // Initially has COMPOSITE
+        assertThat(dialog.getOrderedRecipes()).containsExactly(COMPOSITE);
+
+        // Toggle flatten via Karibu
+        _setValue(_get(dialog, Checkbox.class), true);
+
+        // Now should contain the leaf children
+        assertThat(dialog.getOrderedRecipes()).containsExactly(CHILD_1, CHILD_2);
+        assertThat(dialog.isFlattened()).isTrue();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.14"})
+    void runOrderDialog_unflatten_restoresOriginal() {
+        RunOrderDialog dialog = new RunOrderDialog(Set.of(COMPOSITE), true, _ -> {});
+
+        _setValue(_get(dialog, Checkbox.class), true);
+        _setValue(_get(dialog, Checkbox.class), false);
+
+        assertThat(dialog.getOrderedRecipes()).containsExactly(COMPOSITE);
+        assertThat(dialog.isFlattened()).isFalse();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.16"})
+    void runOrderDialog_confirmButton_invokesCallback() {
+        List<RecipeInfo> confirmed = new java.util.ArrayList<>();
+        RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA, BETA), true, confirmed::addAll);
+
+        _click(_get(dialog, Button.class, spec -> spec.withText("Confirm")));
+
+        assertThat(confirmed).hasSize(2);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.16"})
+    void runOrderDialog_cancelButton_doesNotInvokeCallback() {
+        List<RecipeInfo> confirmed = new java.util.ArrayList<>();
+        RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA), true, confirmed::addAll);
+
+        _click(_get(dialog, Button.class, spec -> spec.withText("Cancel")));
+
+        assertThat(confirmed).isEmpty();
+    }
+
+    // --- Load dialog flow: pick a file and confirm ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.18"})
+    @SuppressWarnings("unchecked")
+    void clickLoadButton_withSavedRun_loadsAndSelectsRecipes() throws IOException {
+        SessionHolder.init(tempDir, null);
+        Path runsDir = tempDir.resolve("atunko/runs");
+        Files.createDirectories(runsDir);
+
+        // Write a run config with ALPHA
+        RunConfigService service = new RunConfigService();
+        service.save(new RunConfig(List.of(new RecipeEntry("org.test.Alpha"))), runsDir.resolve("saved.yaml"));
+
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
+        clearNotifications();
+
+        // Click Load → opens picker dialog
+        _click(_get(Button.class, spec -> spec.withText("Load")));
+
+        // Select the file in the picker — use style filter to find the dialog's Select (width:100%)
+        List<Select> selects = _find(Select.class);
+        Select<Path> fileSelect = selects.stream()
+                .filter(s -> !(s.getValue() instanceof SortOrder))
+                .findFirst()
+                .orElseThrow();
+        _setValue(fileSelect, runsDir.resolve("saved.yaml"));
+
+        // Click the Load button inside the dialog
+        List<Button> loadButtons = _find(Button.class, spec -> spec.withText("Load"));
+        Button dialogLoadButton = loadButtons.stream()
+                .filter(b -> b.getParent().isPresent()
+                        && b.getParent().get().getParent().isPresent())
+                .reduce((first, second) -> second)
+                .orElseThrow();
+        _click(dialogLoadButton);
+
+        expectNotifications("Loaded: saved");
+        assertThat(view.getSelectedRecipes()).containsExactly(ALPHA);
+    }
+
+    // --- Form input: tag filter via _setValue on MultiSelectComboBox ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.2"})
+    @SuppressWarnings("unchecked")
+    void tagFilter_setValue_filtersRecipesByTag() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
+        MultiSelectComboBox<String> tagCombo = _get(MultiSelectComboBox.class);
+        _setValue(tagCombo, Set.of("spring"));
+        // ALPHA has spring + java, BETA has spring, GAMMA has only java
+        assertThat(view.getVisibleRecipes()).containsExactlyInAnyOrder(ALPHA, BETA);
+    }
+
+    // --- Grid selection: select row via UI, verify detail panel ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.6"})
+    void gridSelection_selectRow_updatesDetailPanel() {
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
+        TreeGrid<TreeNode> grid = view.getTreeGrid();
+
+        // Find actual node from grid's data — must match the grid's own TreeNode instance
+        TreeNode alphaNode = grid.getSelectedItems().isEmpty()
+                ? grid.getTreeData().getRootItems().stream()
+                        .filter(n -> n.recipe().equals(ALPHA))
+                        .findFirst()
+                        .orElseThrow()
+                : null;
+        grid.select(alphaNode);
+
+        // The selection listener should update the detail panel
+        assertThat(view.getDetailPanelRecipe()).isEqualTo(ALPHA);
+        // Recipe name is in H3, tags in Span
+        assertThat(_find(H3.class).stream().map(H3::getText).toList()).anyMatch(t -> t.contains("Alpha Recipe"));
+        assertThat(_find(Span.class).stream().map(Span::getText).toList())
+                .anyMatch(t -> t.startsWith("Tags:") && t.contains("spring"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.6"})
+    void gridSelection_selectCompositeRow_showsChildList() {
+        RecipeBrowserView view = setupView(List.of(COMPOSITE));
+        TreeGrid<TreeNode> grid = view.getTreeGrid();
+
+        TreeNode compositeNode = grid.getTreeData().getRootItems().stream()
+                .filter(n -> n.recipe().equals(COMPOSITE))
+                .findFirst()
+                .orElseThrow();
+        grid.select(compositeNode);
+
+        assertThat(view.getDetailPanelRecipe()).isEqualTo(COMPOSITE);
+        assertThat(_find(H3.class).stream().map(H3::getText).toList()).anyMatch(t -> t.contains("Composite Recipe"));
+        List<String> spanTexts = _find(Span.class).stream().map(Span::getText).toList();
+        assertThat(spanTexts).anyMatch(t -> t.contains("Child One"));
+        assertThat(spanTexts).anyMatch(t -> t.contains("Child Two"));
     }
 }
