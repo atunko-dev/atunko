@@ -16,17 +16,22 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.virtuallist.VirtualList;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
  * GitHub/GitLab-style diff dialog powered by diff2html.
  *
- * <p>Left panel: filterable file list. Right panel: side-by-side diff for the selected file.
+ * <p>Left panel: filterable file list (virtualized). Right panel: side-by-side diff for the
+ * selected file.
  */
 @NpmPackage(value = "diff2html", version = "3.4.56")
 @JsModule("./diff2html-init.js")
@@ -39,13 +44,13 @@ public class DiffDialog extends Dialog {
     private FileChange selectedChange;
     private String filterText = "";
 
-    private final Div fileListContainer = new Div();
+    private final VirtualList<FileChange> fileList = new VirtualList<>();
     private final Div diffContainer = new Div();
     private final String diffContainerId =
             "diff-" + UUID.randomUUID().toString().replace("-", "");
 
     public DiffDialog(ExecutionResult result, boolean dryRun) {
-        this.changes = result.changes();
+        this.changes = deduplicateChanges(result.changes());
 
         setHeaderTitle(
                 (dryRun ? "Dry Run Preview" : "Execution Results") + " — " + changes.size() + " file(s) changed");
@@ -96,10 +101,13 @@ public class DiffDialog extends Dialog {
             refreshFileList();
         });
 
-        fileListContainer.getStyle().set("overflow-y", "auto");
+        fileList.setRenderer(new ComponentRenderer<>(this::renderFileItem));
+        fileList.setWidthFull();
+        fileList.setHeightFull();
+        refreshFileList();
 
         panel.add(filter);
-        panel.addAndExpand(fileListContainer);
+        panel.addAndExpand(fileList);
         return panel;
     }
 
@@ -112,14 +120,14 @@ public class DiffDialog extends Dialog {
     // --- File list ---
 
     private void refreshFileList() {
-        fileListContainer.removeAll();
-        changes.stream()
+        List<FileChange> filtered = changes.stream()
                 .filter(c -> filterText.isBlank()
                         || c.path().toString().toLowerCase().contains(filterText.toLowerCase()))
-                .forEach(c -> fileListContainer.add(buildFileItem(c)));
+                .toList();
+        fileList.setItems(filtered);
     }
 
-    private Div buildFileItem(FileChange change) {
+    private Div renderFileItem(FileChange change) {
         boolean selected = change.equals(selectedChange);
         String fileName = change.path().getFileName().toString();
         String dir =
@@ -164,7 +172,7 @@ public class DiffDialog extends Dialog {
 
     private void selectChange(FileChange change) {
         selectedChange = change;
-        refreshFileList();
+        fileList.getDataProvider().refreshAll();
         String diffString = buildUnifiedDiff(change);
         UI.getCurrent()
                 .getPage()
@@ -188,5 +196,17 @@ public class DiffDialog extends Dialog {
             return List.of();
         }
         return Arrays.asList(text.replace("\r\n", "\n").split("\n", -1));
+    }
+
+    /**
+     * Deduplicates file changes by path, keeping the last change for each file. When multiple
+     * recipes modify the same file, only the final state matters.
+     */
+    static List<FileChange> deduplicateChanges(List<FileChange> changes) {
+        Map<String, FileChange> byPath = new LinkedHashMap<>();
+        for (FileChange change : changes) {
+            byPath.put(change.path().toString(), change);
+        }
+        return List.copyOf(byPath.values());
     }
 }

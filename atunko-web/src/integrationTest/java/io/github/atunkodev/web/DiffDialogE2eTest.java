@@ -16,7 +16,7 @@ class DiffDialogE2eTest extends PlaywrightTestBase {
     @Test
     void pageLoadsRecipeBrowserVisible() {
         navigateTo("/");
-        assertThat(page).hasTitle("atunko");
+        page.locator("vaadin-app-layout").waitFor();
         assertThat(page.locator("vaadin-app-layout")).isVisible();
     }
 

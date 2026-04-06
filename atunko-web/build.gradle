@@ -35,3 +35,10 @@ testing {
 
 // Integration tests need access to all main implementation deps (VaadinBoot, Vaadin, etc.)
 configurations.integrationTestImplementation.extendsFrom(configurations.implementation)
+
+// Task to install Playwright browsers via the Playwright CLI
+tasks.register('playwrightInstall', JavaExec) {
+    classpath = configurations.integrationTestRuntimeClasspath + sourceSets.integrationTest.output
+    mainClass = 'com.microsoft.playwright.CLI'
+    args = ['install', '--with-deps', 'chromium']
+}

@@ -35,8 +35,8 @@ jobs:
           java-version: 25
           cache: gradle
 
-      - name: Install Playwright browsers
-        run: ./gradlew :atunko-web:compileIntegrationTestJava && npx playwright install --with-deps chromium
+      - name: Install Playwright Chromium
+        run: ./gradlew :atunko-web:playwrightInstall
 
       - name: Integration tests
         run: ./gradlew :atunko-web:integrationTest
