@@ -13,8 +13,10 @@ import com.github.mvysny.kaributesting.v10.Routes;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
@@ -818,5 +820,114 @@ class RecipeBrowserViewTest {
         List<String> spanTexts = _find(Span.class).stream().map(Span::getText).toList();
         assertThat(spanTexts).anyMatch(t -> t.contains("Child One"));
         assertThat(spanTexts).anyMatch(t -> t.contains("Child Two"));
+    }
+
+    // --- Dialog cancel buttons ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.17"})
+    void saveDialog_cancelButton_dismissesDialogNoFileCreated() {
+        SessionHolder.init(tempDir, null);
+        RecipeBrowserView view = setupView(List.of(ALPHA));
+        view.selectAllVisible();
+        clearNotifications();
+
+        _click(_get(Button.class, spec -> spec.withText("Save")));
+
+        // Fill name but click Cancel
+        _setValue(_get(TextField.class, spec -> spec.withLabel("Name")), "should-not-save");
+        _click(_get(Button.class, spec -> spec.withText("Cancel")));
+
+        assertThat(tempDir.resolve("atunko/runs/should-not-save.yaml")).doesNotExist();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.18"})
+    void loadDialog_cancelButton_doesNotChangeSelection() throws IOException {
+        SessionHolder.init(tempDir, null);
+        Path runsDir = tempDir.resolve("atunko/runs");
+        Files.createDirectories(runsDir);
+        new RunConfigService()
+                .save(new RunConfig(List.of(new RecipeEntry("org.test.Alpha"))), runsDir.resolve("test.yaml"));
+
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
+        clearNotifications();
+
+        _click(_get(Button.class, spec -> spec.withText("Load")));
+        _click(_get(Button.class, spec -> spec.withText("Cancel")));
+
+        assertThat(view.getSelectedRecipes()).isEmpty();
+    }
+
+    // --- Load dialog: confirm without selecting a file ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.18"})
+    void loadDialog_confirmWithoutSelection_showsNotification() throws IOException {
+        SessionHolder.init(tempDir, null);
+        Path runsDir = tempDir.resolve("atunko/runs");
+        Files.createDirectories(runsDir);
+        new RunConfigService()
+                .save(new RunConfig(List.of(new RecipeEntry("org.test.Alpha"))), runsDir.resolve("test.yaml"));
+
+        setupView(List.of(ALPHA));
+        clearNotifications();
+
+        _click(_get(Button.class, spec -> spec.withText("Load")));
+
+        // Click Load inside dialog without selecting a file first
+        List<Button> loadButtons = _find(Button.class, spec -> spec.withText("Load"));
+        Button dialogLoadButton = loadButtons.stream()
+                .filter(b -> b.getParent().isPresent()
+                        && b.getParent().get().getParent().isPresent())
+                .reduce((first, second) -> second)
+                .orElseThrow();
+        _click(dialogLoadButton);
+
+        expectNotifications("Select a configuration");
+    }
+
+    // --- RunOrderDialog: move up/down via arrow button clicks ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.15"})
+    void runOrderDialog_clickMoveUp_reordersRecipes() {
+        RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA, BETA), true, _ -> {});
+        List<RecipeInfo> initial = dialog.getOrderedRecipes();
+        RecipeInfo second = initial.get(1);
+
+        // Select the second recipe in the grid, then click Move Up
+        _get(dialog, Grid.class).select(second);
+        _click(_get(dialog, Button.class, spec -> spec.withIcon(VaadinIcon.ARROW_UP)));
+
+        assertThat(dialog.getOrderedRecipes().get(0)).isEqualTo(second);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.15"})
+    void runOrderDialog_clickMoveDown_reordersRecipes() {
+        RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA, BETA), true, _ -> {});
+        List<RecipeInfo> initial = dialog.getOrderedRecipes();
+        RecipeInfo first = initial.get(0);
+
+        // Select the first recipe, then click Move Down
+        _get(dialog, Grid.class).select(first);
+        _click(_get(dialog, Button.class, spec -> spec.withIcon(VaadinIcon.ARROW_DOWN)));
+
+        assertThat(dialog.getOrderedRecipes().get(1)).isEqualTo(first);
+    }
+
+    // --- Coverage badge: verify coveredRecipes drives the badge logic ---
+    // Note: the actual Span rendering inside ComponentHierarchyColumn is not traversable
+    // by Karibu (grid rows are lazily rendered). We verify the data model instead.
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.24"})
+    void coverageSet_afterSelectAll_containsChildrenNotComposite() {
+        RecipeBrowserView view = setupView(List.of(COMPOSITE, GAMMA));
+        view.selectAllVisible();
+
+        assertThat(view.getCoveredRecipes()).contains(CHILD_1, CHILD_2);
+        assertThat(view.getCoveredRecipes()).doesNotContain(COMPOSITE, GAMMA);
     }
 }
