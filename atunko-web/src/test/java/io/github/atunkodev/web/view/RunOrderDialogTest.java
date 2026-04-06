@@ -20,14 +20,14 @@ class RunOrderDialogTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.15"})
-    void flatten_expandsCompositesRecursively() {
+    void flattenExpandsCompositesRecursively() {
         List<RecipeInfo> result = RunOrderDialog.flatten(List.of(NESTED));
         assertThat(result).containsExactly(LEAF_A, LEAF_B, LEAF_C);
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.15"})
-    void flatten_deduplicatesSharedRecipes() {
+    void flattenDeduplicatesSharedRecipes() {
         RecipeInfo other = new RecipeInfo("o.t.Other", "Other", "Other", Set.of(), List.of(LEAF_A));
         List<RecipeInfo> result = RunOrderDialog.flatten(List.of(COMPOSITE, other));
         assertThat(result).containsExactly(LEAF_A, LEAF_B);
@@ -35,21 +35,21 @@ class RunOrderDialogTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.15"})
-    void flatten_leafRecipes_unchanged() {
+    void flattenLeafRecipesUnchanged() {
         List<RecipeInfo> result = RunOrderDialog.flatten(List.of(LEAF_A, LEAF_B));
         assertThat(result).containsExactly(LEAF_A, LEAF_B);
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.14"})
-    void flatten_emptyList_returnsEmpty() {
+    void flattenEmptyListReturnsEmpty() {
         List<RecipeInfo> result = RunOrderDialog.flatten(List.of());
         assertThat(result).isEmpty();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.16"})
-    void moveUp_swapsWithPrevious() {
+    void moveUpSwapsWithPrevious() {
         List<RecipeInfo> input = new java.util.ArrayList<>(List.of(LEAF_A, LEAF_B, LEAF_C));
         // Simulate swap: move index 1 up
         int index = 1;
@@ -61,7 +61,7 @@ class RunOrderDialogTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.16"})
-    void moveDown_swapsWithNext() {
+    void moveDownSwapsWithNext() {
         List<RecipeInfo> input = new java.util.ArrayList<>(List.of(LEAF_A, LEAF_B, LEAF_C));
         // Simulate swap: move index 1 down
         int index = 1;

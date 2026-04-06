@@ -19,7 +19,7 @@ class AtunkoTuiTest {
 
     @Test
     @SVCs({"atunko:SVC_TUI_0001.15"})
-    void logFile_configuresFileHandler(@TempDir Path tempDir) {
+    void logFileConfiguresFileHandler(@TempDir Path tempDir) {
         Path logFile = tempDir.resolve("debug.log");
         TuiController controller = new TuiController(RECIPES);
 

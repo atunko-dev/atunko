@@ -15,7 +15,7 @@ class SearchCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0004.1"})
-    void search_displaysMatchingRecipesAsText() {
+    void searchDisplaysMatchingRecipesAsText() {
         CommandLineFixture cli = CommandLineFixture.create();
 
         int exitCode = cli.execute("search", "unused imports");
@@ -27,7 +27,7 @@ class SearchCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0004.1"})
-    void search_showsMessageWhenNoResults() {
+    void searchShowsMessageWhenNoResults() {
         CommandLineFixture cli = CommandLineFixture.create();
 
         int exitCode = cli.execute("search", "xyznonexistent999");
@@ -38,7 +38,7 @@ class SearchCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0004.2"})
-    void search_displaysMatchingRecipesAsJson() throws Exception {
+    void searchDisplaysMatchingRecipesAsJson() throws Exception {
         CommandLineFixture cli = CommandLineFixture.create();
 
         int exitCode = cli.execute("search", "unused imports", "--format", "json");
@@ -55,7 +55,7 @@ class SearchCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0004.3"})
-    void search_sortsByName() {
+    void searchSortsByName() {
         CommandLineFixture cli = CommandLineFixture.create();
 
         int exitCode = cli.execute("search", "java", "--sort", "name");
@@ -66,7 +66,7 @@ class SearchCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0004.4"})
-    void search_sortsByTags() {
+    void searchSortsByTags() {
         CommandLineFixture cli = CommandLineFixture.create();
 
         int exitCode = cli.execute("search", "java", "--sort", "tags");
@@ -77,7 +77,7 @@ class SearchCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0004.5"})
-    void search_filtersByField() {
+    void searchFiltersByField() {
         CommandLineFixture cli = CommandLineFixture.create();
 
         // Search only in tags — "java" is a common tag

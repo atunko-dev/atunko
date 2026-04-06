@@ -16,7 +16,7 @@ class ProjectSourceParserTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0003.1"})
-    void parse_parsesJavaFiles() {
+    void parseParsesJavaFiles() {
         ProjectInfo info = new ProjectInfo(
                 List.of(), List.of(FIXTURE_DIR.resolve("src/main/java")), List.of(), List.of(), List.of());
 
@@ -28,7 +28,7 @@ class ProjectSourceParserTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0003.1"})
-    void parse_parsesYamlFiles() {
+    void parseParsesYamlFiles() {
         ProjectInfo info = new ProjectInfo(
                 List.of(), List.of(), List.of(FIXTURE_DIR.resolve("src/main/resources")), List.of(), List.of());
 
@@ -39,7 +39,7 @@ class ProjectSourceParserTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0003.1"})
-    void parse_parsesPropertiesFiles() {
+    void parseParsesPropertiesFiles() {
         ProjectInfo info = new ProjectInfo(
                 List.of(), List.of(), List.of(FIXTURE_DIR.resolve("src/main/resources")), List.of(), List.of());
 
@@ -50,7 +50,7 @@ class ProjectSourceParserTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0003.1"})
-    void parse_parsesXmlFiles() {
+    void parseParsesXmlFiles() {
         ProjectInfo info = new ProjectInfo(
                 List.of(), List.of(), List.of(FIXTURE_DIR.resolve("src/main/resources")), List.of(), List.of());
 
@@ -61,7 +61,7 @@ class ProjectSourceParserTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0003.1"})
-    void parse_parsesJsonFiles() {
+    void parseParsesJsonFiles() {
         ProjectInfo info = new ProjectInfo(
                 List.of(), List.of(), List.of(FIXTURE_DIR.resolve("src/main/resources")), List.of(), List.of());
 
@@ -72,7 +72,7 @@ class ProjectSourceParserTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0003.1"})
-    void parse_parsesAllFileTypesFromMultipleDirectories() {
+    void parseParsesAllFileTypesFromMultipleDirectories() {
         ProjectInfo info = new ProjectInfo(
                 List.of(),
                 List.of(FIXTURE_DIR.resolve("src/main/java")),
@@ -92,7 +92,7 @@ class ProjectSourceParserTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0003.1"})
-    void parse_emptyDirectories_returnsEmptyList() {
+    void parseEmptyDirectoriesReturnsEmptyList() {
         ProjectInfo info = new ProjectInfo(List.of(), List.of(), List.of(), List.of(), List.of());
 
         List<SourceFile> sources = parser.parse(info);

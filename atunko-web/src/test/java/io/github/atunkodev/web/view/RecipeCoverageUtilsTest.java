@@ -23,35 +23,35 @@ class RecipeCoverageUtilsTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.25"})
-    void computeCovered_singleComposite_returnsChildren() {
+    void computeCoveredSingleCompositeReturnsChildren() {
         Set<RecipeInfo> covered = RecipeCoverageUtils.computeCovered(Set.of(COMPOSITE_1));
         assertThat(covered).containsExactlyInAnyOrder(LEAF_A, LEAF_B);
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.25"})
-    void computeCovered_nestedComposite_returnsAllDescendants() {
+    void computeCoveredNestedCompositeReturnsAllDescendants() {
         Set<RecipeInfo> covered = RecipeCoverageUtils.computeCovered(Set.of(NESTED_COMPOSITE));
         assertThat(covered).containsExactlyInAnyOrder(COMPOSITE_1, LEAF_A, LEAF_B, LEAF_C);
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.25"})
-    void computeCovered_noCompositeSelected_returnsEmpty() {
+    void computeCoveredNoCompositeSelectedReturnsEmpty() {
         Set<RecipeInfo> covered = RecipeCoverageUtils.computeCovered(Set.of(LEAF_A));
         assertThat(covered).isEmpty();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.25"})
-    void computeCovered_compositeItselfNotMarkedAsCovered() {
+    void computeCoveredCompositeItselfNotMarkedAsCovered() {
         Set<RecipeInfo> covered = RecipeCoverageUtils.computeCovered(Set.of(COMPOSITE_1));
         assertThat(covered).doesNotContain(COMPOSITE_1);
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.25"})
-    void computeCovered_emptySelection_returnsEmpty() {
+    void computeCoveredEmptySelectionReturnsEmpty() {
         Set<RecipeInfo> covered = RecipeCoverageUtils.computeCovered(Set.of());
         assertThat(covered).isEmpty();
     }
@@ -60,7 +60,7 @@ class RecipeCoverageUtilsTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.27"})
-    void buildReverseIndex_childInOneComposite_mapsToParent() {
+    void buildReverseIndexChildInOneCompositeMapsToParent() {
         Map<RecipeInfo, List<RecipeInfo>> index = RecipeCoverageUtils.buildReverseIndex(List.of(COMPOSITE_1));
         assertThat(index.get(LEAF_A)).containsExactly(COMPOSITE_1);
         assertThat(index.get(LEAF_B)).containsExactly(COMPOSITE_1);
@@ -68,7 +68,7 @@ class RecipeCoverageUtilsTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.27"})
-    void buildReverseIndex_childInMultipleComposites_mapsToAll() {
+    void buildReverseIndexChildInMultipleCompositesMapsToAll() {
         RecipeInfo other = new RecipeInfo("o.t.Other", "Other", "Other composite", Set.of(), List.of(LEAF_A));
         Map<RecipeInfo, List<RecipeInfo>> index = RecipeCoverageUtils.buildReverseIndex(List.of(COMPOSITE_1, other));
         assertThat(index.get(LEAF_A)).containsExactlyInAnyOrder(COMPOSITE_1, other);
@@ -76,14 +76,14 @@ class RecipeCoverageUtilsTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.27"})
-    void buildReverseIndex_noComposites_emptyMap() {
+    void buildReverseIndexNoCompositesEmptyMap() {
         Map<RecipeInfo, List<RecipeInfo>> index = RecipeCoverageUtils.buildReverseIndex(List.of(LEAF_A, LEAF_B));
         assertThat(index).isEmpty();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.27"})
-    void buildReverseIndex_nestedComposite_mapsAllLevels() {
+    void buildReverseIndexNestedCompositeMapsAllLevels() {
         Map<RecipeInfo, List<RecipeInfo>> index = RecipeCoverageUtils.buildReverseIndex(List.of(NESTED_COMPOSITE));
         assertThat(index.get(COMPOSITE_1)).containsExactly(NESTED_COMPOSITE);
         assertThat(index.get(LEAF_C)).containsExactly(NESTED_COMPOSITE);

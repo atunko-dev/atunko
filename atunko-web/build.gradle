@@ -20,3 +20,18 @@ dependencies {
     // Testing
     testImplementation libs.karibu.testing
 }
+
+testing {
+    suites {
+        integrationTest(JvmTestSuite) {
+            useJUnitJupiter()
+            dependencies {
+                implementation project()
+                implementation libs.playwright
+            }
+        }
+    }
+}
+
+// Integration tests need access to all main implementation deps (VaadinBoot, Vaadin, etc.)
+configurations.integrationTestImplementation.extendsFrom(configurations.implementation)

@@ -15,7 +15,7 @@ class MavenProjectScannerTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_MAVEN_0001"})
-    void scan_returnsNonEmptyClasspath() {
+    void scanReturnsNonEmptyClasspath() {
         ProjectInfo info = scanner.scan(MAVEN_PROJECT_DIR);
 
         assertThat(info.classpath()).isNotEmpty();
@@ -24,7 +24,7 @@ class MavenProjectScannerTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_MAVEN_0001"})
-    void scan_returnsSourceDirectories() {
+    void scanReturnsSourceDirectories() {
         ProjectInfo info = scanner.scan(MAVEN_PROJECT_DIR);
 
         assertThat(info.sourceDirs()).isNotEmpty();
@@ -33,7 +33,7 @@ class MavenProjectScannerTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_MAVEN_0001"})
-    void scan_nonExistentDirectory_throws() {
+    void scanNonExistentDirectoryThrows() {
         assertThatThrownBy(() -> scanner.scan(Path.of("/nonexistent/maven/project")))
                 .isInstanceOf(Exception.class);
     }

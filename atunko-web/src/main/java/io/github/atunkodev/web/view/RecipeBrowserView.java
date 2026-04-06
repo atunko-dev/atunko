@@ -88,6 +88,7 @@ public class RecipeBrowserView extends AppLayout {
         content.setSizeFull();
         content.setPadding(false);
         content.setSpacing(false);
+        content.getStyle().set("overflow", "hidden");
 
         content.add(buildSearchBar());
         content.addAndExpand(buildSplitLayout());
@@ -351,9 +352,14 @@ public class RecipeBrowserView extends AppLayout {
                         }
 
                         List<FileChange> allChanges = new ArrayList<>();
+                        List<String> failedRecipes = new ArrayList<>();
                         for (RecipeInfo recipe : recipes) {
-                            ExecutionResult result = AppServices.getEngine().execute(recipe.name(), sources);
-                            allChanges.addAll(result.changes());
+                            try {
+                                ExecutionResult result = AppServices.getEngine().execute(recipe.name(), sources);
+                                allChanges.addAll(result.changes());
+                            } catch (Exception recipeEx) {
+                                failedRecipes.add(recipe.displayName() + ": " + recipeEx.getMessage());
+                            }
                         }
                         ExecutionResult combined = new ExecutionResult(allChanges);
 
@@ -364,6 +370,13 @@ public class RecipeBrowserView extends AppLayout {
                         ui.access(() -> {
                             progressDialog.close();
                             new DiffDialog(combined, dryRun).open();
+                            if (!failedRecipes.isEmpty()) {
+                                Notification.show(
+                                        failedRecipes.size() + " recipe(s) failed:\n"
+                                                + String.join("\n", failedRecipes),
+                                        8000,
+                                        Notification.Position.MIDDLE);
+                            }
                             dryRunButton.setEnabled(true);
                             executeButton.setEnabled(true);
                         });

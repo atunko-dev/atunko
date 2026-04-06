@@ -16,7 +16,7 @@ class GradleProjectScannerTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_GRADLE_0001"})
-    void scan_returnsNonEmptyClasspath() {
+    void scanReturnsNonEmptyClasspath() {
         ProjectInfo info = scanner.scan(ROOT_PROJECT_DIR);
 
         assertThat(info.classpath()).isNotEmpty();
@@ -25,7 +25,7 @@ class GradleProjectScannerTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_GRADLE_0001"})
-    void scan_returnsSourceDirectories() {
+    void scanReturnsSourceDirectories() {
         ProjectInfo info = scanner.scan(ROOT_PROJECT_DIR);
 
         assertThat(info.sourceDirs()).isNotEmpty();
@@ -34,7 +34,7 @@ class GradleProjectScannerTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_GRADLE_0001"})
-    void scan_nonExistentDirectory_throws() {
+    void scanNonExistentDirectoryThrows() {
         assertThatThrownBy(() -> scanner.scan(Path.of("/nonexistent/gradle/project")))
                 .isInstanceOf(Exception.class);
     }

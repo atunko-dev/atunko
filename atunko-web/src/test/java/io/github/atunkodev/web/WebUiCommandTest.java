@@ -26,19 +26,19 @@ class WebUiCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001"})
-    void command_canBeInstantiated() {
+    void commandCanBeInstantiated() {
         assertThat(newCommand()).isNotNull();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.3"})
-    void command_defaultPortIs8080() {
+    void commandDefaultPortIs8080() {
         assertThat(newCommand().getPort()).isEqualTo(8080);
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.3"})
-    void command_customPortIsApplied() {
+    void commandCustomPortIsApplied() {
         WebUiCommand command = newCommand();
         new CommandLine(command).parseArgs("--port", "9090");
         assertThat(command.getPort()).isEqualTo(9090);
@@ -46,13 +46,13 @@ class WebUiCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.10"})
-    void command_defaultProjectDirIsCurrent() {
+    void commandDefaultProjectDirIsCurrent() {
         assertThat(newCommand().getProjectDir()).isEqualTo(Path.of("."));
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.11"})
-    void command_customProjectDirIsApplied() {
+    void commandCustomProjectDirIsApplied() {
         WebUiCommand command = newCommand();
         new CommandLine(command).parseArgs("--project-dir", "/some/project");
         assertThat(command.getProjectDir()).isEqualTo(Path.of("/some/project"));

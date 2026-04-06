@@ -96,14 +96,14 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.1"})
-    void noFilter_displaysAllRecipes() {
+    void noFilterDisplaysAllRecipes() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         assertThat(view.getVisibleRecipes()).containsExactlyInAnyOrder(ALPHA, BETA, GAMMA);
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void textSearch_filtersByName() {
+    void textSearchFiltersByName() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         view.applyTextFilter("Alpha");
         assertThat(view.getVisibleRecipes()).containsExactly(ALPHA);
@@ -111,7 +111,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void textSearch_filtersByDescription() {
+    void textSearchFiltersByDescription() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         view.applyTextFilter("about spring");
         assertThat(view.getVisibleRecipes()).containsExactly(ALPHA);
@@ -119,7 +119,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void tagFilter_filtersWithOrLogic() {
+    void tagFilterFiltersWithOrLogic() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         view.applyTagFilter(Set.of("spring"));
         assertThat(view.getVisibleRecipes()).containsExactlyInAnyOrder(ALPHA, BETA);
@@ -127,7 +127,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void textAndTagFilter_composeWithAnd() {
+    void textAndTagFilterComposeWithAnd() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         view.applyTextFilter("Alpha");
         view.applyTagFilter(Set.of("spring"));
@@ -136,7 +136,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void tagFilter_emptySelection_showsAllRecipes() {
+    void tagFilterEmptySelectionShowsAllRecipes() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         view.applyTagFilter(Set.of());
         assertThat(view.getVisibleRecipes()).containsExactlyInAnyOrder(ALPHA, BETA, GAMMA);
@@ -144,7 +144,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.4"})
-    void compositeRecipe_isExpandable() {
+    void compositeRecipeIsExpandable() {
         RecipeBrowserView view = setupView(List.of(COMPOSITE, GAMMA));
         TreeGrid<TreeNode> grid = view.getTreeGrid();
         TreeNode compositeNode = new TreeNode(COMPOSITE, COMPOSITE.name());
@@ -155,7 +155,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.5"})
-    void cascadeSelection_checkParent_checksAllChildren() {
+    void cascadeSelectionCheckParentChecksAllChildren() {
         RecipeBrowserView view = setupView(List.of(COMPOSITE));
         view.getCascadeHandler().selectItem(COMPOSITE);
         assertThat(view.getSelectedRecipes()).contains(COMPOSITE, CHILD_1, CHILD_2);
@@ -163,7 +163,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.5"})
-    void cascadeSelection_checkAllChildren_checksParent() {
+    void cascadeSelectionCheckAllChildrenChecksParent() {
         RecipeBrowserView view = setupView(List.of(COMPOSITE));
         view.getCascadeHandler().selectItem(CHILD_1);
         view.getCascadeHandler().selectItem(CHILD_2);
@@ -172,7 +172,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.5"})
-    void cascadeSelection_uncheckOneChild_parentBecomesIndeterminate() {
+    void cascadeSelectionUncheckOneChildParentBecomesIndeterminate() {
         RecipeBrowserView view = setupView(List.of(COMPOSITE));
         view.getCascadeHandler().selectItem(COMPOSITE);
         view.getCascadeHandler().deselectItem(CHILD_1);
@@ -182,7 +182,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.6"})
-    void clickRecipe_updatesDetailPanel() {
+    void clickRecipeUpdatesDetailPanel() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
         view.selectForDetail(ALPHA);
         assertThat(view.getDetailPanelRecipe()).isEqualTo(ALPHA);
@@ -192,14 +192,14 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.7"})
-    void statusBar_noFilter_showsTotalCount() {
+    void statusBarNoFilterShowsTotalCount() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         assertThat(_find(Span.class).stream().map(Span::getText)).contains("Showing 3 recipes");
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.7"})
-    void statusBar_afterFilter_showsFilteredCount() {
+    void statusBarAfterFilterShowsFilteredCount() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         view.applyTextFilter("Alpha");
         assertThat(_find(Span.class).stream().map(Span::getText)).contains("Showing 1 recipes");
@@ -209,7 +209,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.8"})
-    void detailPanel_initialState_showsEmptyMessage() {
+    void detailPanelInitialStateShowsEmptyMessage() {
         setupView(List.of(ALPHA));
         Span placeholder = _get(Span.class, spec -> spec.withText("Select a recipe to view details"));
         assertThat(placeholder.getText()).isEqualTo("Select a recipe to view details");
@@ -217,7 +217,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.8"})
-    void detailPanel_tagsDisplay_showsAllTags() {
+    void detailPanelTagsDisplayShowsAllTags() {
         RecipeBrowserView view = setupView(List.of(ALPHA));
         view.selectForDetail(ALPHA);
         // ALPHA has tags: java, spring
@@ -227,7 +227,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.8"})
-    void detailPanel_compositeRecipe_displaysChildList() {
+    void detailPanelCompositeRecipeDisplaysChildList() {
         RecipeBrowserView view = setupView(List.of(COMPOSITE));
         view.selectForDetail(COMPOSITE);
         List<String> spanTexts = _find(Span.class).stream().map(Span::getText).toList();
@@ -237,7 +237,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.8"})
-    void detailPanel_nonCompositeRecipe_noChildList() {
+    void detailPanelNonCompositeRecipeNoChildList() {
         RecipeBrowserView view = setupView(List.of(ALPHA));
         view.selectForDetail(ALPHA);
         List<String> spanTexts = _find(Span.class).stream().map(Span::getText).toList();
@@ -248,7 +248,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.9"})
-    void cascadeSelection_deepHierarchy_selectRoot_selectsAllLevels() {
+    void cascadeSelectionDeepHierarchySelectRootSelectsAllLevels() {
         RecipeBrowserView view = setupView(List.of(LEVEL_1));
         view.getCascadeHandler().selectItem(LEVEL_1);
         assertThat(view.getSelectedRecipes()).contains(LEVEL_1, LEVEL_2, LEVEL_3);
@@ -256,7 +256,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.9"})
-    void cascadeSelection_sharedRecipe_appearsUnderTwoParents_selectedOnce() {
+    void cascadeSelectionSharedRecipeAppearsUnderTwoParentsSelectedOnce() {
         RecipeBrowserView view = setupView(List.of(PARENT_A, PARENT_B));
         view.getCascadeHandler().selectItem(SHARED);
         assertThat(view.getSelectedRecipes()).contains(SHARED);
@@ -270,7 +270,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.22"})
-    void selectAll_selectsAllVisibleRecipes() {
+    void selectAllSelectsAllVisibleRecipes() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         view.selectAllVisible();
         assertThat(view.getSelectedRecipes()).containsExactlyInAnyOrder(ALPHA, BETA, GAMMA);
@@ -278,7 +278,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.23"})
-    void deselectAll_clearsAllSelections() {
+    void deselectAllClearsAllSelections() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
         view.selectAllVisible();
         view.deselectAll();
@@ -287,7 +287,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.22"})
-    void selectAll_respectsActiveFilter() {
+    void selectAllRespectsActiveFilter() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         view.applyTextFilter("Alpha");
         view.selectAllVisible();
@@ -298,7 +298,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.20"})
-    void sortByName_ordersAlphabetically() {
+    void sortByNameOrdersAlphabetically() {
         RecipeBrowserView view = setupView(List.of(GAMMA, ALPHA, BETA));
         view.applySortOrder(SortOrder.NAME);
         List<String> names =
@@ -308,7 +308,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.21"})
-    void sortByTags_groupsByFirstTag() {
+    void sortByTagsGroupsByFirstTag() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         view.applySortOrder(SortOrder.TAGS);
         List<String> names =
@@ -322,7 +322,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.20"})
-    void sortChange_preservesFilter() {
+    void sortChangePreservesFilter() {
         RecipeBrowserView view = setupView(List.of(GAMMA, ALPHA, BETA));
         view.applyTextFilter("Alpha");
         view.applySortOrder(SortOrder.NAME);
@@ -333,7 +333,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.24"})
-    void coverageIndicator_selectAll_childrenAreCovered() {
+    void coverageIndicatorSelectAllChildrenAreCovered() {
         RecipeBrowserView view = setupView(List.of(COMPOSITE, GAMMA));
         view.selectAllVisible();
         assertThat(view.getCoveredRecipes()).contains(CHILD_1, CHILD_2);
@@ -341,7 +341,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.25"})
-    void coverageIndicator_deselectAll_noCoveredRecipes() {
+    void coverageIndicatorDeselectAllNoCoveredRecipes() {
         RecipeBrowserView view = setupView(List.of(COMPOSITE, GAMMA));
         view.selectAllVisible();
         view.deselectAll();
@@ -350,7 +350,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.24"})
-    void coverageIndicator_compositeItselfNotCovered() {
+    void coverageIndicatorCompositeItselfNotCovered() {
         RecipeBrowserView view = setupView(List.of(COMPOSITE));
         view.selectAllVisible();
         assertThat(view.getCoveredRecipes()).doesNotContain(COMPOSITE);
@@ -360,7 +360,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.26"})
-    void detailPanel_includedRecipe_showsIncludedInSection() {
+    void detailPanelIncludedRecipeShowsIncludedInSection() {
         RecipeBrowserView view = setupView(List.of(COMPOSITE));
         view.selectForDetail(CHILD_1);
         List<String> texts = _find(Span.class).stream().map(Span::getText).toList();
@@ -369,7 +369,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.27"})
-    void detailPanel_notIncludedRecipe_noIncludedInSection() {
+    void detailPanelNotIncludedRecipeNoIncludedInSection() {
         RecipeBrowserView view = setupView(List.of(ALPHA, COMPOSITE));
         view.selectForDetail(ALPHA);
         List<String> texts = _find(Span.class).stream().map(Span::getText).toList();
@@ -378,7 +378,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.26"})
-    void detailPanel_sharedRecipe_showsMultipleParents() {
+    void detailPanelSharedRecipeShowsMultipleParents() {
         RecipeBrowserView view = setupView(List.of(PARENT_A, PARENT_B));
         view.selectForDetail(SHARED);
         List<String> texts = _find(Span.class).stream().map(Span::getText).toList();
@@ -389,7 +389,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.17"})
-    void applyRunConfig_selectsMatchingRecipes() {
+    void applyRunConfigSelectsMatchingRecipes() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         RunConfig config = new RunConfig(List.of(new RecipeEntry("org.test.Alpha"), new RecipeEntry("org.test.Gamma")));
         view.applyRunConfig(config);
@@ -398,7 +398,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.18"})
-    void applyRunConfig_ignoresUnknownRecipes() {
+    void applyRunConfigIgnoresUnknownRecipes() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
         RunConfig config =
                 new RunConfig(List.of(new RecipeEntry("org.test.Alpha"), new RecipeEntry("org.test.NonExistent")));
@@ -408,7 +408,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.19"})
-    void applyRunConfig_resolvesChildRecipeName() {
+    void applyRunConfigResolvesChildRecipeName() {
         RecipeBrowserView view = setupView(List.of(COMPOSITE));
         RunConfig config = new RunConfig(List.of(new RecipeEntry("org.test.Child1")));
         view.applyRunConfig(config);
@@ -417,7 +417,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.17"})
-    void applyRunConfig_clearsExistingSelectionFirst() {
+    void applyRunConfigClearsExistingSelectionFirst() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         view.getCascadeHandler().selectItem(BETA);
         RunConfig config = new RunConfig(List.of(new RecipeEntry("org.test.Alpha")));
@@ -429,21 +429,21 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.13"})
-    void dryRunButton_isPresent() {
+    void dryRunButtonIsPresent() {
         RecipeBrowserView view = setupView(List.of(ALPHA));
         assertThat(view.getDryRunButton().getText()).isEqualTo("Dry Run");
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.13"})
-    void executeButton_isPresent() {
+    void executeButtonIsPresent() {
         RecipeBrowserView view = setupView(List.of(ALPHA));
         assertThat(view.getExecuteButton().getText()).isEqualTo("Execute");
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.13"})
-    void runRecipes_noServicesInitialised_doesNotThrow() {
+    void runRecipesNoServicesInitialisedDoesNotThrow() {
         RecipeBrowserView view = setupView(List.of(ALPHA));
         view.getCascadeHandler().selectItem(ALPHA);
         // AppServices not initialised — should be a no-op, not throw
@@ -452,7 +452,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.13"})
-    void runRecipes_noSelection_doesNotThrow() {
+    void runRecipesNoSelectionDoesNotThrow() {
         RecipeExecutionEngine engine = new RecipeExecutionEngine(null);
         AppServices.init(engine, new ProjectSourceParser(), new ChangeApplier());
         SessionHolder.init(Path.of("."), new ProjectInfo(List.of(), List.of(Path.of("."))));
@@ -463,7 +463,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.13"})
-    void runRecipes_dryRun_doesNotApplyChanges() {
+    void runRecipesDryRunDoesNotApplyChanges() {
         List<FileChange>[] appliedChanges = new List[] {null};
         ChangeApplier trackingApplier = new ChangeApplier() {
             @Override
@@ -501,7 +501,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.22"})
-    void clickSelectAllButton_selectsAllVisibleRecipes() {
+    void clickSelectAllButtonSelectsAllVisibleRecipes() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         clearNotifications();
         _click(_get(Button.class, spec -> spec.withText("Select All")));
@@ -510,7 +510,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.23"})
-    void clickDeselectAllButton_clearsAllSelections() {
+    void clickDeselectAllButtonClearsAllSelections() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
         view.selectAllVisible();
         _click(_get(Button.class, spec -> spec.withText("Deselect All")));
@@ -521,7 +521,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.17"})
-    void clickSaveButton_noSelection_showsNotification() {
+    void clickSaveButtonNoSelectionShowsNotification() {
         setupView(List.of(ALPHA));
         clearNotifications();
         _click(_get(Button.class, spec -> spec.withText("Save")));
@@ -535,7 +535,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.17"})
-    void clickSaveButton_withSelection_opensDialogAndSavesFile() throws IOException {
+    void clickSaveButtonWithSelectionOpensDialogAndSavesFile() throws IOException {
         SessionHolder.init(tempDir, null);
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
         view.selectAllVisible();
@@ -572,7 +572,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.17"})
-    void saveDialog_emptyName_showsValidationNotification() {
+    void saveDialogEmptyNameShowsValidationNotification() {
         RecipeBrowserView view = setupView(List.of(ALPHA));
         view.selectAllVisible();
         clearNotifications();
@@ -595,7 +595,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.18"})
-    void clickLoadButton_noRunsDir_showsNotification() {
+    void clickLoadButtonNoRunsDirShowsNotification() {
         SessionHolder.init(tempDir, null);
         setupView(List.of(ALPHA));
         clearNotifications();
@@ -605,7 +605,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.18"})
-    void clickLoadButton_emptyRunsDir_showsNotification() throws IOException {
+    void clickLoadButtonEmptyRunsDirShowsNotification() throws IOException {
         SessionHolder.init(tempDir, null);
         Files.createDirectories(tempDir.resolve("atunko/runs"));
         setupView(List.of(ALPHA));
@@ -618,7 +618,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void searchField_setValue_filtersRecipes() {
+    void searchFieldSetValueFiltersRecipes() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         _setValue(_get(TextField.class, spec -> spec.withPlaceholder("Search recipes...")), "Alpha");
         assertThat(view.getVisibleRecipes()).containsExactly(ALPHA);
@@ -629,7 +629,7 @@ class RecipeBrowserViewTest {
     @Test
     @SVCs({"atunko:SVC_WEB_0001.20"})
     @SuppressWarnings("unchecked")
-    void sortDropdown_setValue_reordersRecipes() {
+    void sortDropdownSetValueReordersRecipes() {
         RecipeBrowserView view = setupView(List.of(GAMMA, ALPHA, BETA));
         // Find the sort select and change its value via Karibu
         List<Select> selects = _find(Select.class);
@@ -649,7 +649,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.13"})
-    void clickDryRunButton_noSelection_showsNotification() {
+    void clickDryRunButtonNoSelectionShowsNotification() {
         RecipeExecutionEngine engine = new RecipeExecutionEngine(null);
         AppServices.init(engine, new ProjectSourceParser(), new ChangeApplier());
         SessionHolder.init(Path.of("."), new ProjectInfo(List.of(), List.of(Path.of("."))));
@@ -661,7 +661,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.13"})
-    void clickExecuteButton_noSelection_showsNotification() {
+    void clickExecuteButtonNoSelectionShowsNotification() {
         RecipeExecutionEngine engine = new RecipeExecutionEngine(null);
         AppServices.init(engine, new ProjectSourceParser(), new ChangeApplier());
         SessionHolder.init(Path.of("."), new ProjectInfo(List.of(), List.of(Path.of("."))));
@@ -675,7 +675,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.14"})
-    void runOrderDialog_flattenCheckbox_expandsComposites() {
+    void runOrderDialogFlattenCheckboxExpandsComposites() {
         List<RecipeInfo> confirmed = new java.util.ArrayList<>();
         RunOrderDialog dialog = new RunOrderDialog(Set.of(COMPOSITE), true, confirmed::addAll);
 
@@ -692,7 +692,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.14"})
-    void runOrderDialog_unflatten_restoresOriginal() {
+    void runOrderDialogUnflattenRestoresOriginal() {
         RunOrderDialog dialog = new RunOrderDialog(Set.of(COMPOSITE), true, _ -> {});
 
         _setValue(_get(dialog, Checkbox.class), true);
@@ -704,7 +704,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.16"})
-    void runOrderDialog_confirmButton_invokesCallback() {
+    void runOrderDialogConfirmButtonInvokesCallback() {
         List<RecipeInfo> confirmed = new java.util.ArrayList<>();
         RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA, BETA), true, confirmed::addAll);
 
@@ -715,7 +715,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.16"})
-    void runOrderDialog_cancelButton_doesNotInvokeCallback() {
+    void runOrderDialogCancelButtonDoesNotInvokeCallback() {
         List<RecipeInfo> confirmed = new java.util.ArrayList<>();
         RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA), true, confirmed::addAll);
 
@@ -729,7 +729,7 @@ class RecipeBrowserViewTest {
     @Test
     @SVCs({"atunko:SVC_WEB_0001.18"})
     @SuppressWarnings("unchecked")
-    void clickLoadButton_withSavedRun_loadsAndSelectsRecipes() throws IOException {
+    void clickLoadButtonWithSavedRunLoadsAndSelectsRecipes() throws IOException {
         SessionHolder.init(tempDir, null);
         Path runsDir = tempDir.resolve("atunko/runs");
         Files.createDirectories(runsDir);
@@ -770,7 +770,7 @@ class RecipeBrowserViewTest {
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
     @SuppressWarnings("unchecked")
-    void tagFilter_setValue_filtersRecipesByTag() {
+    void tagFilterSetValueFiltersRecipesByTag() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA, GAMMA));
         MultiSelectComboBox<String> tagCombo = _get(MultiSelectComboBox.class);
         _setValue(tagCombo, Set.of("spring"));
@@ -782,7 +782,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.6"})
-    void gridSelection_selectRow_updatesDetailPanel() {
+    void gridSelectionSelectRowUpdatesDetailPanel() {
         RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
         TreeGrid<TreeNode> grid = view.getTreeGrid();
 
@@ -805,7 +805,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.6"})
-    void gridSelection_selectCompositeRow_showsChildList() {
+    void gridSelectionSelectCompositeRowShowsChildList() {
         RecipeBrowserView view = setupView(List.of(COMPOSITE));
         TreeGrid<TreeNode> grid = view.getTreeGrid();
 
@@ -826,7 +826,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.17"})
-    void saveDialog_cancelButton_dismissesDialogNoFileCreated() {
+    void saveDialogCancelButtonDismissesDialogNoFileCreated() {
         SessionHolder.init(tempDir, null);
         RecipeBrowserView view = setupView(List.of(ALPHA));
         view.selectAllVisible();
@@ -843,7 +843,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.18"})
-    void loadDialog_cancelButton_doesNotChangeSelection() throws IOException {
+    void loadDialogCancelButtonDoesNotChangeSelection() throws IOException {
         SessionHolder.init(tempDir, null);
         Path runsDir = tempDir.resolve("atunko/runs");
         Files.createDirectories(runsDir);
@@ -863,7 +863,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.18"})
-    void loadDialog_confirmWithoutSelection_showsNotification() throws IOException {
+    void loadDialogConfirmWithoutSelectionShowsNotification() throws IOException {
         SessionHolder.init(tempDir, null);
         Path runsDir = tempDir.resolve("atunko/runs");
         Files.createDirectories(runsDir);
@@ -891,7 +891,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.15"})
-    void runOrderDialog_clickMoveUp_reordersRecipes() {
+    void runOrderDialogClickMoveUpReordersRecipes() {
         RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA, BETA), true, _ -> {});
         List<RecipeInfo> initial = dialog.getOrderedRecipes();
         RecipeInfo second = initial.get(1);
@@ -905,7 +905,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.15"})
-    void runOrderDialog_clickMoveDown_reordersRecipes() {
+    void runOrderDialogClickMoveDownReordersRecipes() {
         RunOrderDialog dialog = new RunOrderDialog(Set.of(ALPHA, BETA), true, _ -> {});
         List<RecipeInfo> initial = dialog.getOrderedRecipes();
         RecipeInfo first = initial.get(0);
@@ -923,7 +923,7 @@ class RecipeBrowserViewTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.24"})
-    void coverageSet_afterSelectAll_containsChildrenNotComposite() {
+    void coverageSetAfterSelectAllContainsChildrenNotComposite() {
         RecipeBrowserView view = setupView(List.of(COMPOSITE, GAMMA));
         view.selectAllVisible();
 

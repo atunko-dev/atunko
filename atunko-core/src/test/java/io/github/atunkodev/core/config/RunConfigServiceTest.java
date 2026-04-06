@@ -21,7 +21,7 @@ class RunConfigServiceTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0007"})
-    void save_writesYamlFile() throws IOException {
+    void saveWritesYamlFile() throws IOException {
         RunConfig config = new RunConfig(List.of(
                 new RecipeEntry("org.openrewrite.java.cleanup.RemoveUnusedImports"),
                 new RecipeEntry("org.openrewrite.java.format.AutoFormat")));
@@ -39,7 +39,7 @@ class RunConfigServiceTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0007"})
-    void save_withDescription_includesDescription() throws IOException {
+    void saveWithDescriptionIncludesDescription() throws IOException {
         RunConfig config =
                 new RunConfig("Spring Boot migration", List.of(new RecipeEntry("org.openrewrite.java.Boot")));
 
@@ -53,7 +53,7 @@ class RunConfigServiceTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0007"})
-    void save_withOptionsAndExclude_writesStructuredEntry() throws IOException {
+    void saveWithOptionsAndExcludeWritesStructuredEntry() throws IOException {
         RecipeEntry entry = new RecipeEntry(
                 "org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5",
                 Map.of("newVersion", "3.5.0"),
@@ -72,7 +72,7 @@ class RunConfigServiceTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0007"})
-    void save_withEmptyRecipes_writesEmptyList() throws IOException {
+    void saveWithEmptyRecipesWritesEmptyList() throws IOException {
         RunConfig config = new RunConfig(List.of());
 
         Path file = tempDir.resolve("run.yaml");
@@ -85,7 +85,7 @@ class RunConfigServiceTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0007"})
-    void save_overwritesExistingFile() throws IOException {
+    void saveOverwritesExistingFile() throws IOException {
         Path file = tempDir.resolve("run.yaml");
         Files.writeString(file, "old content");
 
@@ -99,7 +99,7 @@ class RunConfigServiceTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0008"})
-    void load_readsYamlFile() throws IOException {
+    void loadReadsYamlFile() throws IOException {
         RunConfig original = new RunConfig(
                 "Test config",
                 List.of(
@@ -120,7 +120,7 @@ class RunConfigServiceTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0008"})
-    void load_withOptionsAndExclude_roundTrips() throws IOException {
+    void loadWithOptionsAndExcludeRoundTrips() throws IOException {
         RecipeEntry entry = new RecipeEntry(
                 "org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5",
                 Map.of("newVersion", "3.5.0"),
@@ -141,13 +141,13 @@ class RunConfigServiceTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0008"})
-    void load_nonExistentFile_throws() {
+    void loadNonExistentFileThrows() {
         assertThatThrownBy(() -> service.load(Path.of("/nonexistent/run.yaml"))).isInstanceOf(IOException.class);
     }
 
     @Test
     @SVCs({"atunko:SVC_CORE_0008"})
-    void load_invalidYaml_throws() throws IOException {
+    void loadInvalidYamlThrows() throws IOException {
         Path file = tempDir.resolve("run.yaml");
         Files.writeString(file, "not: [valid: yaml: for: runconfig");
 
@@ -156,7 +156,7 @@ class RunConfigServiceTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0008"})
-    void load_minimalYaml_works() throws IOException {
+    void loadMinimalYamlWorks() throws IOException {
         Path file = tempDir.resolve("run.yaml");
         Files.writeString(file, "version: 1\nrecipes:\n- name: org.openrewrite.java.RemoveUnusedImports\n");
 

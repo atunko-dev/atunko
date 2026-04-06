@@ -31,7 +31,7 @@ class RunCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0003"})
-    void run_withValidRecipe_reportsChanges() throws IOException {
+    void runWithValidRecipeReportsChanges() throws IOException {
         Path workDir = copyFixtureToTemp();
         CommandLineFixture cli = CommandLineFixture.create();
 
@@ -45,7 +45,7 @@ class RunCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0003"})
-    void run_withInvalidRecipe_reportsError() throws IOException {
+    void runWithInvalidRecipeReportsError() throws IOException {
         Path workDir = copyFixtureToTemp();
         CommandLineFixture cli = CommandLineFixture.create();
 
@@ -58,7 +58,7 @@ class RunCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0003"})
-    void run_withMissingRequiredOptions_fails() {
+    void runWithMissingRequiredOptionsFails() {
         CommandLineFixture cli = CommandLineFixture.create();
 
         int exitCode = cli.execute("run");
