@@ -18,19 +18,19 @@ class SessionHolderTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0004.4"})
-    void getProjectDir_defaultsToCurrentDir() {
+    void getProjectDirDefaultsToCurrentDir() {
         assertThat(SessionHolder.getProjectDir()).isEqualTo(Path.of("."));
     }
 
     @Test
     @SVCs({"atunko:SVC_CORE_0004.4"})
-    void getProjectInfo_defaultsToNull() {
+    void getProjectInfoDefaultsToNull() {
         assertThat(SessionHolder.getProjectInfo()).isNull();
     }
 
     @Test
     @SVCs({"atunko:SVC_CORE_0004.4"})
-    void init_storesProjectDir() {
+    void initStoresProjectDir() {
         Path dir = Path.of("/some/project");
         SessionHolder.init(dir, null);
         assertThat(SessionHolder.getProjectDir()).isEqualTo(dir);
@@ -38,7 +38,7 @@ class SessionHolderTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0004.4"})
-    void init_storesProjectInfo() {
+    void initStoresProjectInfo() {
         Path dir = Path.of("/some/project");
         ProjectInfo info = new ProjectInfo(List.of(), List.of(dir));
         SessionHolder.init(dir, info);
@@ -47,7 +47,7 @@ class SessionHolderTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0004.4"})
-    void init_canBeCalledMultipleTimes_updatesState() {
+    void initCanBeCalledMultipleTimesUpdatesState() {
         SessionHolder.init(Path.of("/first"), null);
         Path second = Path.of("/second");
         SessionHolder.init(second, null);

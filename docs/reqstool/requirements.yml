@@ -122,6 +122,84 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: WEB_0001.10
+    title: Web UI — Run Order Dialog
+    significance: shall
+    description: >-
+      The Web UI shall show a mandatory run order dialog before every recipe execution,
+      with an ordered list of selected recipes, move-up/down controls for reordering,
+      and a flatten-composites toggle that recursively expands composites into leaf recipes
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0001.11
+    title: Web UI — Save Named Run Configuration
+    significance: shall
+    description: >-
+      The Web UI shall allow saving the current recipe selection as a named run
+      configuration to atunko/runs/<name>.yaml using the core RunConfigService
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0001.12
+    title: Web UI — Load Named Run Configuration
+    significance: shall
+    description: >-
+      The Web UI shall allow loading a saved run configuration from atunko/runs/*.yaml,
+      resolving recipe names to available recipes and selecting them in the tree grid
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0001.13
+    title: Web UI — Recipe Sorting
+    significance: shall
+    description: >-
+      The Web UI shall provide a sort-order dropdown allowing the user to sort recipes
+      by name (alphabetical) or by tags (grouped by first tag, then alphabetical)
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0001.14
+    title: Web UI — Bulk Select and Deselect
+    significance: shall
+    description: >-
+      The Web UI shall provide Select All and Deselect All buttons that respect active
+      filters, selecting or deselecting only the currently visible recipes
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0001.15
+    title: Web UI — Coverage Indicators
+    significance: shall
+    description: >-
+      The Web UI shall display a visual badge on recipes that are transitively included
+      in a selected composite recipe, indicating they will be executed as part of the composite
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0001.16
+    title: Web UI — Included-In Reverse Lookup
+    significance: shall
+    description: >-
+      The Web UI detail panel shall show which composite recipes include the selected recipe,
+      displayed as an "Included in: X, Y" section
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   # TUI requirements
   - id: TUI_0001
     title: TUI Launch

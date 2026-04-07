@@ -8,7 +8,7 @@ import org.openrewrite.config.Environment;
 class EnvironmentProviderTest {
 
     @Test
-    void get_returnsSameInstanceOnSubsequentCalls() {
+    void getReturnsSameInstanceOnSubsequentCalls() {
         EnvironmentProvider provider = new EnvironmentProvider();
 
         Environment first = provider.get();
@@ -18,7 +18,7 @@ class EnvironmentProviderTest {
     }
 
     @Test
-    void invalidate_causesRebuildOnNextGet() {
+    void invalidateCausesRebuildOnNextGet() {
         EnvironmentProvider provider = new EnvironmentProvider();
 
         Environment first = provider.get();

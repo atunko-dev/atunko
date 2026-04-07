@@ -19,7 +19,7 @@ class AppServicesTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.12"})
-    void init_storesEngine() {
+    void initStoresEngine() {
         RecipeExecutionEngine engine = new RecipeExecutionEngine(null);
         AppServices.init(engine, null, null);
         assertThat(AppServices.getEngine()).isSameAs(engine);
@@ -27,7 +27,7 @@ class AppServicesTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.12"})
-    void init_storesSourceParser() {
+    void initStoresSourceParser() {
         ProjectSourceParser parser = new ProjectSourceParser();
         AppServices.init(null, parser, null);
         assertThat(AppServices.getSourceParser()).isSameAs(parser);
@@ -35,7 +35,7 @@ class AppServicesTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.12"})
-    void init_storesChangeApplier() {
+    void initStoresChangeApplier() {
         ChangeApplier applier = new ChangeApplier();
         AppServices.init(null, null, applier);
         assertThat(AppServices.getChangeApplier()).isSameAs(applier);
@@ -43,7 +43,7 @@ class AppServicesTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.12"})
-    void init_multipleCallsOverwritesPreviousValues() {
+    void initMultipleCallsOverwritesPreviousValues() {
         RecipeExecutionEngine engine1 = new RecipeExecutionEngine(null);
         RecipeExecutionEngine engine2 = new RecipeExecutionEngine(null);
         AppServices.init(engine1, null, null);
@@ -53,7 +53,7 @@ class AppServicesTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.12"})
-    void beforeInit_allGettersReturnNull() {
+    void beforeInitAllGettersReturnNull() {
         assertThat(AppServices.getEngine()).isNull();
         assertThat(AppServices.getSourceParser()).isNull();
         assertThat(AppServices.getChangeApplier()).isNull();

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 class AppTest {
 
     @Test
-    void help_printsUsage() {
+    void helpPrintsUsage() {
         CommandLineFixture cli = CommandLineFixture.create();
 
         int exitCode = cli.execute("--help");
@@ -21,7 +21,7 @@ class AppTest {
     }
 
     @Test
-    void noArgs_printsUsage() {
+    void noArgsPrintsUsage() {
         CommandLineFixture cli = CommandLineFixture.create();
 
         int exitCode = cli.execute();

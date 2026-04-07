@@ -7,6 +7,4 @@
     <!-- Exclude generated code -->
     <suppress files="build[/\\]generated[/\\]" checks=".*"/>
 
-    <!-- Allow underscores in test method names (e.g., discoverAll_returnsNonEmptyList) -->
-    <suppress files="[/\\]src[/\\]test[/\\]" checks="MethodName"/>
 </suppressions>

@@ -21,3 +21,22 @@ jobs:
 
       - name: Build
         run: ./gradlew build
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: gradle
+
+      - name: Install Playwright Chromium
+        run: ./gradlew :atunko-web:playwrightInstall
+
+      - name: Integration tests
+        run: ./gradlew :atunko-web:integrationTest

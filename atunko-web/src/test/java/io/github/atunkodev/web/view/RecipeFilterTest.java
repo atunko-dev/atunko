@@ -21,47 +21,47 @@ class RecipeFilterTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesText_nullQuery_returnsTrue() {
+    void matchesTextNullQueryReturnsTrue() {
         assertThat(RecipeFilter.matchesText(SPRING, null)).isTrue();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesText_blankQuery_returnsTrue() {
+    void matchesTextBlankQueryReturnsTrue() {
         assertThat(RecipeFilter.matchesText(SPRING, "")).isTrue();
         assertThat(RecipeFilter.matchesText(SPRING, "   ")).isTrue();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesText_caseInsensitive_matches() {
+    void matchesTextCaseInsensitiveMatches() {
         assertThat(RecipeFilter.matchesText(SPRING, "SPRING")).isTrue();
         assertThat(RecipeFilter.matchesText(SPRING, "migrate")).isTrue();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesText_multiWordQuery_requiresAllWords() {
+    void matchesTextMultiWordQueryRequiresAllWords() {
         assertThat(RecipeFilter.matchesText(SPRING, "migrate boot")).isTrue();
         assertThat(RecipeFilter.matchesText(SPRING, "migrate kotlin")).isFalse();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesText_partialWord_matches() {
+    void matchesTextPartialWordMatches() {
         assertThat(RecipeFilter.matchesText(SPRING, "sprin")).isTrue();
         assertThat(RecipeFilter.matchesText(SPRING, "migrat")).isTrue();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesText_noMatch_returnsFalse() {
+    void matchesTextNoMatchReturnsFalse() {
         assertThat(RecipeFilter.matchesText(SPRING, "groovy")).isFalse();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesText_unicodeQuery_matches() {
+    void matchesTextUnicodeQueryMatches() {
         assertThat(RecipeFilter.matchesText(UNICODE, "Café")).isTrue();
         assertThat(RecipeFilter.matchesText(UNICODE, "λ")).isTrue();
     }
@@ -70,31 +70,31 @@ class RecipeFilterTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesTags_nullTags_returnsTrue() {
+    void matchesTagsNullTagsReturnsTrue() {
         assertThat(RecipeFilter.matchesTags(SPRING, null)).isTrue();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesTags_emptyTags_returnsTrue() {
+    void matchesTagsEmptyTagsReturnsTrue() {
         assertThat(RecipeFilter.matchesTags(SPRING, Set.of())).isTrue();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesTags_singleTagMatch_returnsTrue() {
+    void matchesTagsSingleTagMatchReturnsTrue() {
         assertThat(RecipeFilter.matchesTags(SPRING, Set.of("java"))).isTrue();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesTags_singleTagNoMatch_returnsFalse() {
+    void matchesTagsSingleTagNoMatchReturnsFalse() {
         assertThat(RecipeFilter.matchesTags(SPRING, Set.of("kotlin"))).isFalse();
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesTags_multipleTagsOrLogic_returnsTrue() {
+    void matchesTagsMultipleTagsOrLogicReturnsTrue() {
         // SPRING has "java" — filter includes "spring" and "java" — should match (OR logic)
         assertThat(RecipeFilter.matchesTags(SPRING, Set.of("spring", "kotlin"))).isTrue();
         // KOTLIN has only "kotlin" — filter includes "java" only — should not match
@@ -103,7 +103,7 @@ class RecipeFilterTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesTags_noTagMatch_returnsFalse() {
+    void matchesTagsNoTagMatchReturnsFalse() {
         assertThat(RecipeFilter.matchesTags(SPRING, Set.of("groovy", "scala"))).isFalse();
     }
 
@@ -111,7 +111,7 @@ class RecipeFilterTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void filter_emptyFilters_returnsAll() {
+    void filterEmptyFiltersReturnsAll() {
         List<RecipeInfo> recipes = List.of(SPRING, KOTLIN, UNICODE);
         assertThat(RecipeFilter.filter(recipes, null, null)).containsExactlyInAnyOrder(SPRING, KOTLIN, UNICODE);
         assertThat(RecipeFilter.filter(recipes, "", Set.of())).containsExactlyInAnyOrder(SPRING, KOTLIN, UNICODE);
@@ -119,7 +119,7 @@ class RecipeFilterTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void filter_noMatches_returnsEmpty() {
+    void filterNoMatchesReturnsEmpty() {
         List<RecipeInfo> recipes = List.of(SPRING, KOTLIN, UNICODE);
         assertThat(RecipeFilter.filter(recipes, "groovy", Set.of())).isEmpty();
         assertThat(RecipeFilter.filter(recipes, "", Set.of("groovy"))).isEmpty();
@@ -127,7 +127,7 @@ class RecipeFilterTest {
 
     @Test
     @SVCs({"atunko:SVC_WEB_0001.2"})
-    void matchesText_fullyQualifiedName_matches() {
+    void matchesTextFullyQualifiedNameMatches() {
         assertThat(RecipeFilter.matchesText(SPRING, "o.t.Spring")).isTrue();
         assertThat(RecipeFilter.matchesText(SPRING, "o.t.Kotlin")).isFalse();
     }

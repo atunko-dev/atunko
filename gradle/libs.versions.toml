@@ -12,6 +12,7 @@ vaadin = "25.1.0"
 vaadin-boot = "13.6"
 karibu-testing = "2.7.0"
 javadiffutils = "4.12"
+playwright = "1.50.0"
 
 [libraries]
 # OpenRewrite BOM
@@ -71,6 +72,9 @@ karibu-testing = { module = "com.github.mvysny.kaributesting:karibu-testing-v24"
 
 # java-diff-utils
 javadiffutils = { module = "io.github.java-diff-utils:java-diff-utils", version.ref = "javadiffutils" }
+
+# Playwright
+playwright = { module = "com.microsoft.playwright:playwright", version.ref = "playwright" }
 
 # Error Prone
 errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }

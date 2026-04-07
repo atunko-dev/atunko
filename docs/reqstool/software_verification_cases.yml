@@ -148,6 +148,146 @@ cases:
       THEN the recipes are run (or previewed) and the resulting file changes are displayed
     revision: "0.1.0"
 
+  - id: SVC_WEB_0001.14
+    requirement_ids: ["WEB_0001.10"]
+    title: Run order dialog — flatten composites
+    verification: automated-test
+    description: |
+      GIVEN a set of selected recipes including composites
+      WHEN the flatten toggle is activated in the run order dialog
+      THEN composite recipes are recursively expanded into their leaf recipes with deduplication
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.15
+    requirement_ids: ["WEB_0001.10"]
+    title: Run order dialog — move up and down
+    verification: automated-test
+    description: |
+      GIVEN selected recipes are displayed in the run order dialog
+      WHEN the user clicks Move Up or Move Down
+      THEN the selected recipe swaps position with its neighbor
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.16
+    requirement_ids: ["WEB_0001.10"]
+    title: Run order dialog — confirm triggers execution
+    verification: automated-test
+    description: |
+      GIVEN the run order dialog is open with ordered recipes
+      WHEN the user clicks Confirm
+      THEN the onConfirm callback is invoked with the current recipe order
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.17
+    requirement_ids: ["WEB_0001.11"]
+    title: Save run configuration — selects matching recipes on load
+    verification: automated-test
+    description: |
+      GIVEN a RunConfig with recipe entries
+      WHEN applyRunConfig is called
+      THEN the matching recipes are selected in the tree grid
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.18
+    requirement_ids: ["WEB_0001.12"]
+    title: Load run configuration — ignores unknown recipes
+    verification: automated-test
+    description: |
+      GIVEN a RunConfig containing recipe names not in the current recipe list
+      WHEN applyRunConfig is called
+      THEN unknown recipes are silently skipped and known recipes are selected
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.19
+    requirement_ids: ["WEB_0001.12"]
+    title: Load run configuration — resolves child recipe names
+    verification: automated-test
+    description: |
+      GIVEN a RunConfig with a recipe name that is a child of a composite
+      WHEN applyRunConfig is called
+      THEN the child recipe is found via recursive lookup and selected
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.20
+    requirement_ids: ["WEB_0001.13"]
+    title: Sort by name orders alphabetically
+    verification: automated-test
+    description: |
+      GIVEN a list of recipes in arbitrary order
+      WHEN sort order is set to NAME
+      THEN recipes are displayed in alphabetical order by fully qualified name
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.21
+    requirement_ids: ["WEB_0001.13"]
+    title: Sort by tags groups by first tag
+    verification: automated-test
+    description: |
+      GIVEN a list of recipes with different tags
+      WHEN sort order is set to TAGS
+      THEN recipes are grouped by their first tag alphabetically, then by name within each group
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.22
+    requirement_ids: ["WEB_0001.14"]
+    title: Select All selects all visible recipes
+    verification: automated-test
+    description: |
+      GIVEN a filtered or unfiltered recipe list
+      WHEN Select All is clicked
+      THEN all currently visible recipes are selected
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.23
+    requirement_ids: ["WEB_0001.14"]
+    title: Deselect All clears all selections
+    verification: automated-test
+    description: |
+      GIVEN one or more recipes are selected
+      WHEN Deselect All is clicked
+      THEN no recipes remain selected
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.24
+    requirement_ids: ["WEB_0001.15"]
+    title: Coverage badge appears on children of selected composite
+    verification: automated-test
+    description: |
+      GIVEN a composite recipe is selected
+      WHEN the tree grid renders
+      THEN child recipes of the composite display a "covered" badge
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.25
+    requirement_ids: ["WEB_0001.15"]
+    title: Coverage badge disappears when composite is deselected
+    verification: automated-test
+    description: |
+      GIVEN a composite recipe was selected (children showing "covered" badge)
+      WHEN the composite is deselected
+      THEN the "covered" badge is removed from all children
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.26
+    requirement_ids: ["WEB_0001.16"]
+    title: Detail panel shows included-in section for child recipes
+    verification: automated-test
+    description: |
+      GIVEN a recipe that is a child of one or more composite recipes
+      WHEN the recipe is selected for detail view
+      THEN the detail panel shows "Included in: X, Y" listing the parent composites
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.27
+    requirement_ids: ["WEB_0001.16"]
+    title: Detail panel omits included-in for top-level recipes
+    verification: automated-test
+    description: |
+      GIVEN a recipe that is not a child of any composite
+      WHEN the recipe is selected for detail view
+      THEN the detail panel does not show an "Included in" section
+    revision: "0.1.0"
+
   - id: SVC_CORE_0001
     requirement_ids: ["CORE_0001"]
     title: Discover all recipes from classpath

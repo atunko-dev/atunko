@@ -25,7 +25,7 @@ class RecipeExecutionEngineTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0003"})
-    void execute_removesUnusedImports() {
+    void executeRemovesUnusedImports() {
         List<SourceFile> sources = parseFixture();
 
         ExecutionResult result = engine.execute("org.openrewrite.java.RemoveUnusedImports", sources);
@@ -41,7 +41,7 @@ class RecipeExecutionEngineTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0003"})
-    void execute_withUnknownRecipe_throwsException() {
+    void executeWithUnknownRecipeThrowsException() {
         List<SourceFile> sources = parseFixture();
 
         assertThatThrownBy(() -> engine.execute("org.openrewrite.NonExistentRecipe", sources))
@@ -50,7 +50,7 @@ class RecipeExecutionEngineTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0003"})
-    void execute_withNoMatchingChanges_returnsEmptyResult() {
+    void executeWithNoMatchingChangesReturnsEmptyResult() {
         List<SourceFile> sources = JavaParser.fromJavaVersion()
                 .build()
                 .parse(new InMemoryExecutionContext(), "package com.example;\n\npublic class Clean {\n}\n")

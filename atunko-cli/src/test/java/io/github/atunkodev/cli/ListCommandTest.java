@@ -15,7 +15,7 @@ class ListCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0002.1"})
-    void list_displaysRecipesAsText() {
+    void listDisplaysRecipesAsText() {
         CommandLineFixture cli = CommandLineFixture.create();
 
         int exitCode = cli.execute("list");
@@ -28,7 +28,7 @@ class ListCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0002.2"})
-    void list_displaysRecipesAsJson() throws Exception {
+    void listDisplaysRecipesAsJson() throws Exception {
         CommandLineFixture cli = CommandLineFixture.create();
 
         int exitCode = cli.execute("list", "--format", "json");
@@ -46,7 +46,7 @@ class ListCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0002.3"})
-    void list_sortsByNameByDefault() {
+    void listSortsByNameByDefault() {
         CommandLineFixture cli = CommandLineFixture.create();
 
         int exitCode = cli.execute("list", "--sort", "name");
@@ -57,7 +57,7 @@ class ListCommandTest {
 
     @Test
     @SVCs({"atunko:SVC_CLI_0002.4"})
-    void list_sortsByTags() {
+    void listSortsByTags() {
         CommandLineFixture cli = CommandLineFixture.create();
 
         int exitCode = cli.execute("list", "--sort", "tags");
