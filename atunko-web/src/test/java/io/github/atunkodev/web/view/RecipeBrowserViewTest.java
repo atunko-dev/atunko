@@ -930,4 +930,23 @@ class RecipeBrowserViewTest {
         assertThat(view.getCoveredRecipes()).contains(CHILD_1, CHILD_2);
         assertThat(view.getCoveredRecipes()).doesNotContain(COMPOSITE, GAMMA);
     }
+
+    // --- Export button ---
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.28"})
+    void exportButtonExistsInStatusBar() {
+        RecipeBrowserView view = setupView(List.of(ALPHA));
+
+        assertThat(view.getExportButton()).isNotNull();
+        assertThat(_find(Button.class, spec -> spec.withText("Export"))).isNotEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.28"})
+    void exportButtonHasCorrectThemeVariants() {
+        RecipeBrowserView view = setupView(List.of(ALPHA));
+
+        assertThat(view.getExportButton().getThemeNames()).contains("small", "primary");
+    }
 }

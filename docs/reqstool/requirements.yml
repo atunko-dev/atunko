@@ -200,6 +200,17 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: WEB_0001.17
+    title: Web UI — Export Config to Build Tool Format
+    significance: should
+    description: >-
+      The Web UI shall allow exporting the current recipe selection as a Gradle or Maven
+      plugin configuration snippet via a modal dialog, using the core ConfigExportService
+    references:
+      requirement_ids: ["WEB_0001", "CORE_0009"]
+    categories: [compatibility]
+    revision: 0.1.0
+
   # TUI requirements
   - id: TUI_0001
     title: TUI Launch
