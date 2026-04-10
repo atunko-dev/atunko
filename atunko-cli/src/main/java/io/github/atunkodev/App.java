@@ -1,5 +1,6 @@
 package io.github.atunkodev;
 
+import io.github.atunkodev.cli.ConfigExportCommand;
 import io.github.atunkodev.cli.ErrorHandler;
 import io.github.atunkodev.cli.ListCommand;
 import io.github.atunkodev.cli.RunCommand;
@@ -16,7 +17,14 @@ import picocli.CommandLine.Spec;
         name = "atunko",
         description = "OpenRewrite recipe browsing, execution, and configuration",
         mixinStandardHelpOptions = true,
-        subcommands = {TuiCommand.class, WebUiCommand.class, ListCommand.class, SearchCommand.class, RunCommand.class})
+        subcommands = {
+            TuiCommand.class,
+            WebUiCommand.class,
+            ListCommand.class,
+            SearchCommand.class,
+            RunCommand.class,
+            ConfigExportCommand.class
+        })
 public class App implements Runnable {
 
     @Spec
