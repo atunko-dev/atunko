@@ -66,6 +66,7 @@ public class RecipeBrowserView extends AppLayout {
     private final TextField searchField = new TextField();
     private final Button dryRunButton = new Button("Dry Run", VaadinIcon.EYE.create());
     private final Button executeButton = new Button("Execute", VaadinIcon.PLAY.create());
+    private final Button exportButton = new Button("Export", VaadinIcon.DOWNLOAD_ALT.create());
 
     private List<RecipeInfo> allRecipes;
     private String currentTextQuery = "";
@@ -145,7 +146,13 @@ public class RecipeBrowserView extends AppLayout {
         return split;
     }
 
-    @Requirements({"atunko:WEB_0001.9", "atunko:WEB_0001.11", "atunko:WEB_0001.12", "atunko:WEB_0001.14"})
+    @Requirements({
+        "atunko:WEB_0001.9",
+        "atunko:WEB_0001.11",
+        "atunko:WEB_0001.12",
+        "atunko:WEB_0001.14",
+        "atunko:WEB_0001.17"
+    })
     private Component buildStatusBar() {
         Button selectAllButton = new Button("Select All", VaadinIcon.CHECK_SQUARE_O.create(), e -> selectAllVisible());
         selectAllButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
@@ -159,6 +166,9 @@ public class RecipeBrowserView extends AppLayout {
         Button loadButton = new Button("Load", VaadinIcon.UPLOAD.create(), e -> loadConfig());
         loadButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
 
+        exportButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
+        exportButton.addClickListener(e -> openExportDialog());
+
         dryRunButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
         dryRunButton.addClickListener(e -> runRecipes(true));
 
@@ -166,7 +176,14 @@ public class RecipeBrowserView extends AppLayout {
         executeButton.addClickListener(e -> runRecipes(false));
 
         HorizontalLayout bar = new HorizontalLayout(
-                statusBar, selectAllButton, deselectAllButton, saveButton, loadButton, dryRunButton, executeButton);
+                statusBar,
+                selectAllButton,
+                deselectAllButton,
+                saveButton,
+                loadButton,
+                exportButton,
+                dryRunButton,
+                executeButton);
         bar.setWidthFull();
         bar.setAlignItems(HorizontalLayout.Alignment.CENTER);
         return bar;
@@ -452,6 +469,10 @@ public class RecipeBrowserView extends AppLayout {
         return cascadeHandler.getSelectedItems();
     }
 
+    public Button getExportButton() {
+        return exportButton;
+    }
+
     public Button getDryRunButton() {
         return dryRunButton;
     }
@@ -593,6 +614,14 @@ public class RecipeBrowserView extends AppLayout {
         confirmButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
         pickerDialog.getFooter().add(cancelButton, confirmButton);
         pickerDialog.open();
+    }
+
+    @Requirements({"atunko:WEB_0001.17"})
+    void openExportDialog() {
+        if (cascadeHandler == null) {
+            return;
+        }
+        new ExportConfigDialog(cascadeHandler.getSelectedItems()).open();
     }
 
     void applyRunConfig(RunConfig config) {
