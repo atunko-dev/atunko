@@ -83,11 +83,11 @@ public final class BrowserView {
 
     private static EventResult handleBrowseModeKey(
             TuiController controller, AtunkoTui app, dev.tamboui.tui.event.KeyEvent event) {
-        if (event.isDown()) {
+        if (event.isDown() || event.isChar('j')) {
             controller.moveDown();
             return EventResult.HANDLED;
         }
-        if (event.isUp()) {
+        if (event.isUp() || event.isChar('k')) {
             controller.moveUp();
             return EventResult.HANDLED;
         }
@@ -100,7 +100,19 @@ public final class BrowserView {
             return EventResult.HANDLED;
         }
         if (event.isChar('a')) {
-            controller.cycleSelection();
+            controller.selectAll();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('A')) {
+            controller.deselectAll();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('n') && !controller.searchQuery().isBlank()) {
+            controller.nextSearchMatch();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('N') && !controller.searchQuery().isBlank()) {
+            controller.prevSearchMatch();
             return EventResult.HANDLED;
         }
         if (event.isChar('r')) {
@@ -111,7 +123,7 @@ public final class BrowserView {
             controller.openTagBrowser();
             return EventResult.HANDLED;
         }
-        if (event.isRight() || event.isChar('e')) {
+        if (event.isRight() || event.isChar('e') || event.isChar('>')) {
             controller.highlightedDisplayRow().ifPresent(row -> {
                 if (row.recipe().isComposite()) {
                     controller.expandRecipe(row.recipe().name());
@@ -119,8 +131,16 @@ public final class BrowserView {
             });
             return EventResult.HANDLED;
         }
-        if (event.isLeft()) {
+        if (event.isLeft() || event.isChar('<')) {
             controller.collapseHighlighted();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('E')) {
+            controller.expandAll();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('W')) {
+            controller.collapseAll();
             return EventResult.HANDLED;
         }
         if (event.isQuit() || event.isChar('q')) {

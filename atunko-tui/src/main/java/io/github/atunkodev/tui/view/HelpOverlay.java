@@ -23,10 +23,17 @@ public final class HelpOverlay {
             new Section(
                     "Navigation",
                     List.of(
-                            new Entry("\u2191\u2193", "Move"),
-                            new Entry("\u2192", "Expand"),
-                            new Entry("\u2190", "Collapse"))),
-            new Section("Selection", List.of(new Entry("Space", "Toggle"), new Entry("a", "All/none"))),
+                            new Entry("\u2191\u2193/jk", "Move"),
+                            new Entry(">/\u2192", "Expand"),
+                            new Entry("</\u2190", "Collapse"),
+                            new Entry("E", "Expand all"),
+                            new Entry("W", "Collapse all"))),
+            new Section(
+                    "Selection",
+                    List.of(
+                            new Entry("Space", "Toggle"),
+                            new Entry("a", "Select all"),
+                            new Entry("A", "Deselect all"))),
             new Section(
                     "Actions",
                     List.of(
@@ -35,6 +42,7 @@ public final class HelpOverlay {
                             new Entry("t", "Tag browser"),
                             new Entry("s", "Sort order"),
                             new Entry("/", "Search"),
+                            new Entry("n/N", "Next/prev match"),
                             new Entry("Esc", "Clear all"),
                             new Entry("q", "Quit"))),
             new Section("Legend", List.of(new Entry("[x]", "Selected"), new Entry("[c]", "Covered by composite"))));
@@ -43,11 +51,16 @@ public final class HelpOverlay {
             new Section(
                     "Navigation",
                     List.of(
-                            new Entry("\u2191\u2193", "Move"),
+                            new Entry("\u2191\u2193/jk", "Move"),
                             new Entry("+/-", "Reorder"),
-                            new Entry("\u2192", "Expand"),
-                            new Entry("\u2190", "Collapse"))),
-            new Section("Selection", List.of(new Entry("Space", "Toggle"), new Entry("a", "All/none"))),
+                            new Entry(">/\u2192", "Expand"),
+                            new Entry("</\u2190", "Collapse"))),
+            new Section(
+                    "Selection",
+                    List.of(
+                            new Entry("Space", "Toggle"),
+                            new Entry("a", "Select all"),
+                            new Entry("A", "Deselect all"))),
             new Section(
                     "Actions",
                     List.of(

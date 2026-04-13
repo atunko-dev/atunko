@@ -92,11 +92,11 @@ public final class ConfirmRunView {
             return EventResult.HANDLED;
         }
         if (hasRecipes) {
-            if (event.isDown()) {
+            if (event.isDown() || event.isChar('j')) {
                 controller.moveRunHighlightDown();
                 return EventResult.HANDLED;
             }
-            if (event.isUp()) {
+            if (event.isUp() || event.isChar('k')) {
                 controller.moveRunHighlightUp();
                 return EventResult.HANDLED;
             }
@@ -113,14 +113,18 @@ public final class ConfirmRunView {
                 return EventResult.HANDLED;
             }
             if (event.isChar('a')) {
-                controller.cycleRunSelection();
+                controller.selectAllRun();
                 return EventResult.HANDLED;
             }
-            if (event.isRight() || event.isChar('e')) {
+            if (event.isChar('A')) {
+                controller.deselectAllRun();
+                return EventResult.HANDLED;
+            }
+            if (event.isRight() || event.isChar('e') || event.isChar('>')) {
                 controller.expandRunRecipe();
                 return EventResult.HANDLED;
             }
-            if (event.isLeft() || event.isChar('c')) {
+            if (event.isLeft() || event.isChar('c') || event.isChar('<')) {
                 controller.collapseRunRecipe();
                 return EventResult.HANDLED;
             }
