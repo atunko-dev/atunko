@@ -3,6 +3,7 @@ package io.github.atunkodev.web.view;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.mvysny.kaributesting.v10.MockVaadin;
+import io.github.atunkodev.core.config.ConfigExportService.ExportMode;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.reqstool.annotations.SVCs;
 import java.util.Set;
@@ -137,5 +138,41 @@ class ExportConfigDialogTest {
 
         assertThat(snippet).contains("<recipe>org.test.Alpha</recipe>");
         assertThat(snippet).contains("<recipe>org.test.Beta</recipe>");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.32"})
+    void switchingModeUpdatesSnippet() {
+        ExportConfigDialog dialog = new ExportConfigDialog(Set.of(ALPHA));
+
+        dialog.modeSelector.setValue(ExportMode.MINIMAL);
+        String minimalSnippet = dialog.snippetArea.getValue();
+
+        dialog.modeSelector.setValue(ExportMode.FULL);
+        String fullSnippet = dialog.snippetArea.getValue();
+
+        assertThat(minimalSnippet).isNotEqualTo(fullSnippet);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.33"})
+    void fullGradleModeIncludesPluginsBlock() {
+        ExportConfigDialog dialog = new ExportConfigDialog(Set.of(ALPHA));
+
+        dialog.formatSelector.setValue(ExportConfigDialog.ExportFormat.GRADLE);
+        dialog.modeSelector.setValue(ExportMode.FULL);
+
+        assertThat(dialog.snippetArea.getValue()).contains("plugins {");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.34"})
+    void fullMavenModeIncludesXmlDeclaration() {
+        ExportConfigDialog dialog = new ExportConfigDialog(Set.of(ALPHA));
+
+        dialog.formatSelector.setValue(ExportConfigDialog.ExportFormat.MAVEN);
+        dialog.modeSelector.setValue(ExportMode.FULL);
+
+        assertThat(dialog.snippetArea.getValue()).contains("<?xml");
     }
 }

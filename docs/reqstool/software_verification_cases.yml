@@ -828,3 +828,33 @@ cases:
       WHEN the user switches between Gradle and Maven format
       THEN the snippet area updates immediately to reflect the new format
     revision: "0.1.0"
+
+  - id: SVC_WEB_0001.32
+    requirement_ids: ["WEB_0001.17"]
+    title: Web UI — Export dialog mode switch live-updates snippet
+    verification: automated-test
+    description: |
+      GIVEN the Export dialog is open with recipes selected
+      WHEN the user switches between Minimal and Full mode
+      THEN the snippet area updates immediately to reflect the new mode
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.33
+    requirement_ids: ["WEB_0001.17"]
+    title: Web UI — Export dialog Full Gradle emits standalone build.gradle
+    verification: automated-test
+    description: |
+      GIVEN the Export dialog is open with recipes selected
+      WHEN Full mode and Gradle format are selected
+      THEN the snippet includes plugins {}, repositories {}, and rewrite {} blocks
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.34
+    requirement_ids: ["WEB_0001.17"]
+    title: Web UI — Export dialog Full Maven emits standalone pom.xml
+    verification: automated-test
+    description: |
+      GIVEN the Export dialog is open with recipes selected
+      WHEN Full mode and Maven format are selected
+      THEN the snippet includes a complete pom.xml with XML declaration and GAV coordinates
+    revision: "0.1.0"

@@ -11,6 +11,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.textfield.TextArea;
 import io.github.atunkodev.core.config.ConfigExportService;
+import io.github.atunkodev.core.config.ConfigExportService.ExportMode;
 import io.github.atunkodev.core.config.RecipeEntry;
 import io.github.atunkodev.core.config.RunConfig;
 import io.github.atunkodev.core.recipe.RecipeInfo;
@@ -29,6 +30,7 @@ public class ExportConfigDialog extends Dialog {
     private final ConfigExportService exportService = new ConfigExportService();
     private final Set<RecipeInfo> selectedRecipes;
     final RadioButtonGroup<ExportFormat> formatSelector;
+    final RadioButtonGroup<ExportMode> modeSelector;
     final TextArea snippetArea;
     final Button copyButton;
 
@@ -36,7 +38,7 @@ public class ExportConfigDialog extends Dialog {
         this.selectedRecipes = Set.copyOf(selectedRecipes);
 
         setHeaderTitle("Export Configuration");
-        setWidth("600px");
+        setWidth("650px");
         setCloseOnEsc(true);
         setCloseOnOutsideClick(true);
 
@@ -45,10 +47,16 @@ public class ExportConfigDialog extends Dialog {
         formatSelector.setValue(ExportFormat.GRADLE);
         formatSelector.setItemLabelGenerator(f -> f == ExportFormat.GRADLE ? "Gradle" : "Maven");
 
+        modeSelector = new RadioButtonGroup<>();
+        modeSelector.setItems(ExportMode.MINIMAL, ExportMode.FULL);
+        modeSelector.setValue(ExportMode.MINIMAL);
+        modeSelector.setItemLabelGenerator(
+                m -> m == ExportMode.MINIMAL ? "Minimal (snippet)" : "Full (standalone file)");
+
         snippetArea = new TextArea();
         snippetArea.setWidthFull();
         snippetArea.setReadOnly(true);
-        snippetArea.setMinHeight("200px");
+        snippetArea.setMinHeight("220px");
 
         copyButton = new Button("Copy to Clipboard", VaadinIcon.COPY.create());
         copyButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
@@ -58,9 +66,11 @@ public class ExportConfigDialog extends Dialog {
             snippetArea.setEnabled(false);
             copyButton.setEnabled(false);
             formatSelector.setEnabled(false);
+            modeSelector.setEnabled(false);
         } else {
             updateSnippet();
             formatSelector.addValueChangeListener(e -> updateSnippet());
+            modeSelector.addValueChangeListener(e -> updateSnippet());
             copyButton.addClickListener(e -> {
                 String text = snippetArea.getValue();
                 UI.getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", text);
@@ -68,7 +78,8 @@ public class ExportConfigDialog extends Dialog {
             });
         }
 
-        add(new VerticalLayout(formatSelector, snippetArea));
+        HorizontalLayout selectors = new HorizontalLayout(formatSelector, modeSelector);
+        add(new VerticalLayout(selectors, snippetArea));
 
         Button closeButton = new Button("Close", VaadinIcon.CLOSE.create());
         closeButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
@@ -81,9 +92,10 @@ public class ExportConfigDialog extends Dialog {
         List<RecipeEntry> entries =
                 selectedRecipes.stream().map(r -> new RecipeEntry(r.name())).toList();
         RunConfig config = new RunConfig(entries);
+        ExportMode mode = modeSelector.getValue();
         snippetArea.setValue(
                 formatSelector.getValue() == ExportFormat.GRADLE
-                        ? exportService.exportToGradle(config)
-                        : exportService.exportToMaven(config));
+                        ? exportService.exportToGradle(config, mode)
+                        : exportService.exportToMaven(config, mode));
     }
 }

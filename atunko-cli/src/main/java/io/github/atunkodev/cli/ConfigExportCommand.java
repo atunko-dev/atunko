@@ -1,6 +1,7 @@
 package io.github.atunkodev.cli;
 
 import io.github.atunkodev.core.config.ConfigExportService;
+import io.github.atunkodev.core.config.ConfigExportService.ExportMode;
 import io.github.atunkodev.core.config.RunConfig;
 import io.github.atunkodev.core.config.RunConfigService;
 import io.github.reqstool.annotations.Requirements;
@@ -44,6 +45,9 @@ public class ConfigExportCommand implements Runnable {
         @Option(names = "--maven", description = "Export to Maven format")
         private boolean maven;
 
+        @Option(names = "--full", description = "Emit a full standalone build file instead of a plugin snippet")
+        private boolean full;
+
         @Spec
         private CommandSpec spec;
 
@@ -80,11 +84,12 @@ public class ConfigExportCommand implements Runnable {
             try {
                 RunConfig config = configService.load(configFile);
 
+                ExportMode mode = full ? ExportMode.FULL : ExportMode.MINIMAL;
                 String output;
                 if (gradle) {
-                    output = exportService.exportToGradle(config);
+                    output = exportService.exportToGradle(config, mode);
                 } else {
-                    output = exportService.exportToMaven(config);
+                    output = exportService.exportToMaven(config, mode);
                 }
 
                 out.print(output);
