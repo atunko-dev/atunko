@@ -122,6 +122,31 @@ public class TuiController {
             });
         }
 
+        public void selectAll() {
+            Set<String> visibleNames =
+                    displayRows().stream().map(r -> r.recipe().name()).collect(Collectors.toSet());
+            selectedRecipes.addAll(visibleNames);
+            if (cascade) {
+                recomputePartialState();
+            }
+        }
+
+        public void deselectAll() {
+            selectedRecipes.clear();
+            if (cascade) {
+                recomputePartialState();
+            }
+        }
+
+        public void expandAll(List<RecipeInfo> recipes) {
+            for (RecipeInfo r : recipes) {
+                if (r.isComposite()) {
+                    expandedRecipes.add(r.name());
+                    expandAll(r.recipeList());
+                }
+            }
+        }
+
         public void cycleSelection(boolean clearAllOnDeselect) {
             Set<String> visibleNames =
                     displayRows().stream().map(r -> r.recipe().name()).collect(Collectors.toSet());
@@ -489,6 +514,40 @@ public class TuiController {
         LOG.fine(() -> "Cycle selection: " + selectedRecipes.size() + " selected");
     }
 
+    @Requirements({"atunko:TUI_0001.5"})
+    public void selectAll() {
+        browserState.selectAll();
+    }
+
+    @Requirements({"atunko:TUI_0001.5"})
+    public void deselectAll() {
+        browserState.deselectAll();
+    }
+
+    public void expandAll() {
+        browserState.expandAll(recipes());
+    }
+
+    public void collapseAll() {
+        browserState.clearExpanded();
+    }
+
+    public void nextSearchMatch() {
+        int size = displayRows().size();
+        if (size == 0) {
+            return;
+        }
+        browserState.setHighlightedIndex((browserState.highlightedIndex() + 1) % size);
+    }
+
+    public void prevSearchMatch() {
+        int size = displayRows().size();
+        if (size == 0) {
+            return;
+        }
+        browserState.setHighlightedIndex((browserState.highlightedIndex() - 1 + size) % size);
+    }
+
     @Requirements({"atunko:TUI_0001.13"})
     public void collapseHighlighted() {
         browserState.collapseHighlighted();
@@ -671,6 +730,20 @@ public class TuiController {
     public void cycleRunSelection() {
         if (runState != null) {
             runState.cycleSelection(false);
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.14"})
+    public void selectAllRun() {
+        if (runState != null) {
+            runState.selectAll();
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.14"})
+    public void deselectAllRun() {
+        if (runState != null) {
+            runState.deselectAll();
         }
     }
 
