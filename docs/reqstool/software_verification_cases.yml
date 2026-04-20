@@ -778,3 +778,83 @@ cases:
       WHEN the user runs `atunko run -r <recipe> --project-dir <path>`
       THEN the recipe is executed against the project and results are reported
     revision: "0.1.0"
+
+  - id: SVC_CORE_0009
+    requirement_ids: ["CORE_0009"]
+    title: Export run config to Maven/Gradle plugin format
+    verification: automated-test
+    description: |
+      GIVEN a saved .atunko.yml run configuration
+      WHEN the user runs `atunko config export --gradle` or `atunko config export --maven`
+      THEN the appropriate plugin configuration snippet is output
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.28
+    requirement_ids: ["WEB_0001.17"]
+    title: Web UI — Export button present and styled in status bar
+    verification: automated-test
+    description: |
+      GIVEN the Web UI is loaded
+      WHEN the status bar is rendered
+      THEN an Export button with lumo-small and lumo-primary theme variants is present
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.29
+    requirement_ids: ["WEB_0001.17"]
+    title: Web UI — Export dialog shows correct snippet for selected recipes
+    verification: automated-test
+    description: |
+      GIVEN recipes are selected in the Web UI
+      WHEN the user opens the Export dialog and chooses a format
+      THEN the snippet area contains the correct Gradle or Maven plugin configuration
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.30
+    requirement_ids: ["WEB_0001.17"]
+    title: Web UI — Export dialog disabled when no recipes selected
+    verification: automated-test
+    description: |
+      GIVEN no recipes are selected
+      WHEN the user opens the Export dialog
+      THEN the snippet area and copy button are disabled with a "No recipes selected." message
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.31
+    requirement_ids: ["WEB_0001.17"]
+    title: Web UI — Export dialog format switch live-updates snippet
+    verification: automated-test
+    description: |
+      GIVEN the Export dialog is open with recipes selected
+      WHEN the user switches between Gradle and Maven format
+      THEN the snippet area updates immediately to reflect the new format
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.32
+    requirement_ids: ["WEB_0001.17"]
+    title: Web UI — Export dialog mode switch live-updates snippet
+    verification: automated-test
+    description: |
+      GIVEN the Export dialog is open with recipes selected
+      WHEN the user switches between Minimal and Full mode
+      THEN the snippet area updates immediately to reflect the new mode
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.33
+    requirement_ids: ["WEB_0001.17"]
+    title: Web UI — Export dialog Full Gradle emits standalone build.gradle
+    verification: automated-test
+    description: |
+      GIVEN the Export dialog is open with recipes selected
+      WHEN Full mode and Gradle format are selected
+      THEN the snippet includes plugins {}, repositories {}, and rewrite {} blocks
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0001.34
+    requirement_ids: ["WEB_0001.17"]
+    title: Web UI — Export dialog Full Maven emits standalone pom.xml
+    verification: automated-test
+    description: |
+      GIVEN the Export dialog is open with recipes selected
+      WHEN Full mode and Maven format are selected
+      THEN the snippet includes a complete pom.xml with XML declaration and GAV coordinates
+    revision: "0.1.0"
