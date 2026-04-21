@@ -778,3 +778,193 @@ cases:
       WHEN the user runs `atunko run -r <recipe> --project-dir <path>`
       THEN the recipe is executed against the project and results are reported
     revision: "0.1.0"
+
+  - id: SVC_CLI_0005
+    requirement_ids: ["CLI_0005"]
+    title: run and list accept --workspace option
+    verification: automated-test
+    description: |
+      GIVEN a directory containing multiple projects
+      WHEN the user runs `atunko list --workspace <dir>` or `atunko run -r <recipe> --workspace <dir>`
+      THEN the workspace is scanned and the command operates across all discovered projects
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0005.1
+    requirement_ids: ["CLI_0005.1"]
+    title: run --workspace prints per-project summary table
+    verification: automated-test
+    description: |
+      GIVEN a workspace run completes
+      WHEN results are printed
+      THEN a table row per project shows project name, changed file count, and pass/fail status
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0005.2
+    requirement_ids: ["CLI_0005.2"]
+    title: run --workspace exits non-zero on any project failure
+    verification: automated-test
+    description: |
+      GIVEN a workspace run where at least one project fails
+      WHEN the process exits
+      THEN the exit code is non-zero
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0007.1
+    requirement_ids: ["CORE_0007.1"]
+    title: Save run configuration includes workspace block
+    verification: automated-test
+    description: |
+      GIVEN a RunConfig with a non-null workspace field
+      WHEN it is serialised to YAML
+      THEN the output contains a workspace: block with root and filter fields
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0008.1
+    requirement_ids: ["CORE_0008.1"]
+    title: Load run configuration deserialises workspace block
+    verification: automated-test
+    description: |
+      GIVEN a .atunko.yml with a workspace: block
+      WHEN it is loaded via RunConfigService
+      THEN the resulting RunConfig has a non-null workspace with the correct root and filters
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0010
+    requirement_ids: ["CORE_0010"]
+    title: WorkspaceScanner discovers all projects under a root
+    verification: automated-test
+    description: |
+      GIVEN a root directory containing multiple Gradle and Maven projects
+      WHEN WorkspaceScanner.scan() is called
+      THEN all project directories are returned as ProjectEntry instances in a Workspace
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0010.1
+    requirement_ids: ["CORE_0010.1"]
+    title: WorkspaceScanner skips build output and hidden directories
+    verification: automated-test
+    description: |
+      GIVEN a workspace root containing build/, target/, .gradle/, node_modules/, .git/, and hidden dirs
+      WHEN WorkspaceScanner.scan() is called
+      THEN none of those directories are entered during the walk
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0010.2
+    requirement_ids: ["CORE_0010.2"]
+    title: WorkspaceScanner skips directories with .atunkoignore
+    verification: automated-test
+    description: |
+      GIVEN a directory containing a .atunkoignore file with a valid project inside
+      WHEN WorkspaceScanner.scan() is called
+      THEN that directory is not descended into and the project is not discovered
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0010.3
+    requirement_ids: ["CORE_0010.3"]
+    title: WorkspaceScanner treats Gradle multi-project root as one project
+    verification: automated-test
+    description: |
+      GIVEN a Gradle root with settings.gradle declaring subprojects
+      WHEN WorkspaceScanner.scan() is called
+      THEN the root is returned as a single ProjectEntry and subproject dirs are not independently scanned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0010.4
+    requirement_ids: ["CORE_0010.4"]
+    title: WorkspaceScanner treats Maven multi-module root as one project
+    verification: automated-test
+    description: |
+      GIVEN a Maven pom.xml with a <modules> block declaring submodule directories
+      WHEN WorkspaceScanner.scan() is called
+      THEN the root is returned as a single ProjectEntry and module dirs are not independently scanned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0010.5
+    requirement_ids: ["CORE_0010.5"]
+    title: ProjectEntry pairs projectDir with ProjectInfo
+    verification: automated-test
+    description: |
+      GIVEN a ProjectEntry created with a directory path and a ProjectInfo
+      WHEN projectDir() and info() are accessed
+      THEN the values match what was provided at construction
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0011
+    requirement_ids: ["CORE_0011"]
+    title: WorkspaceExecutionEngine executes recipe across all projects
+    verification: automated-test
+    description: |
+      GIVEN a Workspace containing multiple projects
+      WHEN WorkspaceExecutionEngine.execute() is called with a recipe name
+      THEN a ProjectExecutionResult is produced for every project in the workspace
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0011.1
+    requirement_ids: ["CORE_0011.1"]
+    title: WorkspaceExecutionEngine isolates per-project failures
+    verification: automated-test
+    description: |
+      GIVEN a Workspace where one project's execution throws an exception
+      WHEN WorkspaceExecutionEngine.execute() is called
+      THEN the failing project's result captures the exception and remaining projects are still executed
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0012
+    requirement_ids: ["CORE_0012"]
+    title: RunConfig workspace field is optional
+    verification: automated-test
+    description: |
+      GIVEN a RunConfig with a null workspace field
+      WHEN it is serialised and deserialised
+      THEN the workspace field is absent from YAML and null after loading
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0002
+    requirement_ids: ["WEB_0002"]
+    title: Web UI scan workspace toggle discovers projects
+    verification: automated-test
+    description: |
+      GIVEN a directory containing multiple projects
+      WHEN the user enables the workspace toggle and provides a root path
+      THEN the project list shows all discovered projects with checkboxes
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0002.1
+    requirement_ids: ["WEB_0002.1"]
+    title: Execution dialog shows per-project progress
+    verification: automated-test
+    description: |
+      GIVEN a workspace run is in progress
+      WHEN the execution dialog is displayed
+      THEN it shows the current project name and N-of-M progress
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0002.2
+    requirement_ids: ["WEB_0002.2"]
+    title: Aggregate results table shows per-project rows
+    verification: automated-test
+    description: |
+      GIVEN a workspace run has completed
+      WHEN results are displayed
+      THEN a table shows each project with its changed file count and pass/fail status
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0002.3
+    requirement_ids: ["WEB_0002.3"]
+    title: Diff viewer scopes to one project with dropdown switch
+    verification: automated-test
+    description: |
+      GIVEN a workspace run has produced diffs for multiple projects
+      WHEN the diff viewer is opened
+      THEN a dropdown allows switching between projects and the diff updates accordingly
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0002.4
+    requirement_ids: ["WEB_0002.4"]
+    title: Workspace root persisted in run configuration
+    verification: automated-test
+    description: |
+      GIVEN the user has configured a workspace root in the Web UI
+      WHEN the run configuration is saved and reloaded
+      THEN the workspace root is preserved
+    revision: "0.1.0"
