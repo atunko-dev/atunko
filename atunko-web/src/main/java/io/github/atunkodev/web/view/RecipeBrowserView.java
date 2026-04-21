@@ -5,6 +5,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -31,8 +32,12 @@ import io.github.atunkodev.core.AppServices;
 import io.github.atunkodev.core.config.RecipeEntry;
 import io.github.atunkodev.core.config.RunConfig;
 import io.github.atunkodev.core.config.RunConfigService;
+import io.github.atunkodev.core.config.WorkspaceConfig;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
+import io.github.atunkodev.core.engine.ProjectExecutionResult;
+import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
+import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.SessionHolder;
 import io.github.atunkodev.core.recipe.RecipeInfo;
@@ -79,10 +84,16 @@ public class RecipeBrowserView extends AppLayout {
     private SortOrder currentSortOrder = SortOrder.NAME;
     private final RunConfigService runConfigService = new RunConfigService();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final boolean workspaceMode;
+    private Set<ProjectEntry> selectedWorkspaceProjects = new HashSet<>();
 
     public RecipeBrowserView() {
         allRecipes = RecipeHolder.getRecipes();
         childToParents = RecipeCoverageUtils.buildReverseIndex(allRecipes);
+        workspaceMode = SessionHolder.getProjectEntries().size() > 1;
+        if (workspaceMode) {
+            selectedWorkspaceProjects = new HashSet<>(SessionHolder.getProjectEntries());
+        }
 
         H2 title = new H2("atunko");
         title.getStyle().set("margin", "0 auto");
@@ -94,6 +105,9 @@ public class RecipeBrowserView extends AppLayout {
         content.setSpacing(false);
         content.getStyle().set("overflow", "hidden");
 
+        if (workspaceMode) {
+            content.add(buildWorkspacePanel());
+        }
         content.add(buildSearchBar());
         content.addAndExpand(buildSplitLayout());
         content.add(buildStatusBar());
@@ -257,6 +271,32 @@ public class RecipeBrowserView extends AppLayout {
         detailPanel.add(new Span("Select a recipe to view details"));
     }
 
+    @Requirements({"atunko:WEB_0002"})
+    private Component buildWorkspacePanel() {
+        List<ProjectEntry> entries = SessionHolder.getProjectEntries();
+
+        CheckboxGroup<ProjectEntry> projectCheckboxes = new CheckboxGroup<>();
+        projectCheckboxes.setLabel("Projects");
+        projectCheckboxes.setItems(entries);
+        projectCheckboxes.setItemLabelGenerator(
+                e -> e.projectDir().getFileName().toString());
+        projectCheckboxes.setValue(new HashSet<>(entries));
+        projectCheckboxes.addValueChangeListener(event -> selectedWorkspaceProjects = event.getValue());
+
+        Path root = SessionHolder.getWorkspaceRoot();
+        Span rootLabel = new Span("Workspace: " + (root != null ? root.toString() : ""));
+        rootLabel.getStyle().set("font-size", "12px").set("color", "var(--lumo-secondary-text-color)");
+
+        HorizontalLayout panel = new HorizontalLayout(rootLabel, projectCheckboxes);
+        panel.setAlignItems(HorizontalLayout.Alignment.CENTER);
+        panel.setWidthFull();
+        panel.setPadding(true);
+        panel.getStyle()
+                .set("background", "var(--lumo-contrast-5pct)")
+                .set("border-bottom", "1px solid var(--lumo-contrast-20pct)");
+        return panel;
+    }
+
     @Requirements({"atunko:WEB_0001.15"})
     private void updateCoveredRecipes() {
         if (cascadeHandler == null) {
@@ -350,6 +390,14 @@ public class RecipeBrowserView extends AppLayout {
     }
 
     private void executeRecipes(List<RecipeInfo> recipes, boolean dryRun) {
+        if (workspaceMode) {
+            executeWorkspace(recipes, dryRun);
+        } else {
+            executeSingleProject(recipes, dryRun);
+        }
+    }
+
+    private void executeSingleProject(List<RecipeInfo> recipes, boolean dryRun) {
         Dialog progressDialog = new Dialog();
         progressDialog.setCloseOnEsc(false);
         progressDialog.setCloseOnOutsideClick(false);
@@ -399,6 +447,83 @@ public class RecipeBrowserView extends AppLayout {
                                 failedRecipes.size() + " recipe(s) failed:\n" + String.join("\n", failedRecipes),
                                 8000,
                                 Notification.Position.MIDDLE);
+                    }
+                    dryRunButton.setEnabled(true);
+                    executeButton.setEnabled(true);
+                });
+            } catch (Exception e) {
+                ui.access(() -> {
+                    progressDialog.close();
+                    Notification.show("Error: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                    dryRunButton.setEnabled(true);
+                    executeButton.setEnabled(true);
+                });
+            }
+        });
+    }
+
+    @Requirements({"atunko:WEB_0002.1", "atunko:WEB_0002.2"})
+    private void executeWorkspace(List<RecipeInfo> recipes, boolean dryRun) {
+        List<ProjectEntry> projectsToRun = new ArrayList<>(selectedWorkspaceProjects);
+        if (projectsToRun.isEmpty()) {
+            Notification.show("No projects selected", 3000, Notification.Position.MIDDLE);
+            dryRunButton.setEnabled(true);
+            executeButton.setEnabled(true);
+            return;
+        }
+
+        Dialog progressDialog = new Dialog();
+        progressDialog.setCloseOnEsc(false);
+        progressDialog.setCloseOnOutsideClick(false);
+        progressDialog.setHeaderTitle(dryRun ? "Running Dry Run..." : "Executing Recipes...");
+        ProgressBar bar = new ProgressBar();
+        bar.setIndeterminate(true);
+        bar.setWidth("300px");
+        Span statusSpan = new Span("Preparing...");
+        VerticalLayout progressContent = new VerticalLayout(statusSpan, bar);
+        progressContent.setAlignItems(VerticalLayout.Alignment.CENTER);
+        progressDialog.add(progressContent);
+        progressDialog.open();
+
+        UI ui = UI.getCurrent();
+        List<String> recipeNames = recipes.stream().map(RecipeInfo::name).toList();
+        int total = projectsToRun.size();
+
+        executor.submit(() -> {
+            try {
+                List<ProjectExecutionResult> allResults = new ArrayList<>();
+
+                for (int i = 0; i < total; i++) {
+                    ProjectEntry entry = projectsToRun.get(i);
+                    String projectName = entry.projectDir().getFileName().toString();
+                    int current = i + 1;
+                    ui.access(() -> statusSpan.setText("Project " + current + "/" + total + ": " + projectName));
+
+                    try {
+                        List<SourceFile> sources = AppServices.getSourceParser().parse(entry.info());
+                        List<FileChange> projectChanges = new ArrayList<>();
+                        for (String recipeName : recipeNames) {
+                            ExecutionResult r = AppServices.getEngine().execute(recipeName, sources);
+                            projectChanges.addAll(r.changes());
+                        }
+                        ExecutionResult projectResult = new ExecutionResult(projectChanges);
+                        if (!dryRun && AppServices.getChangeApplier() != null && !projectChanges.isEmpty()) {
+                            AppServices.getChangeApplier().apply(entry.projectDir(), projectChanges);
+                        }
+                        allResults.add(new ProjectExecutionResult(entry, projectResult, null));
+                    } catch (Exception ex) {
+                        allResults.add(new ProjectExecutionResult(entry, null, ex));
+                    }
+                }
+
+                WorkspaceExecutionResult wsResult = new WorkspaceExecutionResult(allResults);
+
+                ui.access(() -> {
+                    progressDialog.close();
+                    new WorkspaceResultsDialog(wsResult, dryRun).open();
+                    if (wsResult.hasFailures()) {
+                        Notification.show(
+                                wsResult.failureCount() + " project(s) failed", 5000, Notification.Position.MIDDLE);
                     }
                     dryRunButton.setEnabled(true);
                     executeButton.setEnabled(true);
@@ -517,7 +642,7 @@ public class RecipeBrowserView extends AppLayout {
         updateCoveredRecipes();
     }
 
-    @Requirements({"atunko:WEB_0001.11"})
+    @Requirements({"atunko:WEB_0001.11", "atunko:WEB_0002.4"})
     void saveConfig() {
         if (cascadeHandler == null) {
             return;
@@ -543,12 +668,22 @@ public class RecipeBrowserView extends AppLayout {
                 return;
             }
             try {
-                Path runsDir = SessionHolder.getProjectDir().resolve("atunko/runs");
+                Path baseDir = workspaceMode && SessionHolder.getWorkspaceRoot() != null
+                        ? SessionHolder.getWorkspaceRoot()
+                        : SessionHolder.getProjectDir();
+                Path runsDir = baseDir.resolve("atunko/runs");
                 Files.createDirectories(runsDir);
                 Path file = runsDir.resolve(name + ".yaml");
                 List<RecipeEntry> entries =
                         selected.stream().map(r -> new RecipeEntry(r.name())).toList();
-                RunConfig config = new RunConfig(entries);
+                RunConfig config;
+                if (workspaceMode && SessionHolder.getWorkspaceRoot() != null) {
+                    WorkspaceConfig wsConfig =
+                            new WorkspaceConfig(SessionHolder.getWorkspaceRoot().toString());
+                    config = new RunConfig(null, wsConfig, entries);
+                } else {
+                    config = new RunConfig(entries);
+                }
                 runConfigService.save(config, file);
                 nameDialog.close();
                 Notification.show("Saved: " + file.getFileName(), 3000, Notification.Position.MIDDLE);
@@ -561,9 +696,12 @@ public class RecipeBrowserView extends AppLayout {
         nameDialog.open();
     }
 
-    @Requirements({"atunko:WEB_0001.12"})
+    @Requirements({"atunko:WEB_0001.12", "atunko:WEB_0002.4"})
     void loadConfig() {
-        Path runsDir = SessionHolder.getProjectDir().resolve("atunko/runs");
+        Path baseDir = workspaceMode && SessionHolder.getWorkspaceRoot() != null
+                ? SessionHolder.getWorkspaceRoot()
+                : SessionHolder.getProjectDir();
+        Path runsDir = baseDir.resolve("atunko/runs");
         if (!Files.isDirectory(runsDir)) {
             Notification.show("No saved runs found", 3000, Notification.Position.MIDDLE);
             return;
