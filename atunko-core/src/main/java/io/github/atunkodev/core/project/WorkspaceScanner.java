@@ -23,9 +23,8 @@ public final class WorkspaceScanner {
 
     private static final Set<String> SKIP_DIR_NAMES = Set.of("build", "target", ".gradle", "node_modules", ".git");
 
-    private static final Pattern GRADLE_INCLUDE_PATTERN = Pattern.compile("""
-        include\\s*[\\(]?\\s*["':]+([\\w:/-]+)["']+\
-        """);
+    private static final Pattern GRADLE_INCLUDE_LINE = Pattern.compile("^\\s*include[\\s(].*", Pattern.MULTILINE);
+    private static final Pattern GRADLE_PROJECT_PATH = Pattern.compile("[\"']([\\w:/-]+)[\"']");
 
     private WorkspaceScanner() {}
 
@@ -125,11 +124,14 @@ public final class WorkspaceScanner {
     private static void claimGradleSubprojects(Path rootDir, Path settingsFile, Set<Path> claimedDirs) {
         try {
             String content = Files.readString(settingsFile);
-            Matcher matcher = GRADLE_INCLUDE_PATTERN.matcher(content);
-            while (matcher.find()) {
-                String projectPath = matcher.group(1).replace(':', '/').replaceAll("^/", "");
-                Path subprojectDir = rootDir.resolve(projectPath).normalize();
-                claimedDirs.add(subprojectDir);
+            Matcher lineMatcher = GRADLE_INCLUDE_LINE.matcher(content);
+            while (lineMatcher.find()) {
+                Matcher pathMatcher = GRADLE_PROJECT_PATH.matcher(lineMatcher.group());
+                while (pathMatcher.find()) {
+                    String projectPath = pathMatcher.group(1).replace(':', '/').replaceAll("^/", "");
+                    Path subprojectDir = rootDir.resolve(projectPath).normalize();
+                    claimedDirs.add(subprojectDir);
+                }
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
