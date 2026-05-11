@@ -600,3 +600,213 @@ requirements:
     description: The tool should export run configs to Maven/Gradle plugin format
     categories: [compatibility]
     revision: 0.1.0
+
+  - id: CORE_0007.1
+    title: Save Run Configuration — Workspace Block
+    significance: shall
+    description: >-
+      When saving a run configuration that includes a workspace, the tool shall include
+      the workspace root and glob filters in the .atunko.yml file
+    references:
+      requirement_ids: ["CORE_0007"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0008.1
+    title: Load Run Configuration — Workspace Block
+    significance: shall
+    description: >-
+      When loading a run configuration, the tool shall deserialise the optional
+      workspace block and make it available for workspace-mode execution
+    references:
+      requirement_ids: ["CORE_0008"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  # Workspace support
+  - id: CORE_0010
+    title: Workspace Scanning
+    significance: shall
+    description: >-
+      The core engine shall discover all Gradle and Maven projects under a given root
+      directory by walking the directory tree top-down, returning a Workspace containing
+      a list of ProjectEntry (projectDir + ProjectInfo) pairs
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0010.1
+    title: Workspace Scanner — Skip Build Output Directories
+    significance: shall
+    description: >-
+      The workspace scanner shall skip build/, target/, .gradle/, node_modules/,
+      .git/, and hidden directories (names starting with .) during the tree walk
+    references:
+      requirement_ids: ["CORE_0010"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0010.2
+    title: Workspace Scanner — .atunkoignore Marker
+    significance: shall
+    description: >-
+      The workspace scanner shall not descend into any directory that contains
+      a .atunkoignore file
+    references:
+      requirement_ids: ["CORE_0010"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0010.3
+    title: Workspace Scanner — Gradle Multi-Project Root Handling
+    significance: shall
+    description: >-
+      When the workspace scanner encounters a settings.gradle or settings.gradle.kts file,
+      it shall parse include declarations to determine subproject directories and exclude
+      those directories from further independent scanning, treating the root as a single project
+    references:
+      requirement_ids: ["CORE_0010"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0010.4
+    title: Workspace Scanner — Maven Multi-Module Root Handling
+    significance: shall
+    description: >-
+      When the workspace scanner encounters a pom.xml containing a <modules> block,
+      it shall treat that directory as a Maven multi-module root and exclude its
+      declared module directories from further independent scanning
+    references:
+      requirement_ids: ["CORE_0010"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0010.5
+    title: ProjectEntry Type
+    significance: shall
+    description: >-
+      The core engine shall provide a ProjectEntry record that pairs a project
+      directory path with its corresponding ProjectInfo, used as the unit of
+      identity throughout workspace operations
+    references:
+      requirement_ids: ["CORE_0010"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0011
+    title: Workspace Execution
+    significance: shall
+    description: >-
+      The core engine shall execute a named recipe sequentially across all projects
+      in a Workspace, returning a WorkspaceExecutionResult containing per-project results
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0011.1
+    title: Workspace Execution — Per-Project Failure Isolation
+    significance: shall
+    description: >-
+      A failure (exception or execution error) in one project shall not abort the
+      workspace execution loop; the failure shall be captured in the ProjectExecutionResult
+      for that project and execution shall continue with remaining projects
+    references:
+      requirement_ids: ["CORE_0011"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0012
+    title: Run Configuration — Workspace Block
+    significance: shall
+    description: >-
+      The RunConfig model shall support an optional workspace block containing
+      a root path and optional include/exclude glob filters; when absent, single-project
+      mode is assumed
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  # CLI workspace requirements
+  - id: CLI_0005
+    title: CLI Workspace Support
+    significance: shall
+    description: >-
+      The run and list CLI subcommands shall accept a --workspace <dir> option that
+      scans the given directory for projects and operates across all discovered projects
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0005.1
+    title: CLI Workspace — Per-Project Summary Table
+    significance: shall
+    description: >-
+      After a workspace run, the CLI shall print a per-project summary table showing
+      each project name, number of changed files, and pass/fail status
+    references:
+      requirement_ids: ["CLI_0005"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0005.2
+    title: CLI Workspace — Non-Zero Exit on Failure
+    significance: shall
+    description: >-
+      If any project fails during a workspace run, the CLI process shall exit with
+      a non-zero exit code
+    references:
+      requirement_ids: ["CLI_0005"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  # Web UI workspace requirements
+  - id: WEB_0002
+    title: Web UI — Workspace Scan and Multi-Select
+    significance: shall
+    description: >-
+      The Web UI shall provide a "Scan workspace" toggle on the project-dir picker
+      that scans the given directory and displays discovered projects in a multi-select list
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0002.1
+    title: Web UI — Per-Project Execution Progress
+    significance: shall
+    description: >-
+      The Web UI execution dialog shall show per-project progress during a workspace run,
+      displaying the current project name and N-of-M count
+    references:
+      requirement_ids: ["WEB_0002"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0002.2
+    title: Web UI — Aggregate Results Table
+    significance: shall
+    description: >-
+      After a workspace run the Web UI shall display an aggregate results table with
+      a per-project row showing project name, changed file count, and pass/fail status
+    references:
+      requirement_ids: ["WEB_0002"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0002.3
+    title: Web UI — Scoped Diff Viewer
+    significance: shall
+    description: >-
+      The Web UI diff viewer shall scope to one project at a time with a dropdown
+      to switch between projects when a workspace run has been performed
+    references:
+      requirement_ids: ["WEB_0002"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0002.4
+    title: Web UI — Persist Workspace Config
+    significance: shall
+    description: >-
+      The Web UI shall persist the workspace root path in the session and run
+      configuration, allowing it to be saved and reloaded via .atunko.yml
+    references:
+      requirement_ids: ["WEB_0002"]
+    categories: [interaction-capability]
+    revision: 0.1.0
