@@ -588,3 +588,56 @@ requirements:
     description: The tool should export run configs to Maven/Gradle plugin format
     categories: [compatibility]
     revision: 0.1.0
+
+  - id: CORE_0010
+    title: LST Caching
+    significance: shall
+    description: >-
+      The core engine shall cache serialized parsed LSTs on disk, keyed by content hash,
+      so that repeated runs against unchanged files skip re-parsing
+    categories: [performance-efficiency]
+    revision: 0.1.0
+
+  - id: CORE_0010.1
+    title: LST Serialization Round-Trip
+    significance: shall
+    description: >-
+      The cache shall serialize and deserialize each supported SourceFile subtype
+      (Java, XML, YAML, JSON, properties) with printAll() output identical to the original
+    references:
+      requirement_ids: ["CORE_0010"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0010.2
+    title: LST Cache Key Derivation
+    significance: shall
+    description: >-
+      The cache key shall be derived from SHA-256 of file content, relative path,
+      parser type tag, and rewrite BOM version, ensuring stable and collision-resistant keys
+    references:
+      requirement_ids: ["CORE_0010"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0010.3
+    title: LST Cache LRU Eviction
+    significance: shall
+    description: >-
+      The cache shall evict the least-recently-used entries when the total size exceeds the
+      configured limit, using filesystem mtime as the LRU signal
+    references:
+      requirement_ids: ["CORE_0010"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0010.4
+    title: LST Cache Disable
+    significance: shall
+    description: >-
+      The cache shall be fully disabled when configured (enabled=false), with no disk reads,
+      writes, or evictions occurring
+    references:
+      requirement_ids: ["CORE_0010"]
+    categories: [functional-suitability]
+    revision: 0.1.0

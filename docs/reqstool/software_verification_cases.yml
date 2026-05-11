@@ -858,3 +858,54 @@ cases:
       WHEN Full mode and Maven format are selected
       THEN the snippet includes a complete pom.xml with XML declaration and GAV coordinates
     revision: "0.1.0"
+
+  - id: SVC_CORE_0010
+    requirement_ids: ["CORE_0010"]
+    title: LST cache warms on first parse and is used on subsequent parses
+    verification: automated-test
+    description: |
+      GIVEN a project with source files
+      WHEN ProjectSourceParser.parse() is called twice for the same project
+      THEN the second call returns sources with identical printAll() output
+      AND no re-parsing of unchanged files occurs
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0010.1
+    requirement_ids: ["CORE_0010.1"]
+    title: Codec round-trip preserves printAll() for all supported subtypes
+    verification: automated-test
+    description: |
+      GIVEN a parsed SourceFile of each supported subtype (Java, XML, YAML, JSON, properties)
+      WHEN the codec serializes and then deserializes the SourceFile
+      THEN printAll() on the deserialized result equals the original source bytes
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0010.2
+    requirement_ids: ["CORE_0010.2"]
+    title: Cache key changes when file content changes
+    verification: automated-test
+    description: |
+      GIVEN a cached entry for a source file
+      WHEN the file content is modified
+      THEN a different cache key is derived and the entry is treated as a miss
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0010.3
+    requirement_ids: ["CORE_0010.3"]
+    title: LRU eviction removes oldest entries when size limit is exceeded
+    verification: automated-test
+    description: |
+      GIVEN a cache at its configured size limit
+      WHEN a new entry is written
+      THEN the least-recently-used entries are deleted until size is below 90% of the limit
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0010.4
+    requirement_ids: ["CORE_0010.4"]
+    title: Disabled cache performs no disk operations
+    verification: automated-test
+    description: |
+      GIVEN the cache is configured with enabled=false
+      WHEN ProjectSourceParser.parse() is called
+      THEN no files are read from or written to the cache directory
+    revision: "0.1.0"
