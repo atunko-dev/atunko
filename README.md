@@ -40,11 +40,23 @@ The fat JAR is produced at `atunko-cli/build/libs/atunko.jar`.
 # Launch the interactive recipe browser (default command)
 java -jar atunko-cli/build/libs/atunko.jar tui
 
+# Launch with light theme
+java -jar atunko-cli/build/libs/atunko.jar tui --theme light
+
+# Launch with a custom CSS theme file
+java -jar atunko-cli/build/libs/atunko.jar tui --css-file ~/.config/atunko/mytheme.tcss
+
 # Launch with debug logging to a file
 java -jar atunko-cli/build/libs/atunko.jar tui --log-file tui.log
 ```
 
-Options: `--log-file <path>` — write TUI debug output to a file (useful for troubleshooting).
+Options:
+
+- `--theme <dark|light>` — select a bundled theme (default: `dark`)
+- `--css-file <path>` — load a custom TCSS theme file (overrides `--theme` and the XDG default)
+- `--log-file <path>` — write TUI debug output to a file (useful for troubleshooting)
+
+**Theme resolution order:** `--css-file` → `~/.config/atunko/theme.tcss` (XDG) → `--theme` → `dark`
 
 Key bindings:
 

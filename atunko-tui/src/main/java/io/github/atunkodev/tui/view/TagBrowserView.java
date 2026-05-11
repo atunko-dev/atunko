@@ -10,8 +10,6 @@ import static dev.tamboui.toolkit.Toolkit.text;
 import static dev.tamboui.toolkit.Toolkit.textInput;
 
 import dev.tamboui.layout.Constraint;
-import dev.tamboui.style.Color;
-import dev.tamboui.style.Style;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.widgets.input.TextInputState;
@@ -41,24 +39,23 @@ public final class TagBrowserView {
 
         Set<String> selected = controller.selectedTags();
 
-        var recipeList =
-                list().highlightStyle(Style.EMPTY.fg(Color.WHITE).bg(Color.BLUE).bold());
+        var recipeList = list().addClass("list-item");
         for (String tag : tags) {
             boolean isSelected = selected.contains(tag);
             String prefix = isSelected ? "[x] " : "[ ] ";
             var prefixEl = isSelected
-                    ? text(prefix).fg(Color.LIGHT_GREEN)
-                    : text(prefix).dim();
+                    ? text(prefix).addClass("selected")
+                    : text(prefix).addClass("unselected");
             recipeList.add(row(prefixEl, text(tag)));
         }
 
         var headerLabel = tagSearchMode
-                ? text(" SEARCH TAGS ").bold().fg(Color.BLACK).bg(Color.LIGHT_YELLOW)
-                : text(" Tag Browser ").bold().fg(Color.WHITE).bg(Color.BLUE);
+                ? text(" SEARCH TAGS ").addClass("screen-title", "search-mode")
+                : text(" Tag Browser ").addClass("screen-title");
 
         long selectedCount = selected.size();
         var selectedIndicator =
-                selectedCount > 0 ? text(" " + selectedCount + " selected ").fg(Color.LIGHT_GREEN) : text("");
+                selectedCount > 0 ? text(" " + selectedCount + " selected ").addClass("coverage-indicator") : text("");
 
         Element header = row(
                 headerLabel,
@@ -80,10 +77,9 @@ public final class TagBrowserView {
                         .center(recipeList
                                 .selected(tagIndex)
                                 .title("Tags (" + tags.size() + ")")
-                                .rounded()
-                                .borderColor(Color.LIGHT_CYAN)
+                                .addClass("panel")
                                 .autoScroll())
-                        .bottom(text(" " + footer).fg(Color.WHITE).bg(Color.indexed(236)), Constraint.length(1))
+                        .bottom(text(" " + footer).addClass("status-bar"), Constraint.length(1))
                         .constraint(Constraint.fill()))
                 .id("tag-browser")
                 .focusable()

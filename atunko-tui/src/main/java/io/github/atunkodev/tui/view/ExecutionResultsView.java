@@ -8,8 +8,6 @@ import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
 
 import dev.tamboui.layout.Constraint;
-import dev.tamboui.style.Color;
-import dev.tamboui.style.Style;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import io.github.atunkodev.core.engine.ExecutionResult;
@@ -39,25 +37,17 @@ public final class ExecutionResultsView {
         String summary = changes.size() + " file(s) " + (controller.lastRunWasDryRun() ? "would change" : "changed");
 
         var titleElement = controller.lastRunWasDryRun()
-                ? text(" " + title + " ").bold().fg(Color.BLACK).bg(Color.LIGHT_YELLOW)
-                : text(" " + title + " ").bold().fg(Color.WHITE).bg(Color.LIGHT_GREEN);
+                ? text(" " + title + " ").addClass("screen-title", "dryrun-mode")
+                : text(" " + title + " ").addClass("screen-title", "success-mode");
 
         return column(dock().top(
-                                row(
-                                        titleElement,
-                                        spacer(),
-                                        text(summary + " ").bold().fg(Color.LIGHT_GREEN)),
+                                row(titleElement, spacer(), text(summary + " ").addClass("coverage-indicator")),
                                 Constraint.length(1))
                         .center(list(items)
                                 .title("Changed Files")
-                                .rounded()
-                                .borderColor(Color.LIGHT_CYAN)
-                                .highlightStyle(Style.EMPTY
-                                        .fg(Color.WHITE)
-                                        .bg(Color.BLUE)
-                                        .bold())
+                                .addClass("panel")
                                 .autoScroll())
-                        .bottom(text(" Esc/q:back").fg(Color.WHITE).bg(Color.indexed(236)), Constraint.length(1))
+                        .bottom(text(" Esc/q:back").addClass("status-bar"), Constraint.length(1))
                         .constraint(Constraint.fill()))
                 .id("execution-results")
                 .focusable()

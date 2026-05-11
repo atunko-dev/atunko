@@ -29,6 +29,12 @@ public class TuiCommand implements Runnable {
     @Option(names = "--log-file", description = "Log file for TUI debug output")
     private Path logFile;
 
+    @Option(names = "--theme", description = "Theme name: dark (default), light")
+    private String theme;
+
+    @Option(names = "--css-file", description = "Path to a custom CSS theme file (replaces bundled theme)")
+    private Path cssFile;
+
     public TuiCommand(
             RecipeDiscoveryService discoveryService,
             RunConfigService runConfigService,
@@ -49,7 +55,8 @@ public class TuiCommand implements Runnable {
         List<RecipeInfo> recipes = discoveryService.discoverAll();
         TuiController controller =
                 new TuiController(recipes, runConfigService, engine, sourceParser, changeApplier, projectDir);
-        AtunkoTui tui = new AtunkoTui(controller, logFile);
+        ThemeConfig themeConfig = ThemeConfig.resolve(theme, cssFile);
+        AtunkoTui tui = new AtunkoTui(controller, logFile, themeConfig);
         try {
             tui.run();
         } catch (Exception e) {
