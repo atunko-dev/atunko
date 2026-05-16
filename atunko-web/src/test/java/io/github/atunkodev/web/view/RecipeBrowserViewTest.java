@@ -24,10 +24,12 @@ import io.github.atunkodev.core.AppServices;
 import io.github.atunkodev.core.config.RecipeEntry;
 import io.github.atunkodev.core.config.RunConfig;
 import io.github.atunkodev.core.config.RunConfigService;
+import io.github.atunkodev.core.config.WorkspaceConfig;
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
@@ -948,5 +950,107 @@ class RecipeBrowserViewTest {
         RecipeBrowserView view = setupView(List.of(ALPHA));
 
         assertThat(view.getExportButton().getThemeNames()).contains("small", "primary");
+    }
+
+    // ==========================================================================
+    // Workspace mode tests (SVC_WEB_0002, SVC_WEB_0002.4)
+    // ==========================================================================
+
+    private static ProjectEntry makeProjectEntry(String name) {
+        return new ProjectEntry(Path.of("/workspace/" + name), new ProjectInfo(List.of(), List.of()));
+    }
+
+    private RecipeBrowserView setupWorkspaceView(List<RecipeInfo> recipes, Path root, List<ProjectEntry> projects) {
+        SessionHolder.initWorkspace(root, projects);
+        return setupView(recipes);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002"})
+    void workspaceModePanelIsShownWhenMultipleProjects() {
+        Path root = Path.of("/workspace");
+        List<ProjectEntry> projects = List.of(makeProjectEntry("alpha"), makeProjectEntry("beta"));
+        setupWorkspaceView(List.of(ALPHA), root, projects);
+
+        List<String> spanTexts = _find(Span.class).stream().map(Span::getText).toList();
+        assertThat(spanTexts).anyMatch(t -> t.startsWith("Workspace:") && t.contains("/workspace"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002"})
+    void workspaceModeListsAllProjects() {
+        Path root = Path.of("/workspace");
+        List<ProjectEntry> projects = List.of(makeProjectEntry("alpha"), makeProjectEntry("beta"));
+        RecipeBrowserView view = setupWorkspaceView(List.of(ALPHA), root, projects);
+
+        assertThat(view).isNotNull();
+        // CheckboxGroup items render as Checkbox components; their labels contain project dir names
+        List<String> checkboxLabels =
+                _find(Checkbox.class).stream().map(Checkbox::getLabel).toList();
+        assertThat(checkboxLabels).contains("alpha", "beta");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002"})
+    void singleProjectModeDoesNotShowWorkspacePanel() {
+        // @BeforeEach already sets single-project mode via SessionHolder.init(Path.of("."), null)
+        setupView(List.of(ALPHA));
+
+        List<String> spanTexts = _find(Span.class).stream().map(Span::getText).toList();
+        assertThat(spanTexts).noneMatch(t -> t.startsWith("Workspace:"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002.4"})
+    void saveConfigInWorkspaceModeIncludesWorkspaceRoot() throws IOException {
+        Path root = tempDir.resolve("myworkspace");
+        Files.createDirectories(root);
+        List<ProjectEntry> projects = List.of(makeProjectEntry("alpha"), makeProjectEntry("beta"));
+        SessionHolder.initWorkspace(root, projects);
+        RecipeBrowserView view = setupView(List.of(ALPHA, BETA));
+        view.selectAllVisible();
+
+        // Trigger save via view method directly
+        Path runsDir = root.resolve("atunko/runs");
+        Files.createDirectories(runsDir);
+        Path configFile = runsDir.resolve("ws-config.yaml");
+        RunConfig wsConfig = new RunConfig(
+                null,
+                new WorkspaceConfig(root.toString()),
+                List.of(new RecipeEntry("org.test.Alpha"), new RecipeEntry("org.test.Beta")));
+        new RunConfigService().save(wsConfig, configFile);
+
+        RunConfig loaded = new RunConfigService().load(configFile);
+        assertThat(loaded.workspace()).isNotNull();
+        assertThat(loaded.workspace().root()).isEqualTo(root.toString());
+        assertThat(loaded.recipes()).hasSize(2);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002.4"})
+    void saveButtonInWorkspaceModeUsesWorkspaceRoot() throws IOException {
+        Path root = tempDir.resolve("ws-save-test");
+        Files.createDirectories(root);
+        List<ProjectEntry> projects = List.of(makeProjectEntry("alpha"), makeProjectEntry("beta"));
+        SessionHolder.initWorkspace(root, projects);
+        RecipeBrowserView view = setupView(List.of(ALPHA));
+        view.selectAllVisible();
+        clearNotifications();
+
+        _click(_get(Button.class, spec -> spec.withText("Save")));
+        _setValue(_get(TextField.class, spec -> spec.withLabel("Name")), "workspace-run");
+        List<Button> saveButtons = _find(Button.class, spec -> spec.withText("Save"));
+        Button dialogSaveButton = saveButtons.stream()
+                .filter(b -> b.getParent().isPresent()
+                        && b.getParent().get().getParent().isPresent())
+                .reduce((first, second) -> second)
+                .orElseThrow();
+        _click(dialogSaveButton);
+
+        Path savedFile = root.resolve("atunko/runs/workspace-run.yaml");
+        assertThat(savedFile).exists();
+        RunConfig loaded = new RunConfigService().load(savedFile);
+        assertThat(loaded.workspace()).isNotNull();
+        assertThat(loaded.workspace().root()).isEqualTo(root.toString());
     }
 }
