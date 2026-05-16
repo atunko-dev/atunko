@@ -2,6 +2,10 @@ package io.github.atunkodev.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.github.atunkodev.core.AppServices;
+import io.github.atunkodev.core.engine.ChangeApplier;
+import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Path;
@@ -56,5 +60,19 @@ class WebUiCommandTest {
         WebUiCommand command = newCommand();
         new CommandLine(command).parseArgs("--project-dir", "/some/project");
         assertThat(command.getProjectDir()).isEqualTo(Path.of("/some/project"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0001.12"})
+    void appServicesInitialisedWithInjectedInstances() {
+        RecipeExecutionEngine engine = new RecipeExecutionEngine(null);
+        ProjectSourceParser parser = new ProjectSourceParser();
+        ChangeApplier applier = new ChangeApplier();
+
+        AppServices.init(engine, parser, applier);
+
+        assertThat(AppServices.getEngine()).isSameAs(engine);
+        assertThat(AppServices.getSourceParser()).isSameAs(parser);
+        assertThat(AppServices.getChangeApplier()).isSameAs(applier);
     }
 }
