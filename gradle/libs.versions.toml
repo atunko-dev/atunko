@@ -48,6 +48,7 @@ tamboui-toolkit = { module = "dev.tamboui:tamboui-toolkit" }
 tamboui-css = { module = "dev.tamboui:tamboui-css" }
 tamboui-picocli = { module = "dev.tamboui:tamboui-picocli" }
 tamboui-jline3-backend = { module = "dev.tamboui:tamboui-jline3-backend" }
+tamboui-toolkit-markdown = { module = "dev.tamboui:tamboui-toolkit-markdown" }
 
 # reqstool
 reqstool-annotations = { module = "io.github.reqstool:reqstool-java-annotations", version.ref = "reqstool-annotations" }

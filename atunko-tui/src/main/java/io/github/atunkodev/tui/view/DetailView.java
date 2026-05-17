@@ -6,6 +6,7 @@ import static dev.tamboui.toolkit.Toolkit.panel;
 import static dev.tamboui.toolkit.Toolkit.row;
 import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
+import static dev.tamboui.toolkit.markdown.MarkdownElement.markdown;
 
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
@@ -33,25 +34,23 @@ public final class DetailView {
                 ? text("Selected ").addClass("selected")
                 : text("Not selected ").addClass("unselected");
 
-        var detailContent = column(
+        var metadataContent = column(
                 row(text("Name: ").addClass("detail-label"), text(recipe.name())),
                 row(
                         text("Display Name: ").addClass("detail-label"),
                         text(RecipeListRenderer.cleanDisplayName(recipe.displayName()))),
                 text(""),
-                text("Description:").addClass("detail-label"),
-                text(recipe.description() != null ? recipe.description() : "(none)"),
-                text(""),
-                text("Tags:").addClass("detail-label"),
-                text(recipe.tags().isEmpty() ? "(none)" : String.join(", ", recipe.tags()))
-                        .addClass("detail-value"));
+                row(
+                        text("Tags: ").addClass("detail-label"),
+                        text(recipe.tags().isEmpty() ? "(none)" : String.join(", ", recipe.tags()))
+                                .addClass("detail-value")));
 
         if (recipe.isComposite()) {
-            detailContent.add(text(""));
-            detailContent.add(text("Recipe List:").addClass("detail-label"));
+            metadataContent.add(text(""));
+            metadataContent.add(text("Recipe List:").addClass("detail-label"));
             int index = 1;
             for (RecipeInfo sub : recipe.recipeList()) {
-                detailContent.add(row(
+                metadataContent.add(row(
                         text("  " + index + ". ").addClass("included-in"),
                         text(RecipeListRenderer.cleanDisplayName(sub.displayName()))
                                 .addClass("detail-value")));
@@ -61,17 +60,27 @@ public final class DetailView {
 
         List<String> parents = controller.includedIn(recipe.name());
         if (!parents.isEmpty()) {
-            detailContent.add(text(""));
-            detailContent.add(row(
+            metadataContent.add(text(""));
+            metadataContent.add(row(
                     text("Included in: ").addClass("detail-label", "included-in"),
                     text(String.join(", ", parents)).addClass("included-in")));
         }
+
+        int metadataLines =
+                4 + (recipe.isComposite() ? 2 + recipe.recipeList().size() : 0) + (!parents.isEmpty() ? 2 : 0);
+
+        String description = recipe.description() != null ? recipe.description() : "*(no description)*";
 
         Element centerContent;
         if (controller.isShowHelp()) {
             centerContent = row(spacer(), HelpOverlay.render(HelpOverlay.DETAIL_HELP), spacer());
         } else {
-            centerContent = panel("Recipe Detail", detailContent).addClass("panel");
+            centerContent = panel(
+                            "Detail",
+                            dock().top(metadataContent, Constraint.length(metadataLines))
+                                    .center(markdown(description))
+                                    .constraint(Constraint.fill()))
+                    .addClass("panel");
         }
 
         return column(dock().top(
