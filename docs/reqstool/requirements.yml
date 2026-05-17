@@ -302,6 +302,24 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: TUI_0001.19
+    title: TUI — Results File Navigation
+    significance: shall
+    description: The TUI shall allow the user to navigate the list of changed files in execution and dry-run results
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.20
+    title: TUI — File Diff View
+    significance: shall
+    description: The TUI shall display a before/after diff panel for any changed file selected from the results list
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   - id: TUI_0001.10
     title: TUI — Save Run Config
     significance: shall

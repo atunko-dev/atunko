@@ -529,6 +529,56 @@ cases:
       THEN the recipes are applied and results are displayed
     revision: "0.1.0"
 
+  - id: SVC_TUI_0001.19
+    requirement_ids: ["TUI_0001.19"]
+    title: TUI navigates results file list
+    verification: automated-test
+    description: |
+      GIVEN execution or dry-run results are shown with one or more changed files
+      WHEN the user presses j/k or arrow keys
+      THEN the highlighted file in the results list moves accordingly and index is clamped within bounds
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.19.1
+    requirement_ids: ["TUI_0001.19"]
+    title: TUI resets file index on new execution result
+    verification: automated-test
+    description: |
+      GIVEN a file is highlighted in the results list
+      WHEN a new execution or dry-run result is stored
+      THEN the highlighted file index resets to the first file
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.20
+    requirement_ids: ["TUI_0001.20"]
+    title: TUI opens file diff view
+    verification: automated-test
+    description: |
+      GIVEN a file is highlighted in the results list
+      WHEN the user presses Enter
+      THEN the file diff screen is shown with before and after content panels
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.20.1
+    requirement_ids: ["TUI_0001.20"]
+    title: TUI returns from file diff to results list
+    verification: automated-test
+    description: |
+      GIVEN the file diff screen is shown
+      WHEN the user presses Esc or q
+      THEN the results list screen is shown (not the browser)
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.20.2
+    requirement_ids: ["TUI_0001.20"]
+    title: TUI file diff is no-op when no changes exist
+    verification: automated-test
+    description: |
+      GIVEN no execution results exist or the changed files list is empty
+      WHEN openFileDiff is called
+      THEN the screen does not change
+    revision: "0.1.0"
+
   - id: SVC_TUI_0001.10
     requirement_ids: ["TUI_0001.10"]
     title: TUI saves run configuration
