@@ -373,7 +373,7 @@ class TuiControllerTest {
     // --- Load Run Configuration ---
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.10"})
+    @SVCs({"atunko:SVC_TUI_0001.19"})
     void loadRunConfigRestoresRecipeSelection(@TempDir Path tempDir) throws Exception {
         RunConfigService service = new RunConfigService();
         TuiController controller = new TuiController(RECIPES, service);
@@ -391,7 +391,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.10"})
+    @SVCs({"atunko:SVC_TUI_0001.19.1"})
     void loadRunConfigReplacesExistingSelection(@TempDir Path tempDir) throws Exception {
         RunConfigService service = new RunConfigService();
         TuiController controller = new TuiController(RECIPES, service);
@@ -412,7 +412,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.10"})
+    @SVCs({"atunko:SVC_TUI_0001.19.2"})
     void listRunConfigsReturnsEmptyWhenDirectoryAbsent(@TempDir Path tempDir) {
         TuiController controller = new TuiController(RECIPES, new RunConfigService(), null, null, null, tempDir);
 
@@ -422,7 +422,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.10"})
+    @SVCs({"atunko:SVC_TUI_0001.19.2"})
     void listRunConfigsReturnsYmlFiles(@TempDir Path tempDir) throws Exception {
         RunConfigService service = new RunConfigService();
         TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
@@ -494,7 +494,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.10"})
+    @SVCs({"atunko:SVC_TUI_0001.19"})
     void openLoadConfigSetsScreenAndPopulatesFileList(@TempDir Path tempDir) throws Exception {
         RunConfigService service = new RunConfigService();
         TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
@@ -510,7 +510,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.10"})
+    @SVCs({"atunko:SVC_TUI_0001.19"})
     void confirmLoadConfigLoadsFileAndReturnsToBrowser(@TempDir Path tempDir) throws Exception {
         RunConfigService service = new RunConfigService();
         TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
@@ -766,7 +766,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14.1"})
     void flattenAllRunRecipesReplacesAllCompositesWithSubRecipes() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.moveDown(); // highlight Composite
@@ -780,7 +780,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14.1"})
     void flattenAllRunRecipesHandlesNestedComposites() {
         TuiController controller = new TuiController(RECIPES_WITH_NESTED);
         // Sorted: Alpha(0), Gamma(1), Outer(2) — highlight Outer
@@ -798,7 +798,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14.1"})
     void flattenAllRunRecipesAlreadyFlatListIsUnchanged() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleSelection(); // select Alpha
@@ -813,7 +813,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14.1"})
     void flattenAllRunRecipesMixedListFlattensOnlyComposites() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.toggleSelection(); // select Alpha
@@ -829,7 +829,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14.1"})
     void flattenAllRunRecipesDeduplicatesSharedLeaves() {
         // Two composites sharing Sub1 — flattening both should produce Sub1 only once
         RecipeInfo shared = new RecipeInfo("org.test.Shared", "Shared", "Shared leaf", Set.of());
@@ -851,7 +851,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.14"})
+    @SVCs({"atunko:SVC_TUI_0001.14.1"})
     void flattenAllRunRecipesMultipleLeafListIsUnchanged() {
         TuiController controller = new TuiController(RECIPES);
         controller.toggleSelection(); // select Alpha (leaf)

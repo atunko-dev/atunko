@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-@SVCs({"atunko:SVC_TUI_0001.4"})
+@SVCs({"atunko:SVC_TUI_0001.20"})
 class DetailViewTest {
 
     private static final RecipeInfo LEAF =
@@ -20,35 +20,35 @@ class DetailViewTest {
             "org.test.Composite", "Composite Recipe", "A composite", Set.of(), List.of(SUB_1, SUB_2, SUB_3));
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.4"})
+    @SVCs({"atunko:SVC_TUI_0001.20"})
     void metadataLineCountLeafNoParents() {
         // 4 base + 1 buffer = 5
         assertThat(DetailView.metadataLineCount(LEAF, 0)).isEqualTo(5);
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.4"})
+    @SVCs({"atunko:SVC_TUI_0001.20"})
     void metadataLineCountLeafWithParents() {
         // 4 base + 2 (blank + included-in row) + 1 buffer = 7
         assertThat(DetailView.metadataLineCount(LEAF, 2)).isEqualTo(7);
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.4"})
+    @SVCs({"atunko:SVC_TUI_0001.20"})
     void metadataLineCountCompositeNoParents() {
         // 4 base + 2 (blank + "Recipe List:" label) + 3 sub-recipes + 1 buffer = 10
         assertThat(DetailView.metadataLineCount(COMPOSITE, 0)).isEqualTo(10);
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.4"})
+    @SVCs({"atunko:SVC_TUI_0001.20"})
     void metadataLineCountCompositeWithParents() {
         // 4 base + 2 + 3 subs + 2 (blank + included-in) + 1 buffer = 12
         assertThat(DetailView.metadataLineCount(COMPOSITE, 1)).isEqualTo(12);
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.4"})
+    @SVCs({"atunko:SVC_TUI_0001.20"})
     void metadataLineCountBufferIsAlwaysPresent() {
         int withoutParents = DetailView.metadataLineCount(LEAF, 0);
         int withParents = DetailView.metadataLineCount(LEAF, 1);

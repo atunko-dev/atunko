@@ -781,7 +781,7 @@ public class TuiController {
         }
     }
 
-    @Requirements({"atunko:TUI_0001.14"})
+    @Requirements({"atunko:TUI_0001.14.1"})
     public void flattenAllRunRecipes() {
         if (runState == null) {
             return;
@@ -913,14 +913,14 @@ public class TuiController {
         runConfigService.save(config, file);
     }
 
-    @Requirements({"atunko:TUI_0001.10"})
+    @Requirements({"atunko:TUI_0001.19"})
     public void loadRunConfig(RunConfig config) {
         selectedRecipes.clear();
         config.recipes().stream().map(RecipeEntry::name).forEach(selectedRecipes::add);
         browserState.resetHighlight();
     }
 
-    @Requirements({"atunko:TUI_0001.10"})
+    @Requirements({"atunko:TUI_0001.19"})
     public List<Path> listRunConfigs() {
         Path dir = projectDir.resolve("atunko/runs");
         if (!Files.isDirectory(dir)) {
