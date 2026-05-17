@@ -1260,6 +1260,122 @@ class TuiControllerTest {
         assertThat(rows.get(7).depth()).isEqualTo(1);
     }
 
+    // --- File Diff Navigation (TUI_0001.8 / TUI_0001.9) ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.8"})
+    void selectedFileIndexStartsAtZero() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.selectedFileIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.8"})
+    void moveFileDownIncrementsIndex() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(
+                List.of(new FileChange(Path.of("A.java"), "a", "a2"), new FileChange(Path.of("B.java"), "b", "b2")));
+        controller.showDryRunResult(result);
+
+        controller.moveFileDown();
+
+        assertThat(controller.selectedFileIndex()).isEqualTo(1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.8"})
+    void moveFileDownClampsAtLastIndex() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(
+                List.of(new FileChange(Path.of("A.java"), "a", "a2"), new FileChange(Path.of("B.java"), "b", "b2")));
+        controller.showDryRunResult(result);
+        controller.moveFileDown(); // 1
+
+        controller.moveFileDown(); // should stay at 1
+
+        assertThat(controller.selectedFileIndex()).isEqualTo(1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.8"})
+    void moveFileUpDecrementsIndex() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(
+                List.of(new FileChange(Path.of("A.java"), "a", "a2"), new FileChange(Path.of("B.java"), "b", "b2")));
+        controller.showDryRunResult(result);
+        controller.moveFileDown();
+
+        controller.moveFileUp();
+
+        assertThat(controller.selectedFileIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.8"})
+    void moveFileUpClampsAtZero() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(List.of(new FileChange(Path.of("A.java"), "a", "a2")));
+        controller.showDryRunResult(result);
+
+        controller.moveFileUp(); // already 0
+
+        assertThat(controller.selectedFileIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.8"})
+    void openFileDiffSwitchesToFileDiffScreen() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(List.of(new FileChange(Path.of("A.java"), "a", "a2")));
+        controller.showDryRunResult(result);
+
+        controller.openFileDiff();
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.FILE_DIFF);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.8"})
+    void returnFromFileDiffGoesBackToExecutionResults() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(List.of(new FileChange(Path.of("A.java"), "a", "a2")));
+        controller.showDryRunResult(result);
+        controller.openFileDiff();
+
+        controller.returnFromFileDiff();
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.EXECUTION_RESULTS);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.8"})
+    void showDryRunResultResetsSelectedFileIndex() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(
+                List.of(new FileChange(Path.of("A.java"), "a", "a2"), new FileChange(Path.of("B.java"), "b", "b2")));
+        controller.showDryRunResult(result);
+        controller.moveFileDown();
+
+        controller.showDryRunResult(result); // new result resets index
+
+        assertThat(controller.selectedFileIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.9"})
+    void showExecutionResultResetsSelectedFileIndex() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(
+                List.of(new FileChange(Path.of("A.java"), "a", "a2"), new FileChange(Path.of("B.java"), "b", "b2")));
+        controller.showExecutionResult(result);
+        controller.moveFileDown();
+
+        controller.showExecutionResult(result);
+
+        assertThat(controller.selectedFileIndex()).isZero();
+    }
+
     // --- Help Overlay ---
 
     @Test
