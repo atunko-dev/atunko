@@ -13,12 +13,9 @@ class DetailViewTest {
 
     private static final RecipeInfo LEAF =
             new RecipeInfo("org.test.Leaf", "Leaf Recipe", "A leaf recipe", Set.of("java"));
-    private static final RecipeInfo SUB_1 =
-            new RecipeInfo("org.test.Sub1", "Sub 1", "First sub", Set.of());
-    private static final RecipeInfo SUB_2 =
-            new RecipeInfo("org.test.Sub2", "Sub 2", "Second sub", Set.of());
-    private static final RecipeInfo SUB_3 =
-            new RecipeInfo("org.test.Sub3", "Sub 3", "Third sub", Set.of());
+    private static final RecipeInfo SUB_1 = new RecipeInfo("org.test.Sub1", "Sub 1", "First sub", Set.of());
+    private static final RecipeInfo SUB_2 = new RecipeInfo("org.test.Sub2", "Sub 2", "Second sub", Set.of());
+    private static final RecipeInfo SUB_3 = new RecipeInfo("org.test.Sub3", "Sub 3", "Third sub", Set.of());
     private static final RecipeInfo COMPOSITE = new RecipeInfo(
             "org.test.Composite", "Composite Recipe", "A composite", Set.of(), List.of(SUB_1, SUB_2, SUB_3));
 

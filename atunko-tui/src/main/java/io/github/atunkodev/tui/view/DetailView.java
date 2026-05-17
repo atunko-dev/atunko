@@ -33,10 +33,7 @@ public final class DetailView {
     // parents:   blank(1) + "Included in:"(1)
     // +1 buffer so a wrapping name/tag line doesn't push the description off-screen
     static int metadataLineCount(RecipeInfo recipe, int parentCount) {
-        return 4
-                + (recipe.isComposite() ? 2 + recipe.recipeList().size() : 0)
-                + (parentCount > 0 ? 2 : 0)
-                + 1;
+        return 4 + (recipe.isComposite() ? 2 + recipe.recipeList().size() : 0) + (parentCount > 0 ? 2 : 0) + 1;
     }
 
     private static Element renderRecipeDetail(TuiController controller, RecipeInfo recipe) {
