@@ -14,6 +14,7 @@ import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -910,6 +911,98 @@ public class TuiController {
                 selectedRecipes.stream().map(RecipeEntry::new).toList();
         RunConfig config = new RunConfig(entries);
         runConfigService.save(config, file);
+    }
+
+    @Requirements({"atunko:TUI_0001.10"})
+    public void loadRunConfig(RunConfig config) {
+        selectedRecipes.clear();
+        config.recipes().stream().map(RecipeEntry::name).forEach(selectedRecipes::add);
+        browserState.resetHighlight();
+    }
+
+    @Requirements({"atunko:TUI_0001.10"})
+    public List<Path> listRunConfigs() {
+        Path dir = projectDir.resolve("atunko/runs");
+        if (!Files.isDirectory(dir)) {
+            return List.of();
+        }
+        try (var stream = Files.list(dir)) {
+            return stream.filter(p -> p.toString().endsWith(".yml")).sorted().toList();
+        } catch (IOException e) {
+            return List.of();
+        }
+    }
+
+    private int loadConfigHighlightIndex = 0;
+    private List<Path> configFiles = List.of();
+
+    public void openLoadConfig() {
+        configFiles = listRunConfigs();
+        loadConfigHighlightIndex = 0;
+        currentScreen = Screen.LOAD_CONFIG;
+    }
+
+    public List<Path> configFiles() {
+        return configFiles;
+    }
+
+    public int loadConfigHighlightIndex() {
+        return loadConfigHighlightIndex;
+    }
+
+    public void moveLoadConfigDown() {
+        if (!configFiles.isEmpty()) {
+            loadConfigHighlightIndex = Math.min(loadConfigHighlightIndex + 1, configFiles.size() - 1);
+        }
+    }
+
+    public void moveLoadConfigUp() {
+        loadConfigHighlightIndex = Math.max(0, loadConfigHighlightIndex - 1);
+    }
+
+    public void confirmLoadConfig() throws IOException {
+        if (configFiles.isEmpty()) {
+            return;
+        }
+        RunConfig config = runConfigService.load(configFiles.get(loadConfigHighlightIndex));
+        loadRunConfig(config);
+        currentScreen = Screen.BROWSER;
+    }
+
+    private boolean saveConfigMode = false;
+    private String saveConfigName = "";
+
+    public boolean isSaveConfigMode() {
+        return saveConfigMode;
+    }
+
+    public String saveConfigName() {
+        return saveConfigName;
+    }
+
+    public void enterSaveConfigMode() {
+        saveConfigMode = true;
+        saveConfigName = "";
+    }
+
+    public void exitSaveConfigMode() {
+        saveConfigMode = false;
+        saveConfigName = "";
+    }
+
+    public void setSaveConfigName(String name) {
+        saveConfigName = name;
+    }
+
+    public void confirmSaveConfig() throws IOException {
+        if (saveConfigName.isBlank()) {
+            exitSaveConfigMode();
+            return;
+        }
+        Path dir = projectDir.resolve("atunko/runs");
+        Files.createDirectories(dir);
+        saveRunConfig(dir.resolve(saveConfigName + ".yml"));
+        exitSaveConfigMode();
     }
 
     private List<RecipeInfo> filterRecipes() {
