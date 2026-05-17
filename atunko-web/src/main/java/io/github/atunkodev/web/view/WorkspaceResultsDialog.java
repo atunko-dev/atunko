@@ -1,5 +1,6 @@
 package io.github.atunkodev.web.view;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -32,28 +33,27 @@ public class WorkspaceResultsDialog extends Dialog {
         grid.addColumn(pr -> pr.succeeded() ? "PASS" : "FAIL")
                 .setHeader("Status")
                 .setAutoWidth(true);
-        grid.addComponentColumn(pr -> {
-                    if (pr.succeeded() && !pr.result().changes().isEmpty()) {
-                        Button viewButton = new Button(
-                                "View Diff", VaadinIcon.CODE.create(), e -> new DiffDialog(pr.result(), dryRun).open());
-                        viewButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
-                        return viewButton;
-                    } else if (pr.succeeded()) {
-                        return new Span("No changes");
-                    } else {
-                        Throwable f = pr.failure();
-                        return new Span(
-                                f.getMessage() != null
-                                        ? f.getMessage()
-                                        : f.getClass().getSimpleName());
-                    }
-                })
-                .setHeader("Details");
+        grid.addComponentColumn(pr -> buildDetailsCell(pr, dryRun)).setHeader("Details");
         grid.setAllRowsVisible(true);
         add(grid);
 
         Button closeButton = new Button("Close", VaadinIcon.CLOSE.create(), e -> close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
         getFooter().add(closeButton);
+    }
+
+    static Component buildDetailsCell(ProjectExecutionResult pr, boolean dryRun) {
+        if (pr.succeeded() && !pr.result().changes().isEmpty()) {
+            Button viewButton =
+                    new Button("View Diff", VaadinIcon.CODE.create(), e -> new DiffDialog(pr.result(), dryRun).open());
+            viewButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
+            return viewButton;
+        } else if (pr.succeeded()) {
+            return new Span("No changes");
+        } else {
+            Throwable f = pr.failure();
+            String msg = f.getMessage() != null ? f.getMessage() : f.getClass().getSimpleName();
+            return new Span(msg.length() > 120 ? msg.substring(0, 120) + "…" : msg);
+        }
     }
 }
