@@ -97,13 +97,37 @@ class WorkspaceResultsDialogTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_WEB_0002.2"})
+    @SVCs({"atunko:SVC_WEB_0002.2", "atunko:SVC_WEB_0002.3"})
     void successfulProjectWithChangesShowsViewDiffButton() {
         ProjectExecutionResult pr = success("alpha", 2);
         Component cell = WorkspaceResultsDialog.buildDetailsCell(pr, false);
 
         assertThat(cell).isInstanceOf(Button.class);
         assertThat(((Button) cell).getText()).isEqualTo("View Diff");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002.3"})
+    void eachProjectWithChangesHasItsOwnViewDiffButton() {
+        WorkspaceExecutionResult result = new WorkspaceExecutionResult(
+                List.of(success("alpha", 3), success("beta", 1), failure("gamma", "error"), success("delta", 0)));
+        WorkspaceResultsDialog dialog = new WorkspaceResultsDialog(result, false);
+
+        // Projects with changes each get a scoped View Diff button; no changes or failures get different cells
+        Component alphaCell =
+                WorkspaceResultsDialog.buildDetailsCell(result.results().get(0), false);
+        Component betaCell =
+                WorkspaceResultsDialog.buildDetailsCell(result.results().get(1), false);
+        Component gammaCell =
+                WorkspaceResultsDialog.buildDetailsCell(result.results().get(2), false);
+        Component deltaCell =
+                WorkspaceResultsDialog.buildDetailsCell(result.results().get(3), false);
+
+        assertThat(alphaCell).isInstanceOf(Button.class);
+        assertThat(betaCell).isInstanceOf(Button.class);
+        assertThat(gammaCell).isNotInstanceOf(Button.class);
+        assertThat(deltaCell).isNotInstanceOf(Button.class);
+        assertThat(dialog).isNotNull();
     }
 
     @Test

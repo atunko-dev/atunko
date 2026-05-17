@@ -61,7 +61,7 @@
 
 ## 8. Quality and sign-off
 
-- [ ] 8.1 Run `./gradlew spotlessApply` and fix all formatting violations
-- [ ] 8.2 Run `./gradlew build` — zero warnings, zero test failures
-- [ ] 8.3 Validate OpenSpec artifacts: `openspec validate --all --strict`
-- [ ] 8.4 Run `reqstool status` — all new requirement IDs annotated and SVCs linked to tests
+- [x] 8.1 Run `./gradlew spotlessApply` and fix all formatting violations
+- [x] 8.2 Run `./gradlew build` — zero warnings, zero test failures
+- [ ] 8.3 Validate OpenSpec artifacts: `openspec validate --all --strict` (2 pre-existing failures in web-config-export / web-enhancements — unrelated to this change)
+- [x] 8.4 Run `reqstool status` — all new requirement IDs annotated and SVCs linked to tests

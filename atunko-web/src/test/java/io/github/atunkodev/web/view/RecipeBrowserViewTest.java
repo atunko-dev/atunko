@@ -41,10 +41,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.openrewrite.SourceFile;
 
 class RecipeBrowserViewTest {
 
@@ -994,6 +997,53 @@ class RecipeBrowserViewTest {
 
         List<String> spanTexts = _find(Span.class).stream().map(Span::getText).toList();
         assertThat(spanTexts).noneMatch(t -> t.startsWith("Workspace:"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002.1"})
+    void workspaceExecutionDialogShowsProgress() throws Exception {
+        CountDownLatch parserStarted = new CountDownLatch(1);
+        CountDownLatch releaseParsing = new CountDownLatch(1);
+        AppServices.init(
+                new RecipeExecutionEngine() {
+                    @Override
+                    public ExecutionResult execute(String recipeName, List<SourceFile> sources) {
+                        return new ExecutionResult(List.of());
+                    }
+                },
+                new ProjectSourceParser() {
+                    @Override
+                    public List<SourceFile> parse(ProjectInfo info) {
+                        parserStarted.countDown();
+                        try {
+                            releaseParsing.await(3, TimeUnit.SECONDS);
+                        } catch (InterruptedException ignored) {
+                            Thread.currentThread().interrupt();
+                        }
+                        return List.of();
+                    }
+                },
+                null);
+
+        Path root = Path.of("/workspace");
+        RecipeBrowserView view =
+                setupWorkspaceView(List.of(ALPHA), root, List.of(makeProjectEntry("alpha"), makeProjectEntry("beta")));
+        view.selectAllVisible();
+
+        _click(_get(Button.class, spec -> spec.withText("Dry Run")));
+        // RunOrderDialog opens — confirm it to start execution
+        _click(_get(Button.class, spec -> spec.withText("Confirm")));
+
+        assertThat(parserStarted.await(3, TimeUnit.SECONDS)).isTrue();
+
+        List<com.vaadin.flow.component.dialog.Dialog> openDialogs =
+                _find(com.vaadin.flow.component.dialog.Dialog.class).stream()
+                        .filter(com.vaadin.flow.component.dialog.Dialog::isOpened)
+                        .toList();
+        assertThat(openDialogs).isNotEmpty();
+        assertThat(openDialogs.get(0).getHeaderTitle()).containsIgnoringCase("dry run");
+
+        releaseParsing.countDown();
     }
 
     @Test
