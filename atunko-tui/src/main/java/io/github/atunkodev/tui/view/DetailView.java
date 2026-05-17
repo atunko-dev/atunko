@@ -28,6 +28,17 @@ public final class DetailView {
                 .orElse(text("No recipe selected"));
     }
 
+    // Name(1) + DisplayName(1) + blank(1) + Tags(1) = 4 base rows
+    // composite: blank(1) + "Recipe List:"(1) + N sub-recipes
+    // parents:   blank(1) + "Included in:"(1)
+    // +1 buffer so a wrapping name/tag line doesn't push the description off-screen
+    static int metadataLineCount(RecipeInfo recipe, int parentCount) {
+        return 4
+                + (recipe.isComposite() ? 2 + recipe.recipeList().size() : 0)
+                + (parentCount > 0 ? 2 : 0)
+                + 1;
+    }
+
     private static Element renderRecipeDetail(TuiController controller, RecipeInfo recipe) {
         boolean selected = controller.selectedRecipes().contains(recipe.name());
         var selectionLabel = selected
@@ -66,9 +77,6 @@ public final class DetailView {
                     text(String.join(", ", parents)).addClass("included-in")));
         }
 
-        int metadataLines =
-                4 + (recipe.isComposite() ? 2 + recipe.recipeList().size() : 0) + (!parents.isEmpty() ? 2 : 0);
-
         String description = recipe.description() != null ? recipe.description() : "*(no description)*";
 
         Element centerContent;
@@ -76,8 +84,8 @@ public final class DetailView {
             centerContent = row(spacer(), HelpOverlay.render(HelpOverlay.DETAIL_HELP), spacer());
         } else {
             centerContent = panel(
-                            "Detail",
-                            dock().top(metadataContent, Constraint.length(metadataLines))
+                            "Recipe Detail",
+                            dock().top(metadataContent, Constraint.length(metadataLineCount(recipe, parents.size())))
                                     .center(markdown(description))
                                     .constraint(Constraint.fill()))
                     .addClass("panel");
