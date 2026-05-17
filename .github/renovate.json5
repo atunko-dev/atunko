@@ -10,6 +10,9 @@
   semanticCommitType: "chore",
   semanticCommitScope: "{{datasource}}",
 
+  separateMajorMinor: true,
+  separateMultipleMajor: true,
+
   automergeType: "pr",
   platformAutomerge: true,
 
@@ -55,8 +58,6 @@
     {
       matchUpdateTypes: ["major"],
       addLabels: ["renovate-version-major"],
-      separateMajorMinor: true,
-      separateMultipleMajor: true,
       minimumReleaseAge: "30 days",
     },
     {
@@ -135,7 +136,7 @@
     {
       matchManagers: ["gradle"],
       groupName: "{{groupId}} packages",
-      matchPackagePatterns: [".*"],
+      matchPackageNames: ["/.*/"],
     },
   ],
 }
