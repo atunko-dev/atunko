@@ -10,6 +10,7 @@ import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Path;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
 
@@ -60,6 +61,11 @@ class WebUiCommandTest {
         WebUiCommand command = newCommand();
         new CommandLine(command).parseArgs("--project-dir", "/some/project");
         assertThat(command.getProjectDir()).isEqualTo(Path.of("/some/project"));
+    }
+
+    @AfterEach
+    void resetAppServices() {
+        AppServices.init(null, null, null);
     }
 
     @Test

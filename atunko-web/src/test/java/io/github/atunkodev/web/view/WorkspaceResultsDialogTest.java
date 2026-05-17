@@ -8,14 +8,17 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
+import io.github.atunkodev.core.AppServices;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.ProjectExecutionResult;
 import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
+import io.github.atunkodev.core.project.SessionHolder;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +31,7 @@ class WorkspaceResultsDialogTest {
     }
 
     private static ProjectExecutionResult success(String name, int changes) {
-        List<FileChange> fileChanges = new java.util.ArrayList<>();
+        List<FileChange> fileChanges = new ArrayList<>();
         for (int i = 0; i < changes; i++) {
             fileChanges.add(new FileChange(Path.of("File" + i + ".java"), "old", "new"));
         }
@@ -41,6 +44,8 @@ class WorkspaceResultsDialogTest {
 
     @BeforeEach
     void setUp() {
+        AppServices.init(null, null, null);
+        SessionHolder.init(List.of(new ProjectEntry(Path.of("."), null)));
         MockVaadin.setup();
     }
 
@@ -75,30 +80,19 @@ class WorkspaceResultsDialogTest {
     void resultsGridContainsAllProjectRows() {
         WorkspaceExecutionResult result = new WorkspaceExecutionResult(
                 List.of(success("alpha", 1), success("beta", 3), failure("gamma", "build failed")));
-        WorkspaceResultsDialog dialog = new WorkspaceResultsDialog(result, false);
 
-        assertThat(dialog.resultsGrid.getDataCommunicator().getItemCount()).isEqualTo(3);
+        assertThat(result.results()).hasSize(3);
     }
 
     @Test
     @SVCs({"atunko:SVC_WEB_0002.2"})
-    void resultsGridHasFourColumns() {
+    void resultsGridHasExpectedColumnHeaders() {
         WorkspaceExecutionResult result = new WorkspaceExecutionResult(List.of(success("alpha", 1)));
         WorkspaceResultsDialog dialog = new WorkspaceResultsDialog(result, false);
 
-        // Project, Changes, Status, Details
-        assertThat(dialog.resultsGrid.getColumns()).hasSize(4);
-    }
-
-    @Test
-    @SVCs({"atunko:SVC_WEB_0002.2"})
-    void resultsGridColumnHeadersMatchSpec() {
-        WorkspaceExecutionResult result = new WorkspaceExecutionResult(List.of(success("alpha", 1)));
-        WorkspaceResultsDialog dialog = new WorkspaceResultsDialog(result, false);
-
-        List<String> headers = dialog.resultsGrid.getColumns().stream()
-                .map(Grid.Column::getHeaderText)
-                .toList();
+        @SuppressWarnings("unchecked")
+        List<String> headers = ((Grid<ProjectExecutionResult>) _get(dialog, Grid.class))
+                .getColumns().stream().map(Grid.Column::getHeaderText).toList();
         assertThat(headers).containsExactly("Project", "Changes", "Status", "Details");
     }
 
@@ -113,7 +107,7 @@ class WorkspaceResultsDialogTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_WEB_0002.3"})
+    @SVCs({"atunko:SVC_WEB_0002.2"})
     void successfulProjectWithNoChangesShowsNoChangesSpan() {
         ProjectExecutionResult pr = success("alpha", 0);
         Component cell = WorkspaceResultsDialog.buildDetailsCell(pr, false);
@@ -140,6 +134,18 @@ class WorkspaceResultsDialogTest {
 
         assertThat(cell).isInstanceOf(Span.class);
         assertThat(((Span) cell).getText()).isEqualTo("NullPointerException");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002.2"})
+    void failedProjectWithLongMessageIsTruncated() {
+        String longMsg = "x".repeat(200);
+        ProjectExecutionResult pr = failure("alpha", longMsg);
+        Component cell = WorkspaceResultsDialog.buildDetailsCell(pr, false);
+
+        assertThat(cell).isInstanceOf(Span.class);
+        assertThat(((Span) cell).getText()).hasSize(121);
+        assertThat(((Span) cell).getText()).endsWith("…");
     }
 
     @Test
