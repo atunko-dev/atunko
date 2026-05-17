@@ -1260,10 +1260,10 @@ class TuiControllerTest {
         assertThat(rows.get(7).depth()).isEqualTo(1);
     }
 
-    // --- File Diff Navigation (TUI_0001.8.1 / TUI_0001.8.2) ---
+    // --- File Diff Navigation (TUI_0001.19 / TUI_0001.20) ---
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.8.1"})
+    @SVCs({"atunko:SVC_TUI_0001.19"})
     void selectedFileIndexStartsAtZero() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -1271,7 +1271,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.8.1"})
+    @SVCs({"atunko:SVC_TUI_0001.19"})
     void moveFileDownIncrementsIndex() {
         TuiController controller = new TuiController(RECIPES);
         ExecutionResult result = new ExecutionResult(
@@ -1284,7 +1284,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.8.1"})
+    @SVCs({"atunko:SVC_TUI_0001.19"})
     void moveFileDownClampsAtLastIndex() {
         TuiController controller = new TuiController(RECIPES);
         ExecutionResult result = new ExecutionResult(
@@ -1298,7 +1298,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.8.1"})
+    @SVCs({"atunko:SVC_TUI_0001.19"})
     void moveFileUpDecrementsIndex() {
         TuiController controller = new TuiController(RECIPES);
         ExecutionResult result = new ExecutionResult(
@@ -1312,7 +1312,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.8.1"})
+    @SVCs({"atunko:SVC_TUI_0001.19"})
     void moveFileUpClampsAtZero() {
         TuiController controller = new TuiController(RECIPES);
         ExecutionResult result = new ExecutionResult(List.of(new FileChange(Path.of("A.java"), "a", "a2")));
@@ -1324,7 +1324,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.8.2"})
+    @SVCs({"atunko:SVC_TUI_0001.20"})
     void openFileDiffSwitchesToFileDiffScreen() {
         TuiController controller = new TuiController(RECIPES);
         ExecutionResult result = new ExecutionResult(List.of(new FileChange(Path.of("A.java"), "a", "a2")));
@@ -1336,7 +1336,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.8.4"})
+    @SVCs({"atunko:SVC_TUI_0001.20.2"})
     void openFileDiffDoesNothingWhenNoResults() {
         TuiController controller = new TuiController(RECIPES);
 
@@ -1346,7 +1346,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.8.4"})
+    @SVCs({"atunko:SVC_TUI_0001.20.2"})
     void openFileDiffDoesNothingWhenEmptyChangesList() {
         TuiController controller = new TuiController(RECIPES);
         controller.showExecutionResult(new ExecutionResult(List.of()));
@@ -1357,7 +1357,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.8.3"})
+    @SVCs({"atunko:SVC_TUI_0001.20.1"})
     void returnFromFileDiffGoesBackToExecutionResults() {
         TuiController controller = new TuiController(RECIPES);
         ExecutionResult result = new ExecutionResult(List.of(new FileChange(Path.of("A.java"), "a", "a2")));
@@ -1370,7 +1370,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.8.1"})
+    @SVCs({"atunko:SVC_TUI_0001.19.1"})
     void showDryRunResultResetsSelectedFileIndex() {
         TuiController controller = new TuiController(RECIPES);
         ExecutionResult result = new ExecutionResult(
@@ -1384,7 +1384,7 @@ class TuiControllerTest {
     }
 
     @Test
-    @SVCs({"atunko:SVC_TUI_0001.8.1"})
+    @SVCs({"atunko:SVC_TUI_0001.19.1"})
     void showExecutionResultResetsSelectedFileIndex() {
         TuiController controller = new TuiController(RECIPES);
         ExecutionResult result = new ExecutionResult(
