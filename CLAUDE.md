@@ -98,3 +98,6 @@ Three layers of automated quality checks run on every build:
 
 Requirements and SVCs are tracked via the official reqstool-ai plugin (config: `.reqstool-ai.yaml`).
 Use `/reqstool:add-req`, `/reqstool:add-svc`, `/reqstool:status` for traceability work.
+
+Always create an OpenSpec change (via `/openspec-propose` or manually) **before** making any
+source code changes. Archive it after the PR is merged.
