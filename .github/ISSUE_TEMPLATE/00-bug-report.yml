@@ -1,0 +1,90 @@
+name: Bug Report
+description: Report a bug or unexpected behaviour
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a bug. Please fill in as much detail as possible.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before you submit
+      options:
+        - label: This is a bug report, not a support or usage question
+          required: true
+        - label: I have searched existing issues and no duplicate exists
+          required: true
+        - label: I have read and agree to the [Code of Conduct](https://github.com/atunko-dev/atunko/blob/main/CODE_OF_CONDUCT.md)
+          required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected component
+      description: Which part of atunko does this bug affect?
+      options:
+        - atunko-core
+        - atunko-tui
+        - atunko-cli
+        - atunko-web
+        - Other / Multiple
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Which version of atunko are you using?
+      placeholder: "e.g. 1.2.3"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe the actual behaviour you observed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide a minimal set of steps to reproduce the issue.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "e.g. Ubuntu 24.04, macOS 14, Windows 11"
+
+  - type: input
+    id: runtime
+    attributes:
+      label: Java version
+      placeholder: "e.g. Java 21, Java 25"
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Logs, screenshots, or anything else that might help.

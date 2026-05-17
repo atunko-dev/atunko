@@ -1,0 +1,16 @@
+enabled: true
+titleAndCommits: true
+
+types:
+  - feat
+  - fix
+  - refactor
+  - chore
+  - security
+  - revert
+  - test
+  - docs
+  - perf
+  - style
+  - ci
+  - build

@@ -1,0 +1,138 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+  extends: [
+    "config:recommended",
+    ":semanticCommits",
+  ],
+
+  semanticCommits: "enabled",
+  semanticCommitType: "chore",
+  semanticCommitScope: "{{datasource}}",
+
+  automergeType: "pr",
+  platformAutomerge: true,
+
+  branchPrefix: "renovate",
+
+  addLabels: [
+    "bot-renovate",
+  ],
+
+  stopUpdatingLabel: "bot-renovate-stop",
+
+  dependencyDashboard: false,
+
+  prConcurrentLimit: 10,
+  prHourlyLimit: 5,
+
+  lockFileMaintenance: {
+    enabled: true,
+  },
+
+  vulnerabilityAlerts: {
+    enabled: true,
+    addLabels: ["security"],
+  },
+
+  osvVulnerabilityAlerts: true,
+
+  packageRules: [
+
+    // =====================================================
+    // Version constraints
+    // =====================================================
+
+    {
+      matchDepNames: ["java", "openjdk", "temurin"],
+      allowedVersions: "<=25",
+    },
+
+    // =====================================================
+    // Version classification labels
+    // =====================================================
+
+    {
+      matchUpdateTypes: ["major"],
+      addLabels: ["renovate-version-major"],
+      separateMajorMinor: true,
+      separateMultipleMajor: true,
+    },
+    {
+      matchUpdateTypes: ["minor"],
+      addLabels: ["renovate-version-minor"],
+      automerge: true,
+    },
+    {
+      matchUpdateTypes: ["patch"],
+      addLabels: ["renovate-version-patch"],
+      automerge: true,
+    },
+    {
+      matchUpdateTypes: ["digest"],
+      addLabels: ["renovate-version-digest"],
+    },
+
+    // =====================================================
+    // Gradle-specific tuning
+    // =====================================================
+
+    {
+      matchManagers: ["gradle"],
+      matchDepTypes: ["plugin"],
+      groupName: "gradle plugins",
+      addLabels: ["renovate-type-gradle-plugin"],
+    },
+
+    {
+      matchManagers: ["gradle"],
+      matchDatasources: ["java-version"],
+      groupName: "java runtime",
+      addLabels: ["renovate-type-java"],
+    },
+
+    // =====================================================
+    // Ecosystem classification labels
+    // =====================================================
+
+    {
+      matchDatasources: ["docker"],
+      addLabels: ["renovate-type-container"],
+    },
+
+    {
+      matchDatasources: ["java-version", "maven"],
+      addLabels: ["renovate-type-java"],
+    },
+
+    {
+      matchManagers: ["gradle"],
+      addLabels: ["renovate-type-java"],
+    },
+
+    {
+      matchDatasources: ["github-releases", "github-tags"],
+      addLabels: ["renovate-type-cicd"],
+    },
+
+    {
+      matchManagers: ["github-actions"],
+      semanticCommitType: "chore",
+      semanticCommitScope: "github-actions",
+      addLabels: ["renovate-type-cicd"],
+      // GitHub Actions use major version tags (v3 → v4) for routine updates;
+      // auto-merge these when all checks pass.
+      automerge: true,
+    },
+
+    // =====================================================
+    // Generic grouping fallback (MUST BE LAST)
+    // =====================================================
+
+    {
+      matchManagers: ["gradle"],
+      groupName: "{{groupId}} packages",
+      matchPackagePatterns: [".*"],
+    },
+  ],
+}
