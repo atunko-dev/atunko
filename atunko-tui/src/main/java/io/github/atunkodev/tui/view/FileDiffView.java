@@ -2,7 +2,7 @@ package io.github.atunkodev.tui.view;
 
 import static dev.tamboui.toolkit.Toolkit.column;
 import static dev.tamboui.toolkit.Toolkit.dock;
-import static dev.tamboui.toolkit.Toolkit.list;
+import static dev.tamboui.toolkit.Toolkit.markupTextArea;
 import static dev.tamboui.toolkit.Toolkit.row;
 import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
@@ -13,7 +13,6 @@ import dev.tamboui.toolkit.event.EventResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
-import java.util.Arrays;
 import java.util.List;
 
 @Requirements({"atunko:TUI_0001.8", "atunko:TUI_0001.9"})
@@ -37,11 +36,8 @@ public final class FileDiffView {
 
     private static Element renderDiff(TuiController controller, FileChange change) {
         String filename = change.path().toString();
-
-        List<String> beforeLines =
-                change.before() != null ? Arrays.asList(change.before().split("\n", -1)) : List.of("<empty>");
-        List<String> afterLines =
-                change.after() != null ? Arrays.asList(change.after().split("\n", -1)) : List.of("<empty>");
+        String before = change.before() != null ? change.before() : "<empty>";
+        String after = change.after() != null ? change.after() : "<empty>";
 
         var titleElement = controller.lastRunWasDryRun()
                 ? text(" File Diff ").addClass("screen-title", "dryrun-mode")
@@ -54,15 +50,17 @@ public final class FileDiffView {
                                         text(" " + filename + " ").addClass("detail-value")),
                                 Constraint.length(1))
                         .center(row(
-                                list(beforeLines)
+                                markupTextArea(before)
                                         .title("Before")
-                                        .addClass("panel")
-                                        .autoScroll()
+                                        .showLineNumbers()
+                                        .scrollbar()
+                                        .wrapWord()
                                         .constraint(Constraint.fill()),
-                                list(afterLines)
+                                markupTextArea(after)
                                         .title("After")
-                                        .addClass("panel")
-                                        .autoScroll()
+                                        .showLineNumbers()
+                                        .scrollbar()
+                                        .wrapWord()
                                         .constraint(Constraint.fill())))
                         .bottom(text(" Esc/q:back").addClass("status-bar"), Constraint.length(1))
                         .constraint(Constraint.fill()))
