@@ -46,7 +46,9 @@ public final class ConfirmRunView {
                 .filter(r -> selected.contains(r.recipe().name()))
                 .count();
         long totalCount = displayRows.size();
-        String footer = hasRecipes ? selectedCount + "/" + totalCount + " selected | ?:help Esc:back" : "Esc:back";
+        String footer = hasRecipes
+                ? selectedCount + "/" + totalCount + " selected | f:flatten F:flatten-all ?:help Esc:back"
+                : "Esc:back";
 
         return column(dock().top(
                                 row(
@@ -126,6 +128,10 @@ public final class ConfirmRunView {
             }
             if (event.isChar('f')) {
                 controller.flattenRunRecipe();
+                return EventResult.HANDLED;
+            }
+            if (event.isChar('F')) {
+                controller.flattenAllRunRecipes();
                 return EventResult.HANDLED;
             }
             if (event.isChar('r')) {

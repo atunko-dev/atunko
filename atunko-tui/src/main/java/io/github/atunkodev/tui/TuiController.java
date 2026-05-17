@@ -402,6 +402,29 @@ public class TuiController {
         return allRecipes.stream().filter(r -> r.name().equals(name)).findFirst();
     }
 
+    private Optional<RecipeInfo> findRecipeDeep(String name) {
+        Optional<RecipeInfo> top = findRecipe(name);
+        if (top.isPresent()) {
+            return top;
+        }
+        return findRecipeInSubtree(name, allRecipes);
+    }
+
+    private static Optional<RecipeInfo> findRecipeInSubtree(String name, List<RecipeInfo> recipes) {
+        for (RecipeInfo r : recipes) {
+            if (r.name().equals(name)) {
+                return Optional.of(r);
+            }
+            if (r.isComposite()) {
+                Optional<RecipeInfo> found = findRecipeInSubtree(name, r.recipeList());
+                if (found.isPresent()) {
+                    return found;
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
     @Requirements({"atunko:TUI_0001.16"})
     public Set<String> coveredRecipes() {
         Set<String> covered = new LinkedHashSet<>();
@@ -759,6 +782,34 @@ public class TuiController {
         if (runState != null) {
             runState.collapseHighlighted();
         }
+    }
+
+    @Requirements({"atunko:TUI_0001.14"})
+    public void flattenAllRunRecipes() {
+        if (runState == null) {
+            return;
+        }
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            List<String> next = new ArrayList<>();
+            for (String name : runOrder) {
+                Optional<RecipeInfo> r = findRecipeDeep(name);
+                if (r.isPresent() && r.get().isComposite()) {
+                    List<String> subs =
+                            r.get().recipeList().stream().map(RecipeInfo::name).toList();
+                    next.addAll(subs);
+                    if (selectedRecipes.remove(name)) {
+                        selectedRecipes.addAll(subs);
+                    }
+                    changed = true;
+                } else {
+                    next.add(name);
+                }
+            }
+            runOrder = next;
+        }
+        runState = new RecipeListState(this::resolveRunRecipes, selectedRecipes, false);
     }
 
     @Requirements({"atunko:TUI_0001.14"})
