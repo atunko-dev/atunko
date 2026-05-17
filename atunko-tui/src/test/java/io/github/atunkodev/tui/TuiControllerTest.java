@@ -586,6 +586,106 @@ class TuiControllerTest {
 
     @Test
     @SVCs({"atunko:SVC_TUI_0001.14"})
+    void flattenAllRunRecipesReplacesAllCompositesWithSubRecipes() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown(); // highlight Composite
+        controller.toggleSelection(); // select Composite (cascade: Sub1, Sub2 also selected)
+        controller.openConfirmRun();
+
+        controller.flattenAllRunRecipes();
+
+        assertThat(controller.runOrder()).containsExactly("org.test.Sub1", "org.test.Sub2");
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Sub1", "org.test.Sub2");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14"})
+    void flattenAllRunRecipesHandlesNestedComposites() {
+        TuiController controller = new TuiController(RECIPES_WITH_NESTED);
+        // Sorted: Alpha(0), Gamma(1), Outer(2) — highlight Outer
+        controller.moveDown(); // Gamma
+        controller.moveDown(); // Outer
+        controller.toggleSelection(); // select Outer (cascade: Composite, Sub1, Sub2, Sub3)
+        controller.openConfirmRun();
+
+        controller.flattenAllRunRecipes();
+
+        // Outer flattened to Composite + Sub3, then Composite flattened to Sub1 + Sub2
+        assertThat(controller.runOrder()).containsExactly("org.test.Sub1", "org.test.Sub2", "org.test.Sub3");
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder("org.test.Sub1", "org.test.Sub2", "org.test.Sub3");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14"})
+    void flattenAllRunRecipesAlreadyFlatListIsUnchanged() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // select Alpha
+        controller.moveDown();
+        controller.toggleSelection(); // select Beta
+        controller.openConfirmRun();
+
+        controller.flattenAllRunRecipes();
+
+        assertThat(controller.runOrder()).containsExactly("org.test.Alpha", "org.test.Beta");
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14"})
+    void flattenAllRunRecipesMixedListFlattensOnlyComposites() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.toggleSelection(); // select Alpha
+        controller.moveDown(); // Composite
+        controller.toggleSelection(); // select Composite (cascade: Sub1, Sub2)
+        controller.openConfirmRun();
+
+        controller.flattenAllRunRecipes();
+
+        assertThat(controller.runOrder()).containsExactly("org.test.Alpha", "org.test.Sub1", "org.test.Sub2");
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder("org.test.Alpha", "org.test.Sub1", "org.test.Sub2");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14"})
+    void flattenAllRunRecipesDeduplicatesSharedLeaves() {
+        // Two composites sharing Sub1 — flattening both should produce Sub1 only once
+        RecipeInfo shared = new RecipeInfo("org.test.Shared", "Shared", "Shared leaf", Set.of());
+        RecipeInfo compA =
+                new RecipeInfo("org.test.CompA", "Comp A", "First composite", Set.of(), List.of(shared, SUB_2));
+        RecipeInfo compB =
+                new RecipeInfo("org.test.CompB", "Comp B", "Second composite", Set.of(), List.of(shared, SUB_3));
+        TuiController controller = new TuiController(List.of(compA, compB));
+        controller.toggleSelection(); // select CompA
+        controller.moveDown();
+        controller.toggleSelection(); // select CompB
+        controller.openConfirmRun();
+
+        controller.flattenAllRunRecipes();
+
+        assertThat(controller.runOrder())
+                .containsExactlyInAnyOrder("org.test.Shared", "org.test.Sub2", "org.test.Sub3");
+        assertThat(controller.runOrder()).doesNotHaveDuplicates();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14"})
+    void flattenAllRunRecipesMultipleLeafListIsUnchanged() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // select Alpha (leaf)
+        controller.moveDown();
+        controller.toggleSelection(); // select Beta (leaf)
+        controller.openConfirmRun();
+
+        controller.flattenAllRunRecipes();
+
+        assertThat(controller.runOrder()).containsExactly("org.test.Alpha", "org.test.Beta");
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14"})
     void expandRunRecipeAddsToRunExpandedSet() {
         TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
         controller.moveDown(); // highlight Composite

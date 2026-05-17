@@ -51,22 +51,25 @@ public final class HelpOverlay {
                     "Navigation",
                     List.of(
                             new Entry("\u2191\u2193/jk", "Move"),
-                            new Entry("+/-", "Reorder"),
-                            new Entry(">/\u2192", "Expand"),
-                            new Entry("</\u2190", "Collapse"))),
+                            new Entry("+/-", "Reorder up/down"),
+                            new Entry("Ctrl+\u2191\u2193", "Reorder up/down"),
+                            new Entry("e/>", "Expand composite"),
+                            new Entry("c/<", "Collapse composite"))),
             new Section(
                     "Selection",
                     List.of(
-                            new Entry("Space", "Toggle"),
+                            new Entry("Space/Enter", "Toggle"),
                             new Entry("a", "Select all"),
                             new Entry("A", "Deselect all"))),
             new Section(
                     "Actions",
                     List.of(
+                            new Entry("f", "Flatten highlighted"),
+                            new Entry("F", "Flatten all composites"),
                             new Entry("r", "Run"),
                             new Entry("d", "Dry-run"),
-                            new Entry("f", "Flatten"),
-                            new Entry("Esc", "Back"))));
+                            new Entry("?", "Toggle help"),
+                            new Entry("Esc/q", "Back"))));
 
     public static final List<Section> DETAIL_HELP = List.of(
             new Section("Actions", List.of(new Entry("Space", "Toggle selection"), new Entry("Esc/q", "Back"))));
