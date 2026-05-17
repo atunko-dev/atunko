@@ -370,6 +370,187 @@ class TuiControllerTest {
                 .containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
     }
 
+    // --- Load Run Configuration ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void loadRunConfigRestoresRecipeSelection(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service);
+        controller.toggleSelection(); // select Alpha
+        controller.moveDown();
+        controller.toggleSelection(); // select Beta
+        Path configFile = tempDir.resolve("myconfig.yml");
+        controller.saveRunConfig(configFile);
+        controller.deselectAll();
+
+        RunConfig loaded = service.load(configFile);
+        controller.loadRunConfig(loaded);
+
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void loadRunConfigReplacesExistingSelection(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service);
+        controller.toggleSelection(); // select Alpha (cursor at 0)
+        Path configFile = tempDir.resolve("alpha.yml");
+        controller.saveRunConfig(configFile);
+        // Switch to a different selection before loading
+        controller.deselectAll();
+        controller.moveDown();
+        controller.moveDown();
+        controller.toggleSelection(); // select Gamma
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Gamma");
+
+        RunConfig loaded = service.load(configFile);
+        controller.loadRunConfig(loaded);
+
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Alpha");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void listRunConfigsReturnsEmptyWhenDirectoryAbsent(@TempDir Path tempDir) {
+        TuiController controller = new TuiController(RECIPES, new RunConfigService(), null, null, null, tempDir);
+
+        List<Path> configs = controller.listRunConfigs();
+
+        assertThat(configs).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void listRunConfigsReturnsYmlFiles(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
+        controller.toggleSelection();
+        java.nio.file.Files.createDirectories(tempDir.resolve("atunko/runs"));
+        controller.saveRunConfig(tempDir.resolve("atunko/runs/first.yml"));
+        controller.saveRunConfig(tempDir.resolve("atunko/runs/second.yml"));
+
+        List<Path> configs = controller.listRunConfigs();
+
+        assertThat(configs).hasSize(2);
+        assertThat(configs).allMatch(p -> p.toString().endsWith(".yml"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void confirmSaveConfigWritesFileUnderProjectDir(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
+        controller.toggleSelection(); // select Alpha
+        controller.enterSaveConfigMode();
+        controller.setSaveConfigName("my-run");
+
+        controller.confirmSaveConfig();
+
+        Path expected = tempDir.resolve("atunko/runs/my-run.yml");
+        assertThat(expected).exists();
+        RunConfig loaded = service.load(expected);
+        assertThat(loaded.recipes()).hasSize(1);
+        assertThat(loaded.recipes().get(0).name()).isEqualTo("org.test.Alpha");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void confirmSaveConfigWithBlankNameExitsWithoutSaving(@TempDir Path tempDir) throws Exception {
+        TuiController controller = new TuiController(RECIPES, new RunConfigService(), null, null, null, tempDir);
+        controller.toggleSelection();
+        controller.enterSaveConfigMode();
+        controller.setSaveConfigName("   ");
+
+        controller.confirmSaveConfig();
+
+        assertThat(controller.isSaveConfigMode()).isFalse();
+        assertThat(tempDir.resolve("atunko/runs")).doesNotExist();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void enterSaveConfigModeSetsModeFlag() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.enterSaveConfigMode();
+
+        assertThat(controller.isSaveConfigMode()).isTrue();
+        assertThat(controller.saveConfigName()).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void exitSaveConfigModeClearsFlag() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.enterSaveConfigMode();
+        controller.setSaveConfigName("draft");
+
+        controller.exitSaveConfigMode();
+
+        assertThat(controller.isSaveConfigMode()).isFalse();
+        assertThat(controller.saveConfigName()).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void openLoadConfigSetsScreenAndPopulatesFileList(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
+        controller.toggleSelection();
+        java.nio.file.Files.createDirectories(tempDir.resolve("atunko/runs"));
+        controller.saveRunConfig(tempDir.resolve("atunko/runs/saved.yml"));
+
+        controller.openLoadConfig();
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.LOAD_CONFIG);
+        assertThat(controller.configFiles()).hasSize(1);
+        assertThat(controller.loadConfigHighlightIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void confirmLoadConfigLoadsFileAndReturnsToBrowser(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
+        controller.moveDown();
+        controller.toggleSelection(); // select Beta
+        java.nio.file.Files.createDirectories(tempDir.resolve("atunko/runs"));
+        controller.saveRunConfig(tempDir.resolve("atunko/runs/beta.yml"));
+        controller.deselectAll();
+
+        controller.openLoadConfig();
+        controller.confirmLoadConfig();
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.BROWSER);
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Beta");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void moveLoadConfigDownAndUpNavigatesList(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
+        controller.toggleSelection();
+        java.nio.file.Files.createDirectories(tempDir.resolve("atunko/runs"));
+        controller.saveRunConfig(tempDir.resolve("atunko/runs/aaa.yml"));
+        controller.saveRunConfig(tempDir.resolve("atunko/runs/bbb.yml"));
+        controller.openLoadConfig();
+
+        controller.moveLoadConfigDown();
+        assertThat(controller.loadConfigHighlightIndex()).isEqualTo(1);
+
+        controller.moveLoadConfigDown(); // clamp at 1
+        assertThat(controller.loadConfigHighlightIndex()).isEqualTo(1);
+
+        controller.moveLoadConfigUp();
+        assertThat(controller.loadConfigHighlightIndex()).isZero();
+
+        controller.moveLoadConfigUp(); // clamp at 0
+        assertThat(controller.loadConfigHighlightIndex()).isZero();
+    }
+
     // --- Cycle Selection ---
 
     @Test
