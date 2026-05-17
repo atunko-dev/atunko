@@ -5,5 +5,6 @@ public enum Screen {
     DETAIL,
     TAG_BROWSER,
     CONFIRM_RUN,
-    EXECUTION_RESULTS
+    EXECUTION_RESULTS,
+    LOAD_CONFIG
 }
