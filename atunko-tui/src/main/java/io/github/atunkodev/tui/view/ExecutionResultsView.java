@@ -55,11 +55,12 @@ public final class ExecutionResultsView {
                         .constraint(Constraint.fill()))
                 .id("execution-results")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, hasChanges, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, event));
     }
 
     private static EventResult handleKeyEvent(
-            TuiController controller, boolean hasChanges, dev.tamboui.tui.event.KeyEvent event) {
+            TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
+        boolean hasChanges = controller.executionResult().map(r -> !r.changes().isEmpty()).orElse(false);
         if (hasChanges) {
             if (event.isDown() || event.isChar('j')) {
                 controller.moveFileDown();
