@@ -14,6 +14,7 @@ import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -919,12 +920,13 @@ public class TuiController {
         browserState.resetHighlight();
     }
 
+    @Requirements({"atunko:TUI_0001.10"})
     public List<Path> listRunConfigs() {
         Path dir = projectDir.resolve("atunko/runs");
-        if (!java.nio.file.Files.isDirectory(dir)) {
+        if (!Files.isDirectory(dir)) {
             return List.of();
         }
-        try (var stream = java.nio.file.Files.list(dir)) {
+        try (var stream = Files.list(dir)) {
             return stream.filter(p -> p.toString().endsWith(".yml")).sorted().toList();
         } catch (IOException e) {
             return List.of();
@@ -998,7 +1000,7 @@ public class TuiController {
             return;
         }
         Path dir = projectDir.resolve("atunko/runs");
-        java.nio.file.Files.createDirectories(dir);
+        Files.createDirectories(dir);
         saveRunConfig(dir.resolve(saveConfigName + ".yml"));
         exitSaveConfigMode();
     }

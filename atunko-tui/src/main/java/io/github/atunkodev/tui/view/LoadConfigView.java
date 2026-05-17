@@ -51,7 +51,7 @@ public final class LoadConfigView {
 
         Element statusBar = text(" j/k:navigate  Enter:load  Esc/q:back").addClass("status-bar");
 
-        return column(dock().top(header, Constraint.length(3))
+        return column(dock().top(header, Constraint.length(1))
                         .center(centerContent)
                         .bottom(statusBar, Constraint.length(1))
                         .constraint(Constraint.fill()))

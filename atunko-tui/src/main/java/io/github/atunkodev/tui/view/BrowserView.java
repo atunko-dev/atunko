@@ -20,10 +20,12 @@ import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Requirements({"atunko:TUI_0001.1", "atunko:TUI_0001.2", "atunko:TUI_0001.13"})
 public final class BrowserView {
 
+    private static final Logger LOG = Logger.getLogger(BrowserView.class.getName());
     private static final TextInputState SEARCH_STATE = new TextInputState();
     private static final TextInputState SAVE_NAME_STATE = new TextInputState();
 
@@ -75,8 +77,6 @@ public final class BrowserView {
         }
         return handleBrowseModeKey(controller, app, event);
     }
-
-    private static final java.util.logging.Logger LOG = java.util.logging.Logger.getLogger(BrowserView.class.getName());
 
     private static EventResult handleSaveConfigModeKey(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
         if (event.isConfirm()) {
