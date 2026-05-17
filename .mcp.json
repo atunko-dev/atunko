@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "reqstool": {
+      "command": "reqstool",
+      "args": ["mcp", "local", "-p", "docs/reqstool"]
+    }
+  }
+}
