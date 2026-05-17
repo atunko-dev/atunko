@@ -29,10 +29,6 @@ allprojects {
                 includeGroup 'org.gradle'
             }
         }
-        maven {
-            url = 'https://central.sonatype.com/repository/maven-snapshots/'
-            mavenContent { snapshotsOnly() }
-        }
     }
 }
 
