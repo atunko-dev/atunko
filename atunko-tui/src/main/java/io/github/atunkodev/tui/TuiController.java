@@ -403,10 +403,6 @@ public class TuiController {
     }
 
     private Optional<RecipeInfo> findRecipeDeep(String name) {
-        Optional<RecipeInfo> top = findRecipe(name);
-        if (top.isPresent()) {
-            return top;
-        }
         return findRecipeInSubtree(name, allRecipes);
     }
 
@@ -789,10 +785,11 @@ public class TuiController {
         if (runState == null) {
             return;
         }
+        boolean anyChanged = false;
         boolean changed = true;
         while (changed) {
             changed = false;
-            List<String> next = new ArrayList<>();
+            LinkedHashSet<String> next = new LinkedHashSet<>();
             for (String name : runOrder) {
                 Optional<RecipeInfo> r = findRecipeDeep(name);
                 if (r.isPresent() && r.get().isComposite()) {
@@ -803,13 +800,16 @@ public class TuiController {
                         selectedRecipes.addAll(subs);
                     }
                     changed = true;
+                    anyChanged = true;
                 } else {
                     next.add(name);
                 }
             }
-            runOrder = next;
+            runOrder = new ArrayList<>(next);
         }
-        runState = new RecipeListState(this::resolveRunRecipes, selectedRecipes, false);
+        if (anyChanged) {
+            runState = new RecipeListState(this::resolveRunRecipes, selectedRecipes, false);
+        }
     }
 
     @Requirements({"atunko:TUI_0001.14"})
