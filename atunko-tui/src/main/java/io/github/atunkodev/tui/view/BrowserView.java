@@ -20,11 +20,14 @@ import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Requirements({"atunko:TUI_0001.1", "atunko:TUI_0001.2", "atunko:TUI_0001.13"})
 public final class BrowserView {
 
+    private static final Logger LOG = Logger.getLogger(BrowserView.class.getName());
     private static final TextInputState SEARCH_STATE = new TextInputState();
+    private static final TextInputState SAVE_NAME_STATE = new TextInputState();
 
     private BrowserView() {}
 
@@ -40,9 +43,19 @@ public final class BrowserView {
                     .constraint(Constraint.fill());
         }
 
+        Element bottomBar = controller.isSaveConfigMode()
+                ? row(
+                        text(" Save config: ").addClass("detail-label"),
+                        textInput(SAVE_NAME_STATE)
+                                .placeholder("config-name")
+                                .rounded()
+                                .constraint(Constraint.fill()),
+                        text("  Enter:save  Esc:cancel "))
+                : renderStatusBar(controller, displayRows);
+
         return column(dock().top(renderHeader(controller), Constraint.length(3))
                         .center(centerContent)
-                        .bottom(renderStatusBar(controller, displayRows), Constraint.length(1))
+                        .bottom(bottomBar, Constraint.length(1))
                         .constraint(Constraint.fill()))
                 .id("browser")
                 .addClass("app")
@@ -56,10 +69,33 @@ public final class BrowserView {
             controller.toggleHelp();
             return EventResult.HANDLED;
         }
+        if (controller.isSaveConfigMode()) {
+            return handleSaveConfigModeKey(controller, event);
+        }
         if (controller.isSearchMode()) {
             return handleSearchModeKey(controller, event);
         }
         return handleBrowseModeKey(controller, app, event);
+    }
+
+    private static EventResult handleSaveConfigModeKey(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
+        if (event.isConfirm()) {
+            try {
+                controller.confirmSaveConfig();
+            } catch (java.io.IOException e) {
+                LOG.log(java.util.logging.Level.WARNING, "Failed to save run config", e);
+            }
+            return EventResult.HANDLED;
+        }
+        if (event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
+            controller.exitSaveConfigMode();
+            return EventResult.HANDLED;
+        }
+        if (handleTextInputKey(SAVE_NAME_STATE, event)) {
+            controller.setSaveConfigName(SAVE_NAME_STATE.text());
+            return EventResult.HANDLED;
+        }
+        return EventResult.UNHANDLED;
     }
 
     private static EventResult handleSearchModeKey(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
@@ -162,6 +198,15 @@ public final class BrowserView {
         }
         if (event.isChar('?')) {
             controller.toggleHelp();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('S')) {
+            SAVE_NAME_STATE.clear();
+            controller.enterSaveConfigMode();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('L')) {
+            controller.openLoadConfig();
             return EventResult.HANDLED;
         }
         return EventResult.UNHANDLED;

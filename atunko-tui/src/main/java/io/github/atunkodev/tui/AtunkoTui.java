@@ -10,6 +10,7 @@ import io.github.atunkodev.tui.view.BrowserView;
 import io.github.atunkodev.tui.view.ConfirmRunView;
 import io.github.atunkodev.tui.view.DetailView;
 import io.github.atunkodev.tui.view.ExecutionResultsView;
+import io.github.atunkodev.tui.view.LoadConfigView;
 import io.github.atunkodev.tui.view.TagBrowserView;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
@@ -47,6 +48,7 @@ public class AtunkoTui extends ToolkitApp {
             case TAG_BROWSER -> TagBrowserView.render(controller);
             case EXECUTION_RESULTS -> ExecutionResultsView.render(controller);
             case CONFIRM_RUN -> ConfirmRunView.render(controller);
+            case LOAD_CONFIG -> LoadConfigView.render(controller);
         };
     }
 
