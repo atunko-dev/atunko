@@ -85,6 +85,7 @@ public class AtunkoTui extends ToolkitApp {
         quit();
     }
 
+    @Requirements({"atunko:TUI_0001.18"})
     private StyleEngine createStyleEngine() throws IOException {
         StyleEngine engine = StyleEngine.create();
         if (themeConfig.isUserCss()) {

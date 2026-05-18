@@ -1,5 +1,6 @@
 package io.github.atunkodev.tui;
 
+import io.github.reqstool.annotations.Requirements;
 import java.nio.file.Path;
 
 /**
@@ -27,6 +28,7 @@ public record ThemeConfig(String themeName, Path cssFile) {
      *   <li>Default — dark theme</li>
      * </ol>
      */
+    @Requirements({"atunko:TUI_0001.18"})
     public static ThemeConfig resolve(String themeName, Path cssFile) {
         return resolve(themeName, cssFile, XDG_THEME_PATH);
     }
