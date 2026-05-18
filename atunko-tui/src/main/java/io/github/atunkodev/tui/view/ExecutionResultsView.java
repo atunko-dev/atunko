@@ -58,9 +58,9 @@ public final class ExecutionResultsView {
                 .onKeyEvent(event -> handleKeyEvent(controller, event));
     }
 
-    private static EventResult handleKeyEvent(
-            TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
-        boolean hasChanges = controller.executionResult().map(r -> !r.changes().isEmpty()).orElse(false);
+    private static EventResult handleKeyEvent(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
+        boolean hasChanges =
+                controller.executionResult().map(r -> !r.changes().isEmpty()).orElse(false);
         if (hasChanges) {
             if (event.isDown() || event.isChar('j')) {
                 controller.moveFileDown();
