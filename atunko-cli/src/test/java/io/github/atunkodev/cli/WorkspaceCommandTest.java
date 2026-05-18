@@ -50,6 +50,24 @@ class WorkspaceCommandTest {
     }
 
     @Test
+    @SVCs({"atunko:SVC_CLI_0005.1"})
+    void runWorkspacePrintsPerProjectSummaryTable() throws Exception {
+        Path root = fixture("workspace-flat");
+        CommandLineFixture cli = CommandLineFixture.create();
+
+        int exitCode = cli.execute(
+                "run", "--workspace", root.toString(), "--recipe", "org.openrewrite.java.RemoveUnusedImports");
+
+        assertThat(exitCode).isZero();
+        String out = cli.stdout();
+        assertThat(out).contains("Project");
+        assertThat(out).contains("Changes");
+        assertThat(out).contains("Status");
+        assertThat(out).containsAnyOf("service-auth", "service-payments", "service-ui");
+        assertThat(out).containsPattern("Total:.*project\\(s\\)");
+    }
+
+    @Test
     @SVCs({"atunko:SVC_CLI_0005.2"})
     void runWithoutProjectDirOrWorkspaceFails() {
         CommandLineFixture cli = CommandLineFixture.create();

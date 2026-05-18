@@ -302,6 +302,24 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: TUI_0001.19
+    title: TUI — Results File Navigation
+    significance: shall
+    description: The TUI shall allow the user to navigate the list of changed files in execution and dry-run results
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.20
+    title: TUI — File Diff View
+    significance: shall
+    description: The TUI shall display a before/after diff panel for any changed file selected from the results list
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   - id: TUI_0001.10
     title: TUI — Save Run Config
     significance: shall
@@ -349,6 +367,17 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: TUI_0001.14.1
+    title: TUI — Run Dialog Flatten-All
+    significance: shall
+    description: >-
+      The TUI run dialog shall support flattening all composite recipes to their
+      leaf constituents in a single operation, deduplicating any shared leaves
+    references:
+      requirement_ids: ["TUI_0001.14"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   - id: TUI_0001.15
     title: TUI — Debug Logging
     significance: shall
@@ -391,6 +420,28 @@ requirements:
       The TUI shall support CSS-based theming via TamboUI TCSS stylesheets,
       shipping bundled dark and light themes, with user-provided CSS file support
       and theme selection via --theme CLI flag
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.19
+    title: TUI — Load Run Config
+    significance: shall
+    description: >-
+      The TUI shall support loading a previously saved run configuration from an
+      atunko/runs/*.yml file, replacing the current recipe selection
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.20
+    title: TUI — Markdown Recipe Descriptions
+    significance: shall
+    description: >-
+      The TUI detail view shall render recipe descriptions as formatted markdown
+      using the tamboui-toolkit-markdown library
     references:
       requirement_ids: ["TUI_0001"]
     categories: [interaction-capability]

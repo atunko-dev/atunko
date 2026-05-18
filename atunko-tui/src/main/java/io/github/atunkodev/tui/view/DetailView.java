@@ -16,7 +16,7 @@ import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 
-@Requirements({"atunko:TUI_0001.4", "atunko:TUI_0001.7"})
+@Requirements({"atunko:TUI_0001.4", "atunko:TUI_0001.7", "atunko:TUI_0001.20"})
 public final class DetailView {
 
     private DetailView() {}

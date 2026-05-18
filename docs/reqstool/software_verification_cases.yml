@@ -529,6 +529,56 @@ cases:
       THEN the recipes are applied and results are displayed
     revision: "0.1.0"
 
+  - id: SVC_TUI_0001.19
+    requirement_ids: ["TUI_0001.19"]
+    title: TUI navigates results file list
+    verification: automated-test
+    description: |
+      GIVEN execution or dry-run results are shown with one or more changed files
+      WHEN the user presses j/k or arrow keys
+      THEN the highlighted file in the results list moves accordingly and index is clamped within bounds
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.19.1
+    requirement_ids: ["TUI_0001.19"]
+    title: TUI resets file index on new execution result
+    verification: automated-test
+    description: |
+      GIVEN a file is highlighted in the results list
+      WHEN a new execution or dry-run result is stored
+      THEN the highlighted file index resets to the first file
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.20
+    requirement_ids: ["TUI_0001.20"]
+    title: TUI opens file diff view
+    verification: automated-test
+    description: |
+      GIVEN a file is highlighted in the results list
+      WHEN the user presses Enter
+      THEN the file diff screen is shown with before and after content panels
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.20.1
+    requirement_ids: ["TUI_0001.20"]
+    title: TUI returns from file diff to results list
+    verification: automated-test
+    description: |
+      GIVEN the file diff screen is shown
+      WHEN the user presses Esc or q
+      THEN the results list screen is shown (not the browser)
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.20.2
+    requirement_ids: ["TUI_0001.20"]
+    title: TUI file diff is no-op when no changes exist
+    verification: automated-test
+    description: |
+      GIVEN no execution results exist or the changed files list is empty
+      WHEN openFileDiff is called
+      THEN the screen does not change
+    revision: "0.1.0"
+
   - id: SVC_TUI_0001.10
     requirement_ids: ["TUI_0001.10"]
     title: TUI saves run configuration
@@ -577,6 +627,16 @@ cases:
       GIVEN the run dialog is open with selected recipes
       WHEN the user reorders, toggles, or cycles selection
       THEN the execution order and selection state update accordingly
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.14.1
+    requirement_ids: ["TUI_0001.14.1"]
+    title: Flatten-all replaces all composites with leaf recipes
+    verification: automated-test
+    description: |
+      GIVEN the run dialog contains one or more composite recipes
+      WHEN the user triggers flatten-all
+      THEN all composites are replaced by their leaf constituents, with shared leaves deduplicated
     revision: "0.1.0"
 
   - id: SVC_TUI_0001.15
@@ -707,6 +767,46 @@ cases:
       GIVEN the TUI is launched with --theme dark or --theme light
       WHEN the StyleEngine is initialized
       THEN the corresponding bundled theme stylesheet is loaded
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.19
+    requirement_ids: ["TUI_0001.19"]
+    title: Load config restores recipe selection
+    verification: automated-test
+    description: |
+      GIVEN a saved run configuration file
+      WHEN the user loads the configuration
+      THEN the current recipe selection is replaced with the saved selection
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.19.1
+    requirement_ids: ["TUI_0001.19"]
+    title: Load config replaces existing selection
+    verification: automated-test
+    description: |
+      GIVEN recipes are already selected
+      WHEN the user loads a different run configuration
+      THEN the previous selection is cleared and replaced with the loaded selection
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.19.2
+    requirement_ids: ["TUI_0001.19"]
+    title: List run configs returns available yml files
+    verification: automated-test
+    description: |
+      GIVEN the atunko/runs/ directory contains .yml files
+      WHEN the load config screen is opened
+      THEN all .yml files are listed for selection
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.20
+    requirement_ids: ["TUI_0001.20"]
+    title: Detail view renders recipe descriptions as markdown
+    verification: automated-test
+    description: |
+      GIVEN a recipe with a markdown description
+      WHEN the detail view is displayed
+      THEN the description is rendered as formatted markdown
     revision: "0.1.0"
 
   - id: SVC_CLI_0002
