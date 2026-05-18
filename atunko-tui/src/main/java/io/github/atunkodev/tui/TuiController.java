@@ -305,6 +305,7 @@ public class TuiController {
     private boolean showHelp;
     private ExecutionResult executionResult;
     private boolean lastRunWasDryRun;
+    private int selectedFileIndex = 0;
 
     private final RecipeListState browserState;
 
@@ -852,10 +853,41 @@ public class TuiController {
         return lastRunWasDryRun;
     }
 
+    @Requirements({"atunko:TUI_0001.19", "atunko:TUI_0001.20"})
+    public int selectedFileIndex() {
+        return selectedFileIndex;
+    }
+
+    @Requirements({"atunko:TUI_0001.19"})
+    public void moveFileDown() {
+        int size = executionResult == null ? 0 : executionResult.changes().size();
+        if (size > 0) {
+            selectedFileIndex = Math.min(selectedFileIndex + 1, size - 1);
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.19"})
+    public void moveFileUp() {
+        selectedFileIndex = Math.max(0, selectedFileIndex - 1);
+    }
+
+    @Requirements({"atunko:TUI_0001.20"})
+    public void openFileDiff() {
+        if (executionResult != null && !executionResult.changes().isEmpty()) {
+            currentScreen = Screen.FILE_DIFF;
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.20"})
+    public void returnFromFileDiff() {
+        currentScreen = Screen.EXECUTION_RESULTS;
+    }
+
     @Requirements({"atunko:TUI_0001.8"})
     public void showDryRunResult(ExecutionResult result) {
         this.executionResult = result;
         this.lastRunWasDryRun = true;
+        this.selectedFileIndex = 0;
         this.currentScreen = Screen.EXECUTION_RESULTS;
     }
 
@@ -863,6 +895,7 @@ public class TuiController {
     public void showExecutionResult(ExecutionResult result) {
         this.executionResult = result;
         this.lastRunWasDryRun = false;
+        this.selectedFileIndex = 0;
         this.currentScreen = Screen.EXECUTION_RESULTS;
     }
 
