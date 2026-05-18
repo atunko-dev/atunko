@@ -3,6 +3,7 @@ package io.github.atunkodev;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.atunkodev.testing.CommandLineFixture;
+import io.github.reqstool.annotations.SVCs;
 import org.junit.jupiter.api.Test;
 
 class AppTest {
@@ -21,12 +22,10 @@ class AppTest {
     }
 
     @Test
-    void noArgsPrintsUsage() {
+    @SVCs({"atunko:SVC_CLI_0001"})
+    void tuiSubcommandIsRegistered() {
         CommandLineFixture cli = CommandLineFixture.create();
 
-        int exitCode = cli.execute();
-
-        assertThat(exitCode).isZero();
-        assertThat(cli.stdout()).contains("atunko");
+        assertThat(cli.cmd().getSubcommands()).containsKey("tui");
     }
 }
