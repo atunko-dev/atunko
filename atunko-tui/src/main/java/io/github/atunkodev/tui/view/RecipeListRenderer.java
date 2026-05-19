@@ -58,6 +58,14 @@ public final class RecipeListRenderer {
 
             var prefixEl = resolvePrefixStyle(prefix, selected, partial, covered);
             String displayName = cleanDisplayName(r.displayName());
+            if (r.isComposite() && !displayRow.isSubRecipe()) {
+                long coveredCount = r.recipeList().stream()
+                        .filter(sub -> coveredRecipes.contains(sub.name()) || selectedRecipes.contains(sub.name()))
+                        .count();
+                if (coveredCount > 0) {
+                    displayName += " [" + coveredCount + "/" + r.recipeList().size() + "]";
+                }
+            }
             var nameEl = resolveNameStyle(displayName, selected, partial, covered, options);
 
             if (options.showTags() && !r.tags().isEmpty() && !displayRow.isSubRecipe()) {

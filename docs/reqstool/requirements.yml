@@ -783,6 +783,28 @@ requirements:
     categories: [functional-suitability]
     revision: 0.1.0
 
+  - id: CORE_0013
+    title: Core — Recipe Coverage Computation
+    significance: shall
+    description: >-
+      The core module shall provide a utility that, given the current set of selected
+      recipes, computes which recipes are transitively covered (i.e. included as
+      sub-recipes of a selected composite)
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0013.1
+    title: Core — Recipe Reverse-Index
+    significance: shall
+    description: >-
+      The core module shall provide a utility that builds a reverse index mapping
+      each recipe to the list of composite recipes that directly or transitively
+      contain it, enabling efficient "included in" lookups
+    references:
+      requirement_ids: ["CORE_0013"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
   # CLI workspace requirements
   - id: CLI_0005
     title: CLI Workspace Support
