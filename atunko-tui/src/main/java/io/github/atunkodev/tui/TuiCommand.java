@@ -3,9 +3,12 @@ package io.github.atunkodev.tui;
 import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
 import io.github.atunkodev.core.project.ProjectScannerFactory;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
+import io.github.atunkodev.core.project.Workspace;
+import io.github.atunkodev.core.project.WorkspaceScanner;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.reqstool.annotations.Requirements;
@@ -23,8 +26,13 @@ public class TuiCommand implements Runnable {
     private final ProjectSourceParser sourceParser;
     private final ChangeApplier changeApplier;
 
-    @Option(names = "--project-dir", description = "Project directory", defaultValue = ".")
+    @Option(names = "--project-dir", description = "Project directory (mutually exclusive with --workspace)")
     private Path projectDir;
+
+    @Option(
+            names = "--workspace",
+            description = "Workspace root — scans for all projects underneath (mutually exclusive with --project-dir)")
+    private Path workspaceDir;
 
     @Option(names = "--log-file", description = "Log file for TUI debug output")
     private Path logFile;
@@ -49,12 +57,21 @@ public class TuiCommand implements Runnable {
     }
 
     @Override
-    @Requirements({"atunko:TUI_0001"})
+    @Requirements({"atunko:TUI_0001", "atunko:TUI_0002", "atunko:TUI_0002.1"})
     public void run() {
-        SessionHolder.init(projectDir, ProjectScannerFactory.detect(projectDir).scan(projectDir));
         List<RecipeInfo> recipes = discoveryService.discoverAll();
-        TuiController controller =
-                new TuiController(recipes, runConfigService, engine, sourceParser, changeApplier, projectDir);
+        TuiController controller;
+        if (workspaceDir != null) {
+            Workspace workspace = WorkspaceScanner.scan(workspaceDir);
+            SessionHolder.initWorkspace(workspace.root(), workspace.projects());
+            WorkspaceExecutionEngine workspaceEngine = new WorkspaceExecutionEngine(engine, sourceParser);
+            controller = new TuiController(
+                    recipes, runConfigService, engine, sourceParser, changeApplier, workspaceEngine, workspaceDir);
+        } else {
+            Path dir = projectDir != null ? projectDir : Path.of(".");
+            SessionHolder.init(dir, ProjectScannerFactory.detect(dir).scan(dir));
+            controller = new TuiController(recipes, runConfigService, engine, sourceParser, changeApplier, dir);
+        }
         ThemeConfig themeConfig = ThemeConfig.resolve(theme, cssFile);
         AtunkoTui tui = new AtunkoTui(controller, logFile, themeConfig);
         try {

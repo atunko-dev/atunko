@@ -9,13 +9,14 @@ import static dev.tamboui.toolkit.Toolkit.text;
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 import java.util.Set;
 
-@Requirements({"atunko:TUI_0001.14"})
+@Requirements({"atunko:TUI_0001.14", "atunko:TUI_0002.2"})
 public final class ConfirmRunView {
 
     private ConfirmRunView() {}
@@ -24,17 +25,13 @@ public final class ConfirmRunView {
         List<DisplayRow> displayRows = controller.runDisplayRows();
         Set<String> selected = controller.selectedRecipes();
         boolean hasRecipes = !displayRows.isEmpty();
-        String projectPath =
-                controller.projectDir().toAbsolutePath().normalize().toString();
 
         Element centerContent;
         if (controller.isShowHelp()) {
             centerContent = row(spacer(), HelpOverlay.render(HelpOverlay.RUN_DIALOG_HELP), spacer());
         } else if (hasRecipes) {
-            centerContent = column(
-                    row(text("Project: ").addClass("detail-label"), text(projectPath)),
-                    text(""),
-                    renderRecipeList(controller, displayRows, selected));
+            Element projectInfo = buildProjectInfo(controller);
+            centerContent = column(projectInfo, text(""), renderRecipeList(controller, displayRows, selected));
         } else {
             centerContent = column(
                     text(""),
@@ -63,6 +60,25 @@ public final class ConfirmRunView {
                 .id("confirm-run")
                 .focusable()
                 .onKeyEvent(event -> handleKeyEvent(controller, hasRecipes, event));
+    }
+
+    @Requirements({"atunko:TUI_0002.2"})
+    private static Element buildProjectInfo(TuiController controller) {
+        if (controller.isWorkspaceMode()) {
+            List<ProjectEntry> entries = controller.workspaceProjects();
+            Element[] projectLines = entries.stream()
+                    .map(e -> (Element) row(
+                            text("  • ").addClass("detail-label"),
+                            text(e.projectDir().getFileName().toString())))
+                    .toArray(Element[]::new);
+            Element[] headerAndProjects = new Element[projectLines.length + 1];
+            headerAndProjects[0] = row(text("Projects: ").addClass("detail-label"));
+            System.arraycopy(projectLines, 0, headerAndProjects, 1, projectLines.length);
+            return column(headerAndProjects);
+        }
+        String projectPath =
+                controller.projectDir().toAbsolutePath().normalize().toString();
+        return row(text("Project: ").addClass("detail-label"), text(projectPath));
     }
 
     private static Element renderRecipeList(

@@ -7,9 +7,13 @@ import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
+import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
+import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
+import io.github.atunkodev.core.project.Workspace;
 import io.github.atunkodev.core.recipe.RecipeCoverageUtils;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
@@ -297,7 +301,9 @@ public class TuiController {
     private final RecipeExecutionEngine engine;
     private final ProjectSourceParser sourceParser;
     private final ChangeApplier changeApplier;
+    private final WorkspaceExecutionEngine workspaceEngine;
     private final Path projectDir;
+    private final List<ProjectEntry> workspaceProjects;
     private Screen currentScreen = Screen.BROWSER;
     private String searchQuery = "";
     private SortOrder sortOrder = SortOrder.NAME;
@@ -306,6 +312,7 @@ public class TuiController {
     private boolean searchMode;
     private boolean showHelp;
     private ExecutionResult executionResult;
+    private WorkspaceExecutionResult workspaceResult;
     private boolean lastRunWasDryRun;
     private int selectedFileIndex = 0;
 
@@ -330,11 +337,44 @@ public class TuiController {
             ProjectSourceParser sourceParser,
             ChangeApplier changeApplier,
             Path projectDir) {
+        this(allRecipes, runConfigService, engine, sourceParser, changeApplier, null, null, projectDir);
+    }
+
+    public TuiController(
+            List<RecipeInfo> allRecipes,
+            RunConfigService runConfigService,
+            RecipeExecutionEngine engine,
+            ProjectSourceParser sourceParser,
+            ChangeApplier changeApplier,
+            WorkspaceExecutionEngine workspaceEngine,
+            Path projectDir) {
+        this(
+                allRecipes,
+                runConfigService,
+                engine,
+                sourceParser,
+                changeApplier,
+                workspaceEngine,
+                workspaceEngine != null ? SessionHolder.getProjectEntries() : null,
+                projectDir);
+    }
+
+    public TuiController(
+            List<RecipeInfo> allRecipes,
+            RunConfigService runConfigService,
+            RecipeExecutionEngine engine,
+            ProjectSourceParser sourceParser,
+            ChangeApplier changeApplier,
+            WorkspaceExecutionEngine workspaceEngine,
+            List<ProjectEntry> workspaceProjects,
+            Path projectDir) {
         this.allRecipes = List.copyOf(allRecipes);
         this.runConfigService = runConfigService;
         this.engine = engine;
         this.sourceParser = sourceParser;
         this.changeApplier = changeApplier;
+        this.workspaceEngine = workspaceEngine;
+        this.workspaceProjects = workspaceProjects != null ? List.copyOf(workspaceProjects) : null;
         this.projectDir = projectDir;
         this.browserState = new RecipeListState(this::recipes, selectedRecipes);
     }
@@ -818,6 +858,11 @@ public class TuiController {
         return Optional.ofNullable(executionResult);
     }
 
+    @Requirements({"atunko:TUI_0002.4"})
+    public WorkspaceExecutionResult lastWorkspaceResult() {
+        return workspaceResult;
+    }
+
     public boolean lastRunWasDryRun() {
         return lastRunWasDryRun;
     }
@@ -852,6 +897,21 @@ public class TuiController {
         currentScreen = Screen.EXECUTION_RESULTS;
     }
 
+    @Requirements({"atunko:TUI_0002"})
+    public boolean isWorkspaceMode() {
+        return workspaceEngine != null;
+    }
+
+    @Requirements({"atunko:TUI_0002.2"})
+    public List<ProjectEntry> workspaceProjects() {
+        return workspaceProjects != null ? workspaceProjects : List.of();
+    }
+
+    @Requirements({"atunko:TUI_0002.5"})
+    public Path runsDir() {
+        return projectDir.resolve("atunko/runs");
+    }
+
     @Requirements({"atunko:TUI_0001.8"})
     public void showDryRunResult(ExecutionResult result) {
         this.executionResult = result;
@@ -872,12 +932,31 @@ public class TuiController {
         return projectDir;
     }
 
-    @Requirements({"atunko:TUI_0001.8", "atunko:TUI_0001.9"})
+    @Requirements({"atunko:TUI_0001.8", "atunko:TUI_0001.9", "atunko:TUI_0002.3"})
     public void runSelectedRecipes(boolean dryRun) {
+        LOG.fine(() -> "Running " + (dryRun ? "dry-run" : "execution") + " for " + runOrder.size() + " recipes");
+
+        List<String> recipesToRun =
+                runOrder.stream().filter(selectedRecipes::contains).toList();
+
+        if (isWorkspaceMode()) {
+            Workspace workspace = new Workspace(projectDir, workspaceProjects);
+            WorkspaceExecutionResult wsResult = workspaceEngine.execute(recipesToRun, workspace);
+            if (!dryRun && changeApplier != null) {
+                wsResult.results().stream()
+                        .filter(r -> r.succeeded() && r.result() != null)
+                        .forEach(r -> changeApplier.apply(
+                                r.entry().projectDir(), r.result().changes()));
+            }
+            this.workspaceResult = wsResult;
+            this.lastRunWasDryRun = dryRun;
+            this.currentScreen = Screen.WORKSPACE_RESULTS;
+            return;
+        }
+
         if (engine == null || sourceParser == null) {
             return;
         }
-        LOG.fine(() -> "Running " + (dryRun ? "dry-run" : "execution") + " for " + runOrder.size() + " recipes");
 
         List<SourceFile> sources;
         ProjectInfo projectInfo = SessionHolder.getProjectInfo();
@@ -886,10 +965,6 @@ public class TuiController {
         } else {
             sources = sourceParser.parse(new ProjectInfo(List.of(), List.of(projectDir)));
         }
-
-        // Use runOrder filtered to selected recipes, preserving user-defined execution order
-        List<String> recipesToRun =
-                runOrder.stream().filter(selectedRecipes::contains).toList();
 
         List<FileChange> allChanges = new ArrayList<>();
         for (String recipeName : recipesToRun) {
@@ -922,9 +997,9 @@ public class TuiController {
         browserState.resetHighlight();
     }
 
-    @Requirements({"atunko:TUI_0001.19"})
+    @Requirements({"atunko:TUI_0001.19", "atunko:TUI_0002.5"})
     public List<Path> listRunConfigs() {
-        Path dir = projectDir.resolve("atunko/runs");
+        Path dir = runsDir();
         if (!Files.isDirectory(dir)) {
             return List.of();
         }
@@ -1001,7 +1076,7 @@ public class TuiController {
             exitSaveConfigMode();
             return;
         }
-        Path dir = projectDir.resolve("atunko/runs");
+        Path dir = runsDir();
         Files.createDirectories(dir);
         saveRunConfig(dir.resolve(saveConfigName + ".yml"));
         exitSaveConfigMode();
