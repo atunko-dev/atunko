@@ -1228,3 +1228,64 @@ cases:
       WHEN buildReverseIndex is called with that list
       THEN each sub-recipe is mapped to the composites that directly contain it
     revision: "0.1.0"
+
+  - id: SVC_TUI_0002
+    requirement_ids: ["TUI_0002"]
+    title: TUI workspace session initialised from --workspace flag
+    verification: automated-test
+    description: |
+      GIVEN a directory containing multiple projects
+      WHEN the TUI is launched with --workspace pointing to that directory
+      THEN SessionHolder is initialised in workspace mode with all discovered projects
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0002.1
+    requirement_ids: ["TUI_0002.1"]
+    title: TuiCommand --workspace option is mutually exclusive with --project-dir
+    verification: automated-test
+    description: |
+      GIVEN TuiCommand is invoked with both --workspace and --project-dir
+      WHEN the command line is parsed
+      THEN an error is reported and the TUI does not launch
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0002.2
+    requirement_ids: ["TUI_0002.2"]
+    title: Run dialog lists all workspace project names in workspace mode
+    verification: automated-test
+    description: |
+      GIVEN the TUI is in workspace mode with multiple discovered projects
+      WHEN the Run Recipes dialog is rendered
+      THEN the header area lists all project directory names instead of a single path
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0002.3
+    requirement_ids: ["TUI_0002.3"]
+    title: TUI executes recipes via WorkspaceExecutionEngine in workspace mode
+    verification: automated-test
+    description: |
+      GIVEN the TUI is in workspace mode and recipes are selected
+      WHEN the user triggers execution
+      THEN WorkspaceExecutionEngine.execute() is called and the result is stored as lastWorkspaceResult
+      AND the screen transitions to WORKSPACE_RESULTS
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0002.4
+    requirement_ids: ["TUI_0002.4"]
+    title: Workspace results screen shows per-project table
+    verification: automated-test
+    description: |
+      GIVEN a workspace run has completed
+      WHEN the WORKSPACE_RESULTS screen is rendered
+      THEN each project appears as a row with its directory name, changed-file count, and PASS or FAIL status
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0002.5
+    requirement_ids: ["TUI_0002.5"]
+    title: Run configs stored under workspaceRoot in workspace mode
+    verification: automated-test
+    description: |
+      GIVEN the TUI is in workspace mode
+      WHEN a run configuration is saved or the config list is queried
+      THEN the directory used is workspaceRoot/atunko/runs/ not the single-project directory
+    revision: "0.1.0"

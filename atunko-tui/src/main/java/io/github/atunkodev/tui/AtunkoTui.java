@@ -48,6 +48,7 @@ public class AtunkoTui extends ToolkitApp {
             case DETAIL -> DetailView.render(controller);
             case TAG_BROWSER -> TagBrowserView.render(controller);
             case EXECUTION_RESULTS -> ExecutionResultsView.render(controller);
+            case WORKSPACE_RESULTS -> ExecutionResultsView.render(controller);
             case FILE_DIFF -> FileDiffView.render(controller);
             case CONFIRM_RUN -> ConfirmRunView.render(controller);
             case LOAD_CONFIG -> LoadConfigView.render(controller);

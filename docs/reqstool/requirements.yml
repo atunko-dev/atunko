@@ -892,3 +892,72 @@ requirements:
       requirement_ids: ["WEB_0002"]
     categories: [interaction-capability]
     revision: 0.1.0
+
+  # TUI workspace requirements
+  - id: TUI_0002
+    title: TUI Workspace Support
+    significance: shall
+    description: >-
+      The TUI shall support a --workspace option that scans a root directory for
+      projects and initialises a multi-project session, allowing recipe execution
+      across all discovered projects
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0002.1
+    title: TUI — --workspace Option
+    significance: shall
+    description: >-
+      The TUI subcommand shall accept a --workspace <path> option that is mutually
+      exclusive with --project-dir; when supplied it scans the path with
+      WorkspaceScanner and calls SessionHolder.initWorkspace()
+    references:
+      requirement_ids: ["TUI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0002.2
+    title: TUI — Run Dialog Shows All Workspace Projects
+    significance: shall
+    description: >-
+      When in workspace mode the Run Recipes dialog shall display the list of all
+      discovered project directory names instead of the single-project path line
+    references:
+      requirement_ids: ["TUI_0002"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0002.3
+    title: TUI — Workspace Execution via WorkspaceExecutionEngine
+    significance: shall
+    description: >-
+      When in workspace mode the TUI shall execute selected recipes across all
+      workspace projects using WorkspaceExecutionEngine and navigate to the
+      WORKSPACE_RESULTS screen on completion
+    references:
+      requirement_ids: ["TUI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0002.4
+    title: TUI — Aggregate Workspace Results Screen
+    significance: shall
+    description: >-
+      After a workspace run the TUI shall display a per-project results table
+      showing each project directory name, the number of changed files, and
+      pass/fail status for each project
+    references:
+      requirement_ids: ["TUI_0002"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0002.5
+    title: TUI — Workspace Config Directory
+    significance: shall
+    description: >-
+      When in workspace mode run configurations shall be saved to and loaded from
+      <workspaceRoot>/atunko/runs/ rather than the single-project directory
+    references:
+      requirement_ids: ["TUI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0

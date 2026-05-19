@@ -6,6 +6,7 @@ public enum Screen {
     TAG_BROWSER,
     CONFIRM_RUN,
     EXECUTION_RESULTS,
+    WORKSPACE_RESULTS,
     LOAD_CONFIG,
     FILE_DIFF
 }

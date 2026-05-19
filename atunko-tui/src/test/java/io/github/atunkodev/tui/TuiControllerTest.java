@@ -6,6 +6,12 @@ import io.github.atunkodev.core.config.RunConfig;
 import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
+import io.github.atunkodev.core.engine.ProjectExecutionResult;
+import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
+import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
+import io.github.atunkodev.core.project.ProjectEntry;
+import io.github.atunkodev.core.project.ProjectInfo;
+import io.github.atunkodev.core.project.Workspace;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
@@ -1642,5 +1648,55 @@ class TuiControllerTest {
         assertThat(rows.get(2).path()).isEqualTo("org.test.Composite/org.test.Sub1");
         assertThat(rows.get(3).path()).isEqualTo("org.test.Composite/org.test.Sub2");
         assertThat(rows.get(4).path()).isEqualTo("org.test.Gamma");
+    }
+
+    // --- Workspace execution ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0002.3"})
+    void runSelectedRecipesInWorkspaceModeStoresWorkspaceResultAndNavigatesToWorkspaceResultsScreen(
+            @TempDir Path workspaceDir, @TempDir Path projectA, @TempDir Path projectB) {
+        ProjectInfo info = new ProjectInfo(List.of(), List.of());
+        ProjectEntry entryA = new ProjectEntry(projectA, info);
+        ProjectEntry entryB = new ProjectEntry(projectB, info);
+        List<ProjectEntry> entries = List.of(entryA, entryB);
+
+        WorkspaceExecutionResult fakeResult = new WorkspaceExecutionResult(List.of(
+                new ProjectExecutionResult(entryA, new ExecutionResult(List.of()), null),
+                new ProjectExecutionResult(
+                        entryB, new ExecutionResult(List.of(new FileChange(Path.of("Foo.java"), "a", "b"))), null)));
+
+        WorkspaceExecutionEngine stubEngine = new WorkspaceExecutionEngine(null, null) {
+            @Override
+            public WorkspaceExecutionResult execute(List<String> recipeNames, Workspace workspace) {
+                return fakeResult;
+            }
+        };
+
+        TuiController controller =
+                new TuiController(RECIPES, new RunConfigService(), null, null, null, stubEngine, entries, workspaceDir);
+        controller.toggleSelection(); // select Alpha
+        controller.openConfirmRun();
+
+        controller.runSelectedRecipes(false);
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.WORKSPACE_RESULTS);
+        assertThat(controller.lastWorkspaceResult()).isSameAs(fakeResult);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0002.5"})
+    void runsDirUsesWorkspaceRootWhenInWorkspaceMode(@TempDir Path workspaceDir) {
+        TuiController controller = new TuiController(RECIPES, new RunConfigService(), null, null, null, workspaceDir);
+
+        assertThat(controller.runsDir()).isEqualTo(workspaceDir.resolve("atunko/runs"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0002.5"})
+    void runsDirUsesProjectDirWhenInSingleProjectMode(@TempDir Path projectDir) {
+        TuiController controller = new TuiController(RECIPES, new RunConfigService(), null, null, null, projectDir);
+
+        assertThat(controller.runsDir()).isEqualTo(projectDir.resolve("atunko/runs"));
     }
 }
