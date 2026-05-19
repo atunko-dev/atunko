@@ -448,6 +448,15 @@ requirements:
     revision: 0.1.0
 
   # CLI requirements — list/search/run
+  - id: CLI_0001
+    title: CLI Default Behaviour — Launch TUI
+    significance: shall
+    description: >-
+      When the tool is invoked without a subcommand, it shall launch the interactive TUI
+      (equivalent to running `atunko tui`)
+    categories: [functional-suitability]
+    revision: 0.1.0
+
   - id: CLI_0002
     title: CLI Recipe Listing
     significance: shall

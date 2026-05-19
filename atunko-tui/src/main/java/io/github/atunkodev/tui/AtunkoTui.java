@@ -10,6 +10,7 @@ import io.github.atunkodev.tui.view.BrowserView;
 import io.github.atunkodev.tui.view.ConfirmRunView;
 import io.github.atunkodev.tui.view.DetailView;
 import io.github.atunkodev.tui.view.ExecutionResultsView;
+import io.github.atunkodev.tui.view.FileDiffView;
 import io.github.atunkodev.tui.view.LoadConfigView;
 import io.github.atunkodev.tui.view.TagBrowserView;
 import io.github.reqstool.annotations.Requirements;
@@ -47,6 +48,7 @@ public class AtunkoTui extends ToolkitApp {
             case DETAIL -> DetailView.render(controller);
             case TAG_BROWSER -> TagBrowserView.render(controller);
             case EXECUTION_RESULTS -> ExecutionResultsView.render(controller);
+            case FILE_DIFF -> FileDiffView.render(controller);
             case CONFIRM_RUN -> ConfirmRunView.render(controller);
             case LOAD_CONFIG -> LoadConfigView.render(controller);
         };
@@ -83,6 +85,7 @@ public class AtunkoTui extends ToolkitApp {
         quit();
     }
 
+    @Requirements({"atunko:TUI_0001.18"})
     private StyleEngine createStyleEngine() throws IOException {
         StyleEngine engine = StyleEngine.create();
         if (themeConfig.isUserCss()) {

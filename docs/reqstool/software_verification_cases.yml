@@ -809,6 +809,16 @@ cases:
       THEN the description is rendered as formatted markdown
     revision: "0.1.0"
 
+  - id: SVC_CLI_0001
+    requirement_ids: ["CLI_0001"]
+    title: No-args invocation delegates to TUI subcommand
+    verification: automated-test
+    description: |
+      GIVEN the atunko CLI is configured
+      WHEN no subcommand is provided
+      THEN the "tui" subcommand is registered and is the delegation target for the default run() path
+    revision: "0.1.0"
+
   - id: SVC_CLI_0002
     requirement_ids: ["CLI_0002"]
     title: List recipes via CLI
