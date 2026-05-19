@@ -1198,3 +1198,23 @@ cases:
       WHEN the run configuration is saved and reloaded
       THEN the workspace root is preserved
     revision: "0.1.0"
+
+  - id: SVC_CORE_0013
+    requirement_ids: ["CORE_0013"]
+    title: computeCovered returns all transitive sub-recipes of selected composites
+    verification: automated-test
+    description: |
+      GIVEN a set of selected recipes containing at least one composite
+      WHEN computeCovered is called with that set
+      THEN all sub-recipes transitively reachable from selected composites are returned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0013.1
+    requirement_ids: ["CORE_0013.1"]
+    title: buildReverseIndex maps each recipe to its containing composites
+    verification: automated-test
+    description: |
+      GIVEN a list of recipes including at least one composite with sub-recipes
+      WHEN buildReverseIndex is called with that list
+      THEN each sub-recipe is mapped to the composites that directly contain it
+    revision: "0.1.0"

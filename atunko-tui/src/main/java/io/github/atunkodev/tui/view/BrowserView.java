@@ -14,12 +14,14 @@ import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.widgets.input.TextInputState;
+import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.tui.AtunkoTui;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 @Requirements({"atunko:TUI_0001.1", "atunko:TUI_0001.2", "atunko:TUI_0001.13"})
@@ -270,8 +272,7 @@ public final class BrowserView {
                                     text(recipe.tags().isEmpty() ? "none" : String.join(", ", recipe.tags()))
                                             .addClass("detail-value")),
                             recipe.isComposite()
-                                    ? text("Composite: " + recipe.recipeList().size() + " sub-recipes")
-                                            .addClass("detail-value")
+                                    ? text(compositeLabel(recipe, controller)).addClass("detail-value")
                                     : text(""));
                     java.util.List<String> parents = controller.includedIn(recipe.name());
                     if (!parents.isEmpty()) {
@@ -285,6 +286,17 @@ public final class BrowserView {
                 .orElse(panel("Detail", text("No recipe selected"))
                         .addClass("panel")
                         .constraint(Constraint.fill(1)));
+    }
+
+    @Requirements({"atunko:TUI_0001.16"})
+    private static String compositeLabel(RecipeInfo recipe, TuiController controller) {
+        int total = recipe.recipeList().size();
+        Set<String> covered = controller.coveredRecipes();
+        Set<String> selected = controller.selectedRecipes();
+        long coveredCount = recipe.recipeList().stream()
+                .filter(sub -> covered.contains(sub.name()) || selected.contains(sub.name()))
+                .count();
+        return "Composite: " + coveredCount + "/" + total + " covered";
     }
 
     private static Element renderStatusBar(TuiController controller, List<DisplayRow> displayRows) {

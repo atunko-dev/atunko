@@ -10,6 +10,7 @@ import io.github.atunkodev.core.engine.RecipeExecutionEngine;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
+import io.github.atunkodev.core.recipe.RecipeCoverageUtils;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.reqstool.annotations.Requirements;
@@ -21,6 +22,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -424,49 +426,23 @@ public class TuiController {
 
     @Requirements({"atunko:TUI_0001.16"})
     public Set<String> coveredRecipes() {
-        Set<String> covered = new LinkedHashSet<>();
-        for (String name : selectedRecipes) {
-            findRecipe(name).ifPresent(recipe -> {
-                if (recipe.isComposite()) {
-                    collectSubRecipeNames(recipe, covered);
-                }
-            });
-        }
-        return Set.copyOf(covered);
-    }
-
-    private void collectSubRecipeNames(RecipeInfo composite, Set<String> result) {
-        for (RecipeInfo sub : composite.recipeList()) {
-            result.add(sub.name());
-            if (sub.isComposite()) {
-                collectSubRecipeNames(sub, result);
-            }
-        }
+        Set<RecipeInfo> selectedInfos = selectedRecipes.stream()
+                .flatMap(name -> findRecipe(name).stream())
+                .collect(Collectors.toSet());
+        return RecipeCoverageUtils.computeCovered(selectedInfos).stream()
+                .map(RecipeInfo::name)
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     @Requirements({"atunko:TUI_0001.16"})
     public List<String> includedIn(String recipeName) {
-        List<String> parents = new ArrayList<>();
-        for (String name : selectedRecipes) {
-            findRecipe(name).ifPresent(recipe -> {
-                if (recipe.isComposite() && containsSubRecipe(recipe, recipeName)) {
-                    parents.add(recipe.displayName());
-                }
-            });
-        }
-        return List.copyOf(parents);
-    }
-
-    private boolean containsSubRecipe(RecipeInfo composite, String recipeName) {
-        for (RecipeInfo sub : composite.recipeList()) {
-            if (sub.name().equals(recipeName)) {
-                return true;
-            }
-            if (sub.isComposite() && containsSubRecipe(sub, recipeName)) {
-                return true;
-            }
-        }
-        return false;
+        Map<RecipeInfo, List<RecipeInfo>> index = RecipeCoverageUtils.buildReverseIndex(allRecipes);
+        return findRecipeDeep(recipeName)
+                .map(target -> index.getOrDefault(target, List.of()).stream()
+                        .filter(p -> selectedRecipes.contains(p.name()))
+                        .map(RecipeInfo::displayName)
+                        .collect(Collectors.toUnmodifiableList()))
+                .orElseGet(List::of);
     }
 
     @Requirements({"atunko:TUI_0001.12", "atunko:TUI_0001.13"})
@@ -640,16 +616,9 @@ public class TuiController {
     public void openConfirmRun() {
         // Deduplicate: omit sub-recipes whose parent composite is also selected,
         // since running the composite already executes its sub-recipes.
-        Set<String> coveredBySeleectedComposites = new LinkedHashSet<>();
-        for (String name : selectedRecipes) {
-            findRecipe(name).ifPresent(recipe -> {
-                if (recipe.isComposite()) {
-                    collectSubRecipeNames(recipe, coveredBySeleectedComposites);
-                }
-            });
-        }
+        Set<String> coveredBySelectedComposites = coveredRecipes();
         runOrder = selectedRecipes.stream()
-                .filter(name -> !coveredBySeleectedComposites.contains(name))
+                .filter(name -> !coveredBySelectedComposites.contains(name))
                 .collect(Collectors.toCollection(ArrayList::new));
         runState = new RecipeListState(this::resolveRunRecipes, selectedRecipes, false);
         currentScreen = Screen.CONFIRM_RUN;
