@@ -1,5 +1,6 @@
 package io.github.atunkodev.tui;
 
+import io.github.atunkodev.core.config.ConfigExportService;
 import io.github.atunkodev.core.config.RecipeEntry;
 import io.github.atunkodev.core.config.RunConfig;
 import io.github.atunkodev.core.config.RunConfigService;
@@ -1044,6 +1045,62 @@ public class TuiController {
         RunConfig config = runConfigService.load(configFiles.get(loadConfigHighlightIndex));
         loadRunConfig(config);
         currentScreen = Screen.BROWSER;
+    }
+
+    // Export state
+    public enum ExportFormat {
+        GRADLE,
+        MAVEN
+    }
+
+    private ExportFormat exportFormat = ExportFormat.GRADLE;
+    private ConfigExportService.ExportMode exportMode = ConfigExportService.ExportMode.MINIMAL;
+    private boolean showExport = false;
+
+    @Requirements({"atunko:TUI_0001.21"})
+    public boolean isShowExport() {
+        return showExport;
+    }
+
+    @Requirements({"atunko:TUI_0001.21"})
+    public void openExport() {
+        this.showExport = true;
+    }
+
+    @Requirements({"atunko:TUI_0001.21"})
+    public void closeExport() {
+        this.showExport = false;
+    }
+
+    @Requirements({"atunko:TUI_0001.22"})
+    public ExportFormat exportFormat() {
+        return exportFormat;
+    }
+
+    @Requirements({"atunko:TUI_0001.22"})
+    public void setExportFormat(ExportFormat format) {
+        this.exportFormat = format;
+    }
+
+    @Requirements({"atunko:TUI_0001.23"})
+    public ConfigExportService.ExportMode exportMode() {
+        return exportMode;
+    }
+
+    @Requirements({"atunko:TUI_0001.23"})
+    public void toggleExportMode() {
+        this.exportMode = exportMode == ConfigExportService.ExportMode.MINIMAL
+                ? ConfigExportService.ExportMode.FULL
+                : ConfigExportService.ExportMode.MINIMAL;
+    }
+
+    @Requirements({"atunko:TUI_0001.21"})
+    public RunConfig buildRunConfig() {
+        List<RecipeEntry> entries = runOrder.stream()
+                .filter(selectedRecipes::contains)
+                .map(RecipeEntry::new)
+                .toList();
+        return new RunConfig(entries);
     }
 
     private boolean saveConfigMode = false;

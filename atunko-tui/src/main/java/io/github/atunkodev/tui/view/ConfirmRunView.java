@@ -16,12 +16,16 @@ import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 import java.util.Set;
 
-@Requirements({"atunko:TUI_0001.14", "atunko:TUI_0002.2"})
+@Requirements({"atunko:TUI_0001.14", "atunko:TUI_0001.21", "atunko:TUI_0002.2"})
 public final class ConfirmRunView {
 
     private ConfirmRunView() {}
 
     public static Element render(TuiController controller) {
+        if (controller.isShowExport()) {
+            return ExportConfigView.render(controller);
+        }
+
         List<DisplayRow> displayRows = controller.runDisplayRows();
         Set<String> selected = controller.selectedRecipes();
         boolean hasRecipes = !displayRows.isEmpty();
@@ -44,7 +48,7 @@ public final class ConfirmRunView {
                 .count();
         long totalCount = displayRows.size();
         String footer = hasRecipes
-                ? selectedCount + "/" + totalCount + " selected | f:flatten F:flatten-all ?:help Esc:back"
+                ? selectedCount + "/" + totalCount + " selected | f:flatten F:flatten-all x:export ?:help Esc:back"
                 : "Esc:back";
 
         return column(dock().top(
@@ -156,6 +160,10 @@ public final class ConfirmRunView {
             }
             if (event.isChar('d')) {
                 controller.runSelectedRecipes(true);
+                return EventResult.HANDLED;
+            }
+            if (event.isChar('x')) {
+                controller.openExport();
                 return EventResult.HANDLED;
             }
         }
