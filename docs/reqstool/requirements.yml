@@ -447,6 +447,40 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: TUI_0001.21
+    title: TUI — Export Config Overlay
+    significance: shall
+    description: >-
+      The TUI shall provide an export overlay accessible from the confirm-run
+      screen (x key) that displays the current run configuration as a Maven or
+      Gradle plugin snippet using the core ConfigExportService
+    references:
+      requirement_ids: ["TUI_0001", "CORE_0009"]
+    categories: [compatibility]
+    revision: 0.1.0
+
+  - id: TUI_0001.22
+    title: TUI — Export Format Toggle
+    significance: shall
+    description: >-
+      The export overlay shall support toggling between Gradle and Maven output
+      formats via the g and m keys
+    references:
+      requirement_ids: ["TUI_0001.21"]
+    categories: [compatibility]
+    revision: 0.1.0
+
+  - id: TUI_0001.23
+    title: TUI — Export Mode Toggle
+    significance: shall
+    description: >-
+      The export overlay shall support toggling between Minimal (plugin snippet
+      only) and Full (standalone build file) output modes via the Tab key
+    references:
+      requirement_ids: ["TUI_0001.21"]
+    categories: [compatibility]
+    revision: 0.1.0
+
   # CLI requirements — list/search/run
   - id: CLI_0001
     title: CLI Default Behaviour — Launch TUI

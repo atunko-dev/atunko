@@ -1699,4 +1699,46 @@ class TuiControllerTest {
 
         assertThat(controller.runsDir()).isEqualTo(projectDir.resolve("atunko/runs"));
     }
+
+    // --- Export config state ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.21"})
+    void defaultExportStateIsGradleMinimalAndClosed() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.exportFormat()).isEqualTo(TuiController.ExportFormat.GRADLE);
+        assertThat(controller.exportMode())
+                .isEqualTo(io.github.atunkodev.core.config.ConfigExportService.ExportMode.MINIMAL);
+        assertThat(controller.isShowExport()).isFalse();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.22"})
+    void setExportFormatTogglesFormat() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.setExportFormat(TuiController.ExportFormat.MAVEN);
+        assertThat(controller.exportFormat()).isEqualTo(TuiController.ExportFormat.MAVEN);
+
+        controller.setExportFormat(TuiController.ExportFormat.GRADLE);
+        assertThat(controller.exportFormat()).isEqualTo(TuiController.ExportFormat.GRADLE);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.23"})
+    void toggleExportModeCyclesMinimalAndFull() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.exportMode())
+                .isEqualTo(io.github.atunkodev.core.config.ConfigExportService.ExportMode.MINIMAL);
+
+        controller.toggleExportMode();
+        assertThat(controller.exportMode())
+                .isEqualTo(io.github.atunkodev.core.config.ConfigExportService.ExportMode.FULL);
+
+        controller.toggleExportMode();
+        assertThat(controller.exportMode())
+                .isEqualTo(io.github.atunkodev.core.config.ConfigExportService.ExportMode.MINIMAL);
+    }
 }
