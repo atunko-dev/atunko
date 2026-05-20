@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-@SVCs({"atunko:SVC_TUI_0001.24", "atunko:SVC_TUI_0001.25"})
 class RecipeOptionsViewTest {
 
     private static final RecipeOptionInfo VERSION_OPT = new RecipeOptionInfo(
@@ -173,5 +172,18 @@ class RecipeOptionsViewTest {
         assertThat(RecipeOptionsView.isBooleanType("Boolean")).isTrue();
         assertThat(RecipeOptionsView.isBooleanType("java.lang.Boolean")).isTrue();
         assertThat(RecipeOptionsView.isBooleanType("String")).isFalse();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void openOptionsForUnknownRecipeRendersNoOptionsMessage() {
+        TuiController controller = new TuiController(List.of(RECIPE_WITH_OPTIONS));
+        controller.openOptions("org.example.DoesNotExist");
+
+        Element element = RecipeOptionsView.render(controller);
+
+        assertThat(element).isNotNull();
+        assertThat(controller.isShowOptions()).isTrue();
+        assertThat(controller.focusedRecipeForOptions()).isEqualTo("org.example.DoesNotExist");
     }
 }

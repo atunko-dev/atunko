@@ -989,10 +989,13 @@ public class TuiController {
 
     @Requirements({"atunko:TUI_0001.10"})
     public void saveRunConfig(Path file) throws IOException {
-        List<RecipeEntry> entries =
-                selectedRecipes.stream().map(RecipeEntry::new).toList();
-        RunConfig config = new RunConfig(entries);
-        runConfigService.save(config, file);
+        List<RecipeEntry> entries = selectedRecipes.stream()
+                .map(name -> {
+                    Map<String, Object> opts = recipeOptions.get(name);
+                    return new RecipeEntry(name, (opts != null && !opts.isEmpty()) ? opts : null, null);
+                })
+                .toList();
+        runConfigService.save(new RunConfig(entries), file);
     }
 
     @Requirements({"atunko:TUI_0001.19"})

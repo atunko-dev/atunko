@@ -12,6 +12,8 @@ import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.tui.event.KeyCode;
+import dev.tamboui.tui.event.MouseEvent;
+import dev.tamboui.tui.event.MouseEventKind;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.RecipeOptionInfo;
 import io.github.atunkodev.tui.TuiController;
@@ -57,7 +59,34 @@ public final class RecipeOptionsView {
                         .constraint(Constraint.fill()))
                 .id("recipe-options")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, options, stored, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, options, stored, event))
+                .onMouseEvent(event -> handleMouseEvent(controller, options, event));
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    private static EventResult handleMouseEvent(
+            TuiController controller, List<RecipeOptionInfo> options, MouseEvent event) {
+        if (options.isEmpty()) {
+            return EventResult.UNHANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_UP) {
+            controller.moveOptionHighlightUp(options.size());
+            return EventResult.HANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_DOWN) {
+            controller.moveOptionHighlightDown(options.size());
+            return EventResult.HANDLED;
+        }
+        if (event.kind() == MouseEventKind.PRESS) {
+            // Header is 1 row; option rows start at row 1 (each option is 2 rows: name+desc).
+            int rawRow = event.y() - 1;
+            if (rawRow >= 0) {
+                int idx = rawRow / 2;
+                controller.setOptionHighlightedIndex(idx, options.size());
+                return EventResult.HANDLED;
+            }
+        }
+        return EventResult.UNHANDLED;
     }
 
     private static Element buildOptionsList(

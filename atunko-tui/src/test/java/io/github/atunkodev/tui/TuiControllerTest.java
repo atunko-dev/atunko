@@ -1858,6 +1858,76 @@ class TuiControllerTest {
     }
 
     @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void startOptionsEditingSetsFlag() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.openOptions("org.test.Alpha");
+
+        controller.startOptionsEditing();
+
+        assertThat(controller.isOptionsEditing()).isTrue();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void stopOptionsEditingClearsFlag() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.openOptions("org.test.Alpha");
+        controller.startOptionsEditing();
+
+        controller.stopOptionsEditing();
+
+        assertThat(controller.isOptionsEditing()).isFalse();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void closeOptionsResetsEditingFlagWhenCalledMidEdit() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.openOptions("org.test.Alpha");
+        controller.startOptionsEditing();
+
+        controller.closeOptions();
+
+        assertThat(controller.isOptionsEditing()).isFalse();
+        assertThat(controller.isShowOptions()).isFalse();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10", "atunko:SVC_TUI_0001.26"})
+    void saveRunConfigPreservesConfiguredOptions(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tempDir)
+            throws Exception {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // select Alpha
+        controller.setRecipeOption("org.test.Alpha", "targetVersion", "17");
+        java.nio.file.Path file = tempDir.resolve("run.yml");
+
+        controller.saveRunConfig(file);
+
+        io.github.atunkodev.core.config.RunConfig loaded =
+                new io.github.atunkodev.core.config.RunConfigService().load(file);
+        assertThat(loaded.recipes()).hasSize(1);
+        assertThat(loaded.recipes().get(0).options()).containsEntry("targetVersion", "17");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.26"})
+    void buildRunConfigOptionsFlowThroughToYamlRoundTrip(@TempDir Path tempDir) throws Exception {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // select Alpha
+        controller.openConfirmRun();
+        controller.setRecipeOption("org.test.Alpha", "targetVersion", "17");
+
+        io.github.atunkodev.core.config.RunConfig config = controller.buildRunConfig();
+        Path file = tempDir.resolve("run.yml");
+        new io.github.atunkodev.core.config.RunConfigService().save(config, file);
+        io.github.atunkodev.core.config.RunConfig loaded =
+                new io.github.atunkodev.core.config.RunConfigService().load(file);
+
+        assertThat(loaded.recipes().get(0).options()).containsEntry("targetVersion", "17");
+    }
+
+    @Test
     @SVCs({"atunko:SVC_TUI_0001.25"})
     void cycleRecipeOptionBooleanCyclesNullTrueFalseNull() {
         TuiController controller = new TuiController(RECIPES);
@@ -1870,5 +1940,95 @@ class TuiControllerTest {
 
         controller.cycleRecipeOptionBoolean("org.test.Alpha", "flag");
         assertThat(controller.getRecipeOptions("org.test.Alpha")).doesNotContainKey("flag");
+    }
+
+    // --- Mouse support ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexReturnsCorrectIndexForRowInsideList() {
+        TuiController controller = new TuiController(RECIPES);
+
+        int idx = controller.mouseRowToIndex(5, 3, 10);
+
+        assertThat(idx).isEqualTo(2);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexReturnsNegativeOneWhenAboveList() {
+        TuiController controller = new TuiController(RECIPES);
+
+        int idx = controller.mouseRowToIndex(2, 3, 10);
+
+        assertThat(idx).isEqualTo(-1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexReturnsNegativeOneWhenBeyondRowCount() {
+        TuiController controller = new TuiController(RECIPES);
+
+        int idx = controller.mouseRowToIndex(15, 3, 10);
+
+        assertThat(idx).isEqualTo(-1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexAtExactHeaderBoundaryReturnsZero() {
+        TuiController controller = new TuiController(RECIPES);
+
+        int idx = controller.mouseRowToIndex(3, 3, 10);
+
+        assertThat(idx).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void setBrowserHighlightedIndexMovesHighlight() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.setBrowserHighlightedIndex(2);
+
+        assertThat(controller.highlightedIndex()).isEqualTo(2);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void setBrowserHighlightedIndexIgnoresOutOfBoundsIndex() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.setBrowserHighlightedIndex(99);
+
+        assertThat(controller.highlightedIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void setFileHighlightedIndexMovesSelection() {
+        TuiController controller = new TuiController(RECIPES);
+        List<io.github.atunkodev.core.engine.FileChange> changes = List.of(
+                new io.github.atunkodev.core.engine.FileChange(Path.of("A.java"), "before", "after"),
+                new io.github.atunkodev.core.engine.FileChange(Path.of("B.java"), "before", "after"),
+                new io.github.atunkodev.core.engine.FileChange(Path.of("C.java"), "before", "after"));
+        controller.showDryRunResult(new io.github.atunkodev.core.engine.ExecutionResult(changes));
+
+        controller.setFileHighlightedIndex(2);
+
+        assertThat(controller.selectedFileIndex()).isEqualTo(2);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void setFileHighlightedIndexIgnoresOutOfBoundsIndex() {
+        TuiController controller = new TuiController(RECIPES);
+        List<io.github.atunkodev.core.engine.FileChange> changes =
+                List.of(new io.github.atunkodev.core.engine.FileChange(Path.of("A.java"), "before", "after"));
+        controller.showDryRunResult(new io.github.atunkodev.core.engine.ExecutionResult(changes));
+
+        controller.setFileHighlightedIndex(5);
+
+        assertThat(controller.selectedFileIndex()).isZero();
     }
 }

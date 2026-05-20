@@ -169,7 +169,7 @@ public final class ConfirmRunView {
             if (event.isChar('o')) {
                 List<DisplayRow> rows = controller.runDisplayRows();
                 int idx = controller.runHighlightIndex();
-                if (idx >= 0 && idx < rows.size()) {
+                if (idx >= 0 && idx < rows.size() && !rows.get(idx).isSubRecipe()) {
                     controller.openOptions(rows.get(idx).recipe().name());
                 }
                 return EventResult.HANDLED;
