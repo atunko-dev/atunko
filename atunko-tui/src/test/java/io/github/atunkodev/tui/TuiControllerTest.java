@@ -1095,11 +1095,12 @@ class TuiControllerTest {
 
     @Test
     @SVCs({"atunko:SVC_TUI_0001"})
-    void clearAllResetsSearchTagsAndSelections() {
+    void clearAllResetsSearchTagsSelectionsAndOptions() {
         TuiController controller = new TuiController(RECIPES);
         controller.setSearchQuery("alpha");
         controller.toggleTag("java");
         controller.toggleSelection(); // select Alpha
+        controller.setRecipeOption("org.test.Alpha", "targetVersion", "17");
 
         controller.clearAll();
 
@@ -1107,6 +1108,7 @@ class TuiControllerTest {
         assertThat(controller.selectedTags()).isEmpty();
         assertThat(controller.selectedRecipes()).isEmpty();
         assertThat(controller.highlightedIndex()).isZero();
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).isEmpty();
     }
 
     // --- Nested Composites ---

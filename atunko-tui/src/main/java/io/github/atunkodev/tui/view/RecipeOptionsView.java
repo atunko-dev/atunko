@@ -82,10 +82,23 @@ public final class RecipeOptionsView {
                     : text(valDisplay.isEmpty() ? "(not set)" : valDisplay)
                             .addClass(currentVal != null ? "detail-value" : "detail-label");
 
-            Element descRow = focused
-                    ? row(text("  " + opt.description()).addClass("detail-label"))
-                            .constraint(Constraint.fill())
-                    : text("");
+            Element descRow;
+            if (focused) {
+                var desc = column(row(text("  " + opt.description()).addClass("detail-label")));
+                if (opt.example() != null) {
+                    desc.add(row(
+                            text("  Example: ").addClass("detail-label"),
+                            text(opt.example()).addClass("detail-value")));
+                }
+                if (opt.valid() != null && !opt.valid().isEmpty()) {
+                    desc.add(row(
+                            text("  Valid:   ").addClass("detail-label"),
+                            text(String.join(", ", opt.valid())).addClass("detail-value")));
+                }
+                descRow = desc.constraint(Constraint.fill());
+            } else {
+                descRow = text("");
+            }
 
             rows[i] = column(row(nameCell, typeCell, spacer(), valCell), descRow);
         }

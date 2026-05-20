@@ -640,6 +640,7 @@ public class TuiController {
         this.searchQuery = "";
         this.selectedTags.clear();
         this.selectedRecipes.clear();
+        this.recipeOptions.clear();
         browserState.resetHighlight();
     }
 
