@@ -1094,11 +1094,84 @@ public class TuiController {
                 : ConfigExportService.ExportMode.MINIMAL;
     }
 
-    @Requirements({"atunko:TUI_0001.21"})
+    // Recipe options state
+    private final Map<String, Map<String, Object>> recipeOptions = new java.util.HashMap<>();
+    private boolean showOptions = false;
+    private String focusedRecipeForOptions = null;
+    private int focusedOptionIndex = 0;
+
+    @Requirements({"atunko:TUI_0001.25"})
+    public Map<String, Object> getRecipeOptions(String recipeName) {
+        return recipeOptions.getOrDefault(recipeName, Map.of());
+    }
+
+    @Requirements({"atunko:TUI_0001.25"})
+    public void setRecipeOption(String recipeName, String optionName, Object value) {
+        recipeOptions
+                .computeIfAbsent(recipeName, k -> new java.util.LinkedHashMap<>())
+                .put(optionName, value);
+    }
+
+    @Requirements({"atunko:TUI_0001.25"})
+    public void clearRecipeOption(String recipeName, String optionName) {
+        Map<String, Object> opts = recipeOptions.get(recipeName);
+        if (opts != null) {
+            opts.remove(optionName);
+            if (opts.isEmpty()) {
+                recipeOptions.remove(recipeName);
+            }
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public boolean isShowOptions() {
+        return showOptions;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public void openOptions(String recipeName) {
+        this.focusedRecipeForOptions = recipeName;
+        this.focusedOptionIndex = 0;
+        this.showOptions = true;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public void closeOptions() {
+        this.showOptions = false;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public String focusedRecipeForOptions() {
+        return focusedRecipeForOptions;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public int focusedOptionIndex() {
+        return focusedOptionIndex;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public void moveOptionHighlightDown(int optionCount) {
+        if (optionCount > 0) {
+            focusedOptionIndex = (focusedOptionIndex + 1) % optionCount;
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public void moveOptionHighlightUp(int optionCount) {
+        if (optionCount > 0) {
+            focusedOptionIndex = (focusedOptionIndex - 1 + optionCount) % optionCount;
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.21", "atunko:TUI_0001.26"})
     public RunConfig buildRunConfig() {
         List<RecipeEntry> entries = runOrder.stream()
                 .filter(selectedRecipes::contains)
-                .map(RecipeEntry::new)
+                .map(name -> {
+                    Map<String, Object> opts = recipeOptions.get(name);
+                    return new RecipeEntry(name, (opts != null && !opts.isEmpty()) ? opts : null, null);
+                })
                 .toList();
         return new RunConfig(entries);
     }

@@ -34,6 +34,10 @@ public final class BrowserView {
     private BrowserView() {}
 
     public static Element render(TuiController controller, AtunkoTui app) {
+        if (controller.isShowOptions()) {
+            return RecipeOptionsView.render(controller);
+        }
+
         List<DisplayRow> displayRows = controller.displayRows();
 
         Element centerContent;
@@ -151,6 +155,12 @@ public final class BrowserView {
         }
         if (event.isChar('N') && !controller.searchQuery().isBlank()) {
             controller.prevSearchMatch();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('o')) {
+            controller
+                    .highlightedDisplayRow()
+                    .ifPresent(row -> controller.openOptions(row.recipe().name()));
             return EventResult.HANDLED;
         }
         if (event.isChar('r')) {
@@ -302,7 +312,7 @@ public final class BrowserView {
     private static Element renderStatusBar(TuiController controller, List<DisplayRow> displayRows) {
         int selected = controller.selectedRecipes().size();
         long parentCount = displayRows.stream().filter(r -> !r.isSubRecipe()).count();
-        String status = parentCount + " recipes | " + selected + " selected | ?:help q:quit";
+        String status = parentCount + " recipes | " + selected + " selected | o:options  ?:help  q:quit";
         return text(" " + status).addClass("status-bar");
     }
 }

@@ -481,6 +481,50 @@ requirements:
     categories: [compatibility]
     revision: 0.1.0
 
+  - id: TUI_0001.24
+    title: TUI — Recipe Options Overlay
+    significance: shall
+    description: >-
+      The TUI shall provide a full-screen options overlay, accessible by pressing the
+      `o` key from both the recipe list (browse/search) screen and the confirm-run
+      screen, that displays all configurable options for the currently focused recipe
+      including each option's name, type, required flag, description, example,
+      valid values, and current configured value; if the recipe has no options the
+      overlay shall display a "No configurable options" message
+    references:
+      requirement_ids: ["TUI_0001", "CORE_0014"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0001.25
+    title: TUI — Recipe Option Value Editing
+    significance: shall
+    description: >-
+      Within the recipe options overlay the user shall be able to navigate options
+      with j/k, press Enter to edit a string or integer option value via inline
+      text input, toggle a boolean option between true/false/(unset) with Enter,
+      and clear an option value with Delete/Backspace; edited values shall be stored
+      on the controller keyed by recipe name and option name; pressing Esc while
+      editing shall cancel the edit, and pressing Esc when not editing shall close
+      the overlay
+    references:
+      requirement_ids: ["TUI_0001.24"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0001.26
+    title: TUI — Options Applied to RunConfig
+    significance: shall
+    description: >-
+      When building a RunConfig for execution or export, configured option values
+      stored on the controller shall be merged into the corresponding RecipeEntry
+      options map; recipes with no configured options shall have a null options map
+      (consistent with @JsonInclude NON_NULL serialisation)
+    references:
+      requirement_ids: ["TUI_0001.24", "TUI_0001.25"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
   # CLI requirements — list/search/run
   - id: CLI_0001
     title: CLI Default Behaviour — Launch TUI
@@ -836,6 +880,31 @@ requirements:
       contain it, enabling efficient "included in" lookups
     references:
       requirement_ids: ["CORE_0013"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0014
+    title: Core — Recipe Option Metadata
+    significance: shall
+    description: >-
+      RecipeInfo shall include a list of RecipeOptionInfo entries representing the
+      configurable options declared by the recipe, populated from OpenRewrite's
+      OptionDescriptor at discovery time
+    references:
+      requirement_ids: ["CORE_0001.1"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0014.1
+    title: Core — RecipeOptionInfo Fields
+    significance: shall
+    description: >-
+      RecipeOptionInfo shall capture: name, type, displayName, description, example
+      (nullable), valid values list (nullable), required flag, and defaultValue
+      (nullable), providing all information needed to render and validate an option
+      in a UI without depending on the OpenRewrite OptionDescriptor type directly
+    references:
+      requirement_ids: ["CORE_0014"]
     categories: [functional-suitability]
     revision: 0.1.0
 

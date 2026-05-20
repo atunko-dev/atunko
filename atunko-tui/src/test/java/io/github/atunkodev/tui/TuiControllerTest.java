@@ -1741,4 +1741,103 @@ class TuiControllerTest {
         assertThat(controller.exportMode())
                 .isEqualTo(io.github.atunkodev.core.config.ConfigExportService.ExportMode.MINIMAL);
     }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void defaultOptionStateIsClosedAndNoFocusedRecipe() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.isShowOptions()).isFalse();
+        assertThat(controller.focusedRecipeForOptions()).isNull();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void openOptionsSetsFocusedRecipeAndShowsOverlay() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.openOptions("org.test.Alpha");
+
+        assertThat(controller.isShowOptions()).isTrue();
+        assertThat(controller.focusedRecipeForOptions()).isEqualTo("org.test.Alpha");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void closeOptionsHidesOverlay() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.openOptions("org.test.Alpha");
+        controller.closeOptions();
+
+        assertThat(controller.isShowOptions()).isFalse();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void setAndGetRecipeOption() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.setRecipeOption("org.test.Alpha", "targetVersion", "17");
+
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).containsEntry("targetVersion", "17");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void getRecipeOptionsReturnsEmptyMapForUnknownRecipe() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.getRecipeOptions("org.test.Unknown")).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void clearRecipeOptionRemovesValue() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.setRecipeOption("org.test.Alpha", "targetVersion", "17");
+        controller.clearRecipeOption("org.test.Alpha", "targetVersion");
+
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void clearLastOptionRemovesRecipeEntryFromMap() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.setRecipeOption("org.test.Alpha", "opt", "val");
+        controller.clearRecipeOption("org.test.Alpha", "opt");
+
+        // After clearing all options, the recipe entry is removed (no stale empty maps)
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.26"})
+    void buildRunConfigIncludesConfiguredOptions() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // selects ALPHA (highlighted by default)
+        controller.openConfirmRun();
+        controller.setRecipeOption("org.test.Alpha", "targetVersion", "17");
+
+        io.github.atunkodev.core.config.RunConfig config = controller.buildRunConfig();
+
+        assertThat(config.recipes()).hasSize(1);
+        assertThat(config.recipes().get(0).options()).containsEntry("targetVersion", "17");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.26"})
+    void buildRunConfigOmitsNullOptionsMapForRecipeWithNoOptions() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // selects ALPHA (highlighted by default)
+        controller.openConfirmRun();
+
+        io.github.atunkodev.core.config.RunConfig config = controller.buildRunConfig();
+
+        assertThat(config.recipes()).hasSize(1);
+        assertThat(config.recipes().get(0).options()).isNull();
+    }
 }

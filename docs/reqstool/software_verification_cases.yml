@@ -839,6 +839,41 @@ cases:
       THEN the output mode cycles between Minimal and Full
     revision: "0.1.0"
 
+  - id: SVC_TUI_0001.24
+    requirement_ids: ["TUI_0001.24"]
+    title: Recipe options overlay opens on o key and shows option details
+    verification: automated-test
+    description: |
+      GIVEN a recipe is focused in the TUI
+      WHEN the user presses o
+      THEN the options overlay is displayed showing each option's name, type,
+      required flag, description, example, valid values, and current value;
+      if the recipe has no options, a "No configurable options" message is shown
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.25
+    requirement_ids: ["TUI_0001.25"]
+    title: User can edit and clear recipe option values in the overlay
+    verification: automated-test
+    description: |
+      GIVEN the options overlay is open
+      WHEN the user navigates to an option and edits its value
+      THEN the value is stored on the controller for that recipe and option;
+      WHEN the user clears an option
+      THEN the stored value is removed
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.26
+    requirement_ids: ["TUI_0001.26"]
+    title: Configured option values are merged into RecipeEntry when building RunConfig
+    verification: automated-test
+    description: |
+      GIVEN option values have been configured for one or more recipes
+      WHEN buildRunConfig is called
+      THEN each RecipeEntry includes the configured options map;
+      recipes with no configured options have a null options map
+    revision: "0.1.0"
+
   - id: SVC_CLI_0001
     requirement_ids: ["CLI_0001"]
     title: No-args invocation delegates to TUI subcommand
@@ -1257,6 +1292,27 @@ cases:
       GIVEN a list of recipes including at least one composite with sub-recipes
       WHEN buildReverseIndex is called with that list
       THEN each sub-recipe is mapped to the composites that directly contain it
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0014
+    requirement_ids: ["CORE_0014"]
+    title: RecipeInfo exposes options populated from OptionDescriptor
+    verification: automated-test
+    description: |
+      GIVEN the discovery service loads recipes
+      WHEN a recipe with declared options is discovered
+      THEN RecipeInfo.options() contains a non-empty list of RecipeOptionInfo entries
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0014.1
+    requirement_ids: ["CORE_0014.1"]
+    title: RecipeOptionInfo captures all OptionDescriptor fields
+    verification: automated-test
+    description: |
+      GIVEN a RecipeOptionInfo instance
+      WHEN constructed from an OptionDescriptor
+      THEN name, type, displayName, description, example, valid, required, and
+      defaultValue are all accessible and match the source descriptor
     revision: "0.1.0"
 
   - id: SVC_TUI_0002
