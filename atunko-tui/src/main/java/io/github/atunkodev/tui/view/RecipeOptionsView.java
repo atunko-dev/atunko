@@ -12,7 +12,6 @@ import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.tui.event.KeyCode;
-import dev.tamboui.widgets.input.TextInputState;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.RecipeOptionInfo;
 import io.github.atunkodev.tui.TuiController;
@@ -23,9 +22,6 @@ import java.util.Optional;
 
 @Requirements({"atunko:TUI_0001.24", "atunko:TUI_0001.25"})
 public final class RecipeOptionsView {
-
-    private static final TextInputState EDIT_STATE = new TextInputState();
-    private static boolean editing = false;
 
     private RecipeOptionsView() {}
 
@@ -38,13 +34,14 @@ public final class RecipeOptionsView {
 
         String title = recipeOpt.map(RecipeInfo::displayName).orElse(recipeName);
         int focusIdx = controller.focusedOptionIndex();
+        boolean editing = controller.isOptionsEditing();
 
         Element centerContent;
         if (options.isEmpty()) {
             centerContent = column(
                     text(""), text("  No configurable options for this recipe.").addClass("warning"));
         } else {
-            centerContent = buildOptionsList(options, stored, focusIdx);
+            centerContent = buildOptionsList(options, stored, focusIdx, editing, controller);
         }
 
         String statusBar = editing ? " Enter:save  Esc:cancel edit" : " j/k:navigate  Enter:edit  Del:clear  Esc:close";
@@ -63,7 +60,12 @@ public final class RecipeOptionsView {
                 .onKeyEvent(event -> handleKeyEvent(controller, options, stored, event));
     }
 
-    private static Element buildOptionsList(List<RecipeOptionInfo> options, Map<String, Object> stored, int focusIdx) {
+    private static Element buildOptionsList(
+            List<RecipeOptionInfo> options,
+            Map<String, Object> stored,
+            int focusIdx,
+            boolean editing,
+            TuiController controller) {
         Element[] rows = new Element[options.size()];
         for (int i = 0; i < options.size(); i++) {
             RecipeOptionInfo opt = options.get(i);
@@ -72,14 +74,11 @@ public final class RecipeOptionsView {
 
             String typeTag = opt.required() ? "[" + opt.type() + "*]" : "[" + opt.type() + "]";
             String valDisplay = currentVal != null ? String.valueOf(currentVal) : "";
-            if (focused && editing) {
-                valDisplay = EDIT_STATE.text();
-            }
 
             Element nameCell = text("  " + opt.displayName() + " ").addClass(focused ? "highlight" : "detail-label");
             Element typeCell = text(typeTag + " ").addClass("detail-value");
             Element valCell = focused && editing
-                    ? textInput(EDIT_STATE).constraint(Constraint.fill())
+                    ? textInput(controller.optionsEditState).constraint(Constraint.fill())
                     : text(valDisplay.isEmpty() ? "(not set)" : valDisplay)
                             .addClass(currentVal != null ? "detail-value" : "detail-label");
 
@@ -99,29 +98,27 @@ public final class RecipeOptionsView {
             Map<String, Object> stored,
             dev.tamboui.tui.event.KeyEvent event) {
 
-        if (editing) {
+        if (controller.isOptionsEditing()) {
             if (event.code() == KeyCode.ESCAPE) {
-                editing = false;
-                EDIT_STATE.clear();
+                controller.stopOptionsEditing();
                 return EventResult.HANDLED;
             }
             if (event.isConfirm()) {
                 int idx = controller.focusedOptionIndex();
                 if (idx < options.size()) {
                     RecipeOptionInfo opt = options.get(idx);
-                    String text = EDIT_STATE.text().trim();
-                    if (text.isEmpty()) {
+                    String inputText = controller.optionsEditState.text().trim();
+                    if (inputText.isEmpty()) {
                         controller.clearRecipeOption(controller.focusedRecipeForOptions(), opt.name());
                     } else {
-                        Object parsed = parseValue(opt.type(), text);
+                        Object parsed = parseValue(opt.type(), inputText);
                         controller.setRecipeOption(controller.focusedRecipeForOptions(), opt.name(), parsed);
                     }
                 }
-                editing = false;
-                EDIT_STATE.clear();
+                controller.stopOptionsEditing();
                 return EventResult.HANDLED;
             }
-            handleTextInputKey(EDIT_STATE, event);
+            handleTextInputKey(controller.optionsEditState, event);
             return EventResult.HANDLED;
         }
 
@@ -137,11 +134,11 @@ public final class RecipeOptionsView {
             int idx = controller.focusedOptionIndex();
             RecipeOptionInfo opt = options.get(idx);
             if (isBooleanType(opt.type())) {
-                cycleBooleanValue(controller, opt);
+                controller.cycleRecipeOptionBoolean(controller.focusedRecipeForOptions(), opt.name());
             } else {
                 Object cur = stored.get(opt.name());
-                EDIT_STATE.setText(cur != null ? String.valueOf(cur) : "");
-                editing = true;
+                controller.optionsEditState.setText(cur != null ? String.valueOf(cur) : "");
+                controller.startOptionsEditing();
             }
             return EventResult.HANDLED;
         }
@@ -160,28 +157,20 @@ public final class RecipeOptionsView {
         return EventResult.UNHANDLED;
     }
 
-    private static boolean isBooleanType(String type) {
-        return "boolean".equalsIgnoreCase(type) || "Boolean".equals(type);
+    static boolean isBooleanType(String type) {
+        return "boolean".equalsIgnoreCase(type) || "java.lang.Boolean".equalsIgnoreCase(type);
     }
 
-    private static void cycleBooleanValue(TuiController controller, RecipeOptionInfo opt) {
-        String recipe = controller.focusedRecipeForOptions();
-        Object cur = controller.getRecipeOptions(recipe).get(opt.name());
-        if (cur == null) {
-            controller.setRecipeOption(recipe, opt.name(), Boolean.TRUE);
-        } else if (Boolean.TRUE.equals(cur)) {
-            controller.setRecipeOption(recipe, opt.name(), Boolean.FALSE);
-        } else {
-            controller.clearRecipeOption(recipe, opt.name());
-        }
-    }
-
-    private static Object parseValue(String type, String text) {
+    static Object parseValue(String type, String text) {
         try {
-            if ("int".equalsIgnoreCase(type) || "Integer".equals(type)) {
+            if ("int".equalsIgnoreCase(type)
+                    || "Integer".equalsIgnoreCase(type)
+                    || "java.lang.Integer".equalsIgnoreCase(type)) {
                 return Integer.parseInt(text);
             }
-            if ("long".equalsIgnoreCase(type) || "Long".equals(type)) {
+            if ("long".equalsIgnoreCase(type)
+                    || "Long".equalsIgnoreCase(type)
+                    || "java.lang.Long".equalsIgnoreCase(type)) {
                 return Long.parseLong(text);
             }
         } catch (NumberFormatException ignored) {

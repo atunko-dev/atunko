@@ -37,6 +37,7 @@ public final class HelpOverlay {
                     "Actions",
                     List.of(
                             new Entry("Enter", "Detail view"),
+                            new Entry("o", "Recipe options"),
                             new Entry("r", "Run dialog"),
                             new Entry("t", "Tag browser"),
                             new Entry("s", "Sort order"),
@@ -66,6 +67,7 @@ public final class HelpOverlay {
             new Section(
                     "Actions",
                     List.of(
+                            new Entry("o", "Recipe options"),
                             new Entry("f", "Flatten highlighted"),
                             new Entry("F", "Flatten all composites"),
                             new Entry("r", "Run"),

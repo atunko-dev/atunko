@@ -1764,13 +1764,16 @@ class TuiControllerTest {
 
     @Test
     @SVCs({"atunko:SVC_TUI_0001.24"})
-    void closeOptionsHidesOverlay() {
+    void closeOptionsHidesOverlayAndResetsState() {
         TuiController controller = new TuiController(RECIPES);
 
         controller.openOptions("org.test.Alpha");
+        controller.moveOptionHighlightDown(3);
         controller.closeOptions();
 
         assertThat(controller.isShowOptions()).isFalse();
+        assertThat(controller.focusedRecipeForOptions()).isNull();
+        assertThat(controller.focusedOptionIndex()).isZero();
     }
 
     @Test
@@ -1839,5 +1842,31 @@ class TuiControllerTest {
 
         assertThat(config.recipes()).hasSize(1);
         assertThat(config.recipes().get(0).options()).isNull();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void moveOptionHighlightUpWrapsFromZeroToLast() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.openOptions("org.test.Alpha");
+
+        controller.moveOptionHighlightUp(3);
+
+        assertThat(controller.focusedOptionIndex()).isEqualTo(2);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void cycleRecipeOptionBooleanCyclesNullTrueFalseNull() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.cycleRecipeOptionBoolean("org.test.Alpha", "flag");
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).containsEntry("flag", Boolean.TRUE);
+
+        controller.cycleRecipeOptionBoolean("org.test.Alpha", "flag");
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).containsEntry("flag", Boolean.FALSE);
+
+        controller.cycleRecipeOptionBoolean("org.test.Alpha", "flag");
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).doesNotContainKey("flag");
     }
 }

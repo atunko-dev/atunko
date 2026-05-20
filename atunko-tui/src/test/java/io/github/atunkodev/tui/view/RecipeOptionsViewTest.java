@@ -103,17 +103,6 @@ class RecipeOptionsViewTest {
 
     @Test
     @SVCs({"atunko:SVC_TUI_0001.24"})
-    void closeOptionsHidesOverlay() {
-        TuiController controller = new TuiController(List.of(RECIPE_WITH_OPTIONS));
-        controller.openOptions("org.example.Migrate");
-
-        controller.closeOptions();
-
-        assertThat(controller.isShowOptions()).isFalse();
-    }
-
-    @Test
-    @SVCs({"atunko:SVC_TUI_0001.24"})
     void openOptionsResetsIndexToZero() {
         TuiController controller = new TuiController(List.of(RECIPE_WITH_OPTIONS));
         controller.openOptions("org.example.Migrate");
@@ -122,5 +111,67 @@ class RecipeOptionsViewTest {
         controller.openOptions("org.example.Migrate");
 
         assertThat(controller.focusedOptionIndex()).isEqualTo(0);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void moveOptionHighlightUpWrapsAroundToLast() {
+        TuiController controller = new TuiController(List.of(RECIPE_WITH_OPTIONS));
+        controller.openOptions("org.example.Migrate");
+
+        controller.moveOptionHighlightUp(2);
+
+        assertThat(controller.focusedOptionIndex()).isEqualTo(1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void booleanCycleNullToTrueToFalseToClear() {
+        TuiController controller = new TuiController(List.of(RECIPE_WITH_OPTIONS));
+        controller.openOptions("org.example.Migrate");
+
+        // null → true
+        controller.cycleRecipeOptionBoolean("org.example.Migrate", "addFlag");
+        assertThat(controller.getRecipeOptions("org.example.Migrate")).containsEntry("addFlag", Boolean.TRUE);
+
+        // true → false
+        controller.cycleRecipeOptionBoolean("org.example.Migrate", "addFlag");
+        assertThat(controller.getRecipeOptions("org.example.Migrate")).containsEntry("addFlag", Boolean.FALSE);
+
+        // false → null (cleared)
+        controller.cycleRecipeOptionBoolean("org.example.Migrate", "addFlag");
+        assertThat(controller.getRecipeOptions("org.example.Migrate")).doesNotContainKey("addFlag");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void parseValueReturnsIntegerForIntType() {
+        assertThat(RecipeOptionsView.parseValue("int", "42")).isEqualTo(42);
+        assertThat(RecipeOptionsView.parseValue("Integer", "42")).isEqualTo(42);
+        assertThat(RecipeOptionsView.parseValue("java.lang.Integer", "42")).isEqualTo(42);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void parseValueReturnsLongForLongType() {
+        assertThat(RecipeOptionsView.parseValue("long", "123456789012")).isEqualTo(123456789012L);
+        assertThat(RecipeOptionsView.parseValue("Long", "10")).isEqualTo(10L);
+        assertThat(RecipeOptionsView.parseValue("java.lang.Long", "10")).isEqualTo(10L);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void parseValueFallsBackToStringForNonNumericInput() {
+        assertThat(RecipeOptionsView.parseValue("int", "notANumber")).isEqualTo("notANumber");
+        assertThat(RecipeOptionsView.parseValue("String", "hello")).isEqualTo("hello");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void isBooleanTypeMatchesSimpleAndFqnForms() {
+        assertThat(RecipeOptionsView.isBooleanType("boolean")).isTrue();
+        assertThat(RecipeOptionsView.isBooleanType("Boolean")).isTrue();
+        assertThat(RecipeOptionsView.isBooleanType("java.lang.Boolean")).isTrue();
+        assertThat(RecipeOptionsView.isBooleanType("String")).isFalse();
     }
 }

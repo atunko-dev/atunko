@@ -69,7 +69,7 @@ Navigation: `j`/`k` move between options. `Enter` activates inline editing (char
 - **`RecipeInfo` record change is additive but breaks any direct construction in tests** → All existing test constructions use the 4- or 5-arg constructor; adding a 6th field requires a new constructor or updating call sites. Mitigate: add a convenience constructor that defaults `options` to `List.of()`.
 - **Options metadata depends on a loaded OpenRewrite environment** → Integration tests use fixture projects; unit tests can use `RecipeInfo` directly with hand-crafted `RecipeOptionInfo` instances. No new infrastructure needed.
 - **Inline text editing in TamboUI** → `Toolkit.handleTextInputKey` is already used in `BrowserView`. Same approach applies here; state held in the controller during edit.
-- **Type coercion** — option values stored as `Object`; for execution they must match the recipe's expected type. We store `Integer`/`Long`/`Boolean` parsed from the edited string; if parsing fails, store as `String` and let OpenRewrite report the error at run time. Display a parse-error indicator in the overlay.
+- **Type coercion** — option values stored as `Object`; for execution they must match the recipe's expected type. We store `Integer`/`Long`/`Boolean` parsed from the edited string; if parsing fails, store as `String` and let OpenRewrite report the error at run time.
 
 ## Open Questions
 

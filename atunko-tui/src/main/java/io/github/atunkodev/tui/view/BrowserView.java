@@ -160,6 +160,7 @@ public final class BrowserView {
         if (event.isChar('o')) {
             controller
                     .highlightedDisplayRow()
+                    .filter(row -> !row.isSubRecipe())
                     .ifPresent(row -> controller.openOptions(row.recipe().name()));
             return EventResult.HANDLED;
         }

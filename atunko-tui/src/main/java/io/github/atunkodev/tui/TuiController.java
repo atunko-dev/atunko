@@ -1,5 +1,6 @@
 package io.github.atunkodev.tui;
 
+import dev.tamboui.widgets.input.TextInputState;
 import io.github.atunkodev.core.config.ConfigExportService;
 import io.github.atunkodev.core.config.RecipeEntry;
 import io.github.atunkodev.core.config.RunConfig;
@@ -24,6 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -1095,8 +1098,10 @@ public class TuiController {
     }
 
     // Recipe options state
-    private final Map<String, Map<String, Object>> recipeOptions = new java.util.HashMap<>();
+    private final Map<String, Map<String, Object>> recipeOptions = new HashMap<>();
     private boolean showOptions = false;
+    private boolean optionsEditing = false;
+    public final TextInputState optionsEditState = new TextInputState();
     private String focusedRecipeForOptions = null;
     private int focusedOptionIndex = 0;
 
@@ -1107,9 +1112,7 @@ public class TuiController {
 
     @Requirements({"atunko:TUI_0001.25"})
     public void setRecipeOption(String recipeName, String optionName, Object value) {
-        recipeOptions
-                .computeIfAbsent(recipeName, k -> new java.util.LinkedHashMap<>())
-                .put(optionName, value);
+        recipeOptions.computeIfAbsent(recipeName, k -> new LinkedHashMap<>()).put(optionName, value);
     }
 
     @Requirements({"atunko:TUI_0001.25"})
@@ -1132,12 +1135,46 @@ public class TuiController {
     public void openOptions(String recipeName) {
         this.focusedRecipeForOptions = recipeName;
         this.focusedOptionIndex = 0;
+        this.optionsEditing = false;
+        this.optionsEditState.clear();
         this.showOptions = true;
     }
 
     @Requirements({"atunko:TUI_0001.24"})
     public void closeOptions() {
         this.showOptions = false;
+        this.optionsEditing = false;
+        this.optionsEditState.clear();
+        this.focusedRecipeForOptions = null;
+        this.focusedOptionIndex = 0;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public boolean isOptionsEditing() {
+        return optionsEditing;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public void startOptionsEditing() {
+        this.optionsEditing = true;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public void stopOptionsEditing() {
+        this.optionsEditing = false;
+        this.optionsEditState.clear();
+    }
+
+    @Requirements({"atunko:TUI_0001.25"})
+    public void cycleRecipeOptionBoolean(String recipeName, String optionName) {
+        Object cur = getRecipeOptions(recipeName).get(optionName);
+        if (cur == null) {
+            setRecipeOption(recipeName, optionName, Boolean.TRUE);
+        } else if (Boolean.TRUE.equals(cur)) {
+            setRecipeOption(recipeName, optionName, Boolean.FALSE);
+        } else {
+            clearRecipeOption(recipeName, optionName);
+        }
     }
 
     @Requirements({"atunko:TUI_0001.24"})
