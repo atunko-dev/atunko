@@ -76,8 +76,7 @@ public class RecipeDiscoveryService {
                                 o.getDescription(),
                                 o.getExample(),
                                 o.getValid(),
-                                o.isRequired(),
-                                o.getValue()))
+                                o.isRequired()))
                         .toList()
                 : List.of();
         return new RecipeInfo(

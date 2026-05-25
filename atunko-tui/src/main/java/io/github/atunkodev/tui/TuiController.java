@@ -1105,7 +1105,12 @@ public class TuiController {
     private final Map<String, Map<String, Object>> recipeOptions = new HashMap<>();
     private boolean showOptions = false;
     private boolean optionsEditing = false;
-    public final TextInputState optionsEditState = new TextInputState();
+    private final TextInputState optionsEditState = new TextInputState();
+
+    public TextInputState optionsEditState() {
+        return optionsEditState;
+    }
+
     private String focusedRecipeForOptions = null;
     private int focusedOptionIndex = 0;
 

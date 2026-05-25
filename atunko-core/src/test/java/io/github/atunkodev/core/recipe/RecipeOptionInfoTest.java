@@ -18,8 +18,7 @@ class RecipeOptionInfoTest {
                 "The Java version to migrate to",
                 "17",
                 List.of("11", "17", "21"),
-                true,
-                null);
+                true);
 
         assertThat(opt.name()).isEqualTo("targetVersion");
         assertThat(opt.type()).isEqualTo("String");
@@ -28,15 +27,13 @@ class RecipeOptionInfoTest {
         assertThat(opt.example()).isEqualTo("17");
         assertThat(opt.valid()).containsExactly("11", "17", "21");
         assertThat(opt.required()).isTrue();
-        assertThat(opt.defaultValue()).isNull();
     }
 
     @Test
     void nullableFieldsAcceptNull() {
-        var opt = new RecipeOptionInfo("flag", "boolean", "Flag", "A flag", null, null, false, null);
+        var opt = new RecipeOptionInfo("flag", "boolean", "Flag", "A flag", null, null, false);
 
         assertThat(opt.example()).isNull();
         assertThat(opt.valid()).isNull();
-        assertThat(opt.defaultValue()).isNull();
     }
 }

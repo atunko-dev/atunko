@@ -20,11 +20,10 @@ class RecipeOptionsViewTest {
             "The version to migrate to",
             "17",
             List.of("11", "17", "21"),
-            true,
-            null);
+            true);
 
     private static final RecipeOptionInfo FLAG_OPT =
-            new RecipeOptionInfo("addFlag", "boolean", "Add flag", "Whether to add the flag", null, null, false, null);
+            new RecipeOptionInfo("addFlag", "boolean", "Add flag", "Whether to add the flag", null, null, false);
 
     private static final RecipeInfo RECIPE_WITH_OPTIONS = new RecipeInfo(
             "org.example.Migrate",

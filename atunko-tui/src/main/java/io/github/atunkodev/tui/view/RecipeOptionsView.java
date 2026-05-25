@@ -12,8 +12,6 @@ import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.tui.event.KeyCode;
-import dev.tamboui.tui.event.MouseEvent;
-import dev.tamboui.tui.event.MouseEventKind;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.RecipeOptionInfo;
 import io.github.atunkodev.tui.TuiController;
@@ -34,7 +32,10 @@ public final class RecipeOptionsView {
         List<RecipeOptionInfo> options = recipeOpt.map(RecipeInfo::options).orElse(List.of());
         Map<String, Object> stored = controller.getRecipeOptions(recipeName);
 
-        String title = recipeOpt.map(RecipeInfo::displayName).orElse(recipeName);
+        String title = recipeOpt
+                .map(RecipeInfo::displayName)
+                .filter(dn -> dn != null && !dn.isBlank())
+                .orElse(recipeName);
         int focusIdx = controller.focusedOptionIndex();
         boolean editing = controller.isOptionsEditing();
 
@@ -59,34 +60,7 @@ public final class RecipeOptionsView {
                         .constraint(Constraint.fill()))
                 .id("recipe-options")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, options, stored, event))
-                .onMouseEvent(event -> handleMouseEvent(controller, options, event));
-    }
-
-    @Requirements({"atunko:TUI_0001.27"})
-    private static EventResult handleMouseEvent(
-            TuiController controller, List<RecipeOptionInfo> options, MouseEvent event) {
-        if (options.isEmpty()) {
-            return EventResult.UNHANDLED;
-        }
-        if (event.kind() == MouseEventKind.SCROLL_UP) {
-            controller.moveOptionHighlightUp(options.size());
-            return EventResult.HANDLED;
-        }
-        if (event.kind() == MouseEventKind.SCROLL_DOWN) {
-            controller.moveOptionHighlightDown(options.size());
-            return EventResult.HANDLED;
-        }
-        if (event.kind() == MouseEventKind.PRESS) {
-            // Header is 1 row; option rows start at row 1 (each option is 2 rows: name+desc).
-            int rawRow = event.y() - 1;
-            if (rawRow >= 0) {
-                int idx = rawRow / 2;
-                controller.setOptionHighlightedIndex(idx, options.size());
-                return EventResult.HANDLED;
-            }
-        }
-        return EventResult.UNHANDLED;
+                .onKeyEvent(event -> handleKeyEvent(controller, options, event));
     }
 
     private static Element buildOptionsList(
@@ -102,13 +76,11 @@ public final class RecipeOptionsView {
             Object currentVal = stored.get(opt.name());
 
             String typeTag = opt.required() ? "[" + opt.type() + "*]" : "[" + opt.type() + "]";
-            String valDisplay = currentVal != null ? String.valueOf(currentVal) : "";
-
             Element nameCell = text("  " + opt.displayName() + " ").addClass(focused ? "highlight" : "detail-label");
             Element typeCell = text(typeTag + " ").addClass("detail-value");
             Element valCell = focused && editing
-                    ? textInput(controller.optionsEditState).constraint(Constraint.fill())
-                    : text(valDisplay.isEmpty() ? "(not set)" : valDisplay)
+                    ? textInput(controller.optionsEditState()).constraint(Constraint.fill())
+                    : text(currentVal != null ? String.valueOf(currentVal) : "(not set)")
                             .addClass(currentVal != null ? "detail-value" : "detail-label");
 
             Element descRow;
@@ -135,10 +107,7 @@ public final class RecipeOptionsView {
     }
 
     private static EventResult handleKeyEvent(
-            TuiController controller,
-            List<RecipeOptionInfo> options,
-            Map<String, Object> stored,
-            dev.tamboui.tui.event.KeyEvent event) {
+            TuiController controller, List<RecipeOptionInfo> options, dev.tamboui.tui.event.KeyEvent event) {
 
         if (controller.isOptionsEditing()) {
             if (event.code() == KeyCode.ESCAPE) {
@@ -149,7 +118,7 @@ public final class RecipeOptionsView {
                 int idx = controller.focusedOptionIndex();
                 if (idx < options.size()) {
                     RecipeOptionInfo opt = options.get(idx);
-                    String inputText = controller.optionsEditState.text().trim();
+                    String inputText = controller.optionsEditState().text().trim();
                     if (inputText.isEmpty()) {
                         controller.clearRecipeOption(controller.focusedRecipeForOptions(), opt.name());
                     } else {
@@ -160,7 +129,7 @@ public final class RecipeOptionsView {
                 controller.stopOptionsEditing();
                 return EventResult.HANDLED;
             }
-            handleTextInputKey(controller.optionsEditState, event);
+            handleTextInputKey(controller.optionsEditState(), event);
             return EventResult.HANDLED;
         }
 
@@ -178,8 +147,10 @@ public final class RecipeOptionsView {
             if (isBooleanType(opt.type())) {
                 controller.cycleRecipeOptionBoolean(controller.focusedRecipeForOptions(), opt.name());
             } else {
-                Object cur = stored.get(opt.name());
-                controller.optionsEditState.setText(cur != null ? String.valueOf(cur) : "");
+                Object cur = controller
+                        .getRecipeOptions(controller.focusedRecipeForOptions())
+                        .get(opt.name());
+                controller.optionsEditState().setText(cur != null ? String.valueOf(cur) : "");
                 controller.startOptionsEditing();
             }
             return EventResult.HANDLED;
@@ -199,6 +170,7 @@ public final class RecipeOptionsView {
         return EventResult.UNHANDLED;
     }
 
+    // TODO: move isBooleanType and parseValue to atunko-core when atunko-web needs option editing
     static boolean isBooleanType(String type) {
         return "boolean".equalsIgnoreCase(type) || "java.lang.Boolean".equalsIgnoreCase(type);
     }

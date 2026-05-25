@@ -10,5 +10,4 @@ public record RecipeOptionInfo(
         String description,
         @Nullable String example,
         @Nullable List<String> valid,
-        boolean required,
-        @Nullable Object defaultValue) {}
+        boolean required) {}
