@@ -51,13 +51,32 @@ public final class LoadConfigView {
 
         Element statusBar = text(" j/k:navigate  Enter:load  Esc/q:back").addClass("status-bar");
 
+        final List<Path> finalConfigFiles = configFiles;
         return column(dock().top(header, Constraint.length(1))
                         .center(centerContent)
                         .bottom(statusBar, Constraint.length(1))
                         .constraint(Constraint.fill()))
                 .id("load-config")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, event))
+                .onMouseEvent(event -> {
+                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_UP) {
+                        controller.moveLoadConfigUp();
+                        return EventResult.HANDLED;
+                    }
+                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_DOWN) {
+                        controller.moveLoadConfigDown();
+                        return EventResult.HANDLED;
+                    }
+                    if (event.isPress() && event.isLeftButton()) {
+                        int idx = controller.mouseRowToIndex(event.y(), 1, finalConfigFiles.size());
+                        if (idx >= 0) {
+                            controller.setLoadConfigHighlightIndex(idx);
+                            return EventResult.HANDLED;
+                        }
+                    }
+                    return EventResult.UNHANDLED;
+                });
     }
 
     private static EventResult handleKeyEvent(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {

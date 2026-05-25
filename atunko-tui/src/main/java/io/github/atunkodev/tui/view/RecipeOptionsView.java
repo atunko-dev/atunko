@@ -60,7 +60,18 @@ public final class RecipeOptionsView {
                         .constraint(Constraint.fill()))
                 .id("recipe-options")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, options, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, options, event))
+                .onMouseEvent(event -> {
+                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_UP) {
+                        controller.moveOptionHighlightUp(options.size());
+                        return EventResult.HANDLED;
+                    }
+                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_DOWN) {
+                        controller.moveOptionHighlightDown(options.size());
+                        return EventResult.HANDLED;
+                    }
+                    return EventResult.UNHANDLED;
+                });
     }
 
     private static Element buildOptionsList(

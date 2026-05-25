@@ -55,17 +55,19 @@ public class AtunkoTui extends ToolkitApp {
         };
     }
 
+    @Requirements({"atunko:TUI_0001.27"})
     @Override
     protected TuiConfig configure() {
         if (logFile != null) {
             return TuiConfig.builder()
+                    .mouseCapture(true)
                     .errorHandler((error, context) -> {
                         Logger.getLogger("io.github.atunkodev").log(Level.SEVERE, "Render error", error.cause());
                         return ErrorAction.QUIT_IMMEDIATELY;
                     })
                     .build();
         }
-        return TuiConfig.defaults();
+        return TuiConfig.builder().mouseCapture(true).build();
     }
 
     @Override

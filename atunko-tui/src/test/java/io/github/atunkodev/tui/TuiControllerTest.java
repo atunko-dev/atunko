@@ -1941,4 +1941,38 @@ class TuiControllerTest {
 
         assertThat(loaded.recipes().get(0).options()).containsEntry("targetVersion", "17");
     }
+
+    // --- Mouse row-to-index (TUI_0001.27) ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexInRange() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.mouseRowToIndex(3, 1, 5)).isEqualTo(2);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexBelowHeader() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.mouseRowToIndex(0, 2, 5)).isEqualTo(-1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexAboveList() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.mouseRowToIndex(1, 2, 5)).isEqualTo(-1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexAboveRowCount() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.mouseRowToIndex(10, 1, 5)).isEqualTo(-1);
+    }
 }

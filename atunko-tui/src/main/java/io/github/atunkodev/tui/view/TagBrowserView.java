@@ -83,7 +83,18 @@ public final class TagBrowserView {
                         .constraint(Constraint.fill()))
                 .id("tag-browser")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, tags, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, tags, event))
+                .onMouseEvent(event -> {
+                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_UP) {
+                        tagIndex = Math.max(tagIndex - 1, 0);
+                        return dev.tamboui.toolkit.event.EventResult.HANDLED;
+                    }
+                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_DOWN) {
+                        tagIndex = Math.min(tagIndex + 1, Math.max(tags.size() - 1, 0));
+                        return dev.tamboui.toolkit.event.EventResult.HANDLED;
+                    }
+                    return dev.tamboui.toolkit.event.EventResult.UNHANDLED;
+                });
     }
 
     private static EventResult handleKeyEvent(

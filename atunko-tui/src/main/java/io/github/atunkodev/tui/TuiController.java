@@ -1045,6 +1045,13 @@ public class TuiController {
         loadConfigHighlightIndex = Math.max(0, loadConfigHighlightIndex - 1);
     }
 
+    @Requirements({"atunko:TUI_0001.27"})
+    public void setLoadConfigHighlightIndex(int idx) {
+        if (!configFiles.isEmpty()) {
+            loadConfigHighlightIndex = Math.max(0, Math.min(idx, configFiles.size() - 1));
+        }
+    }
+
     public void confirmLoadConfig() throws IOException {
         if (configFiles.isEmpty()) {
             return;
@@ -1256,6 +1263,27 @@ public class TuiController {
         Files.createDirectories(dir);
         saveRunConfig(dir.resolve(saveConfigName + ".yml"));
         exitSaveConfigMode();
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public int mouseRowToIndex(int mouseY, int headerRows, int rowCount) {
+        int idx = mouseY - headerRows;
+        if (idx < 0 || idx >= rowCount) {
+            return -1;
+        }
+        return idx;
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public void setBrowserHighlightIndex(int idx) {
+        browserState.setHighlightedIndex(idx);
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public void setRunHighlightIndex(int idx) {
+        if (runState != null) {
+            runState.setHighlightedIndex(idx);
+        }
     }
 
     private List<RecipeInfo> filterRecipes() {

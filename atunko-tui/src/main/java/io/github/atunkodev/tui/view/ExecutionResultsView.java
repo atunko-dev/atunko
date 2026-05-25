@@ -106,7 +106,18 @@ public final class ExecutionResultsView {
                         .constraint(Constraint.fill()))
                 .id("execution-results")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, event))
+                .onMouseEvent(event -> {
+                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_UP) {
+                        controller.moveFileUp();
+                        return EventResult.HANDLED;
+                    }
+                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_DOWN) {
+                        controller.moveFileDown();
+                        return EventResult.HANDLED;
+                    }
+                    return EventResult.UNHANDLED;
+                });
     }
 
     private static EventResult handleKeyEvent(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {

@@ -67,7 +67,38 @@ public final class ConfirmRunView {
                         .constraint(Constraint.fill()))
                 .id("confirm-run")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, hasRecipes, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, hasRecipes, event))
+                .onMouseEvent(event -> handleMouseEvent(controller, hasRecipes, event));
+    }
+
+    private static dev.tamboui.toolkit.event.EventResult handleMouseEvent(
+            TuiController controller, boolean hasRecipes, dev.tamboui.tui.event.MouseEvent event) {
+        if (controller.isShowHelp() || controller.isShowOptions() || controller.isShowExport()) {
+            return dev.tamboui.toolkit.event.EventResult.UNHANDLED;
+        }
+        if (!hasRecipes) {
+            return dev.tamboui.toolkit.event.EventResult.UNHANDLED;
+        }
+        if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_UP) {
+            controller.moveRunHighlightUp();
+            return dev.tamboui.toolkit.event.EventResult.HANDLED;
+        }
+        if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_DOWN) {
+            controller.moveRunHighlightDown();
+            return dev.tamboui.toolkit.event.EventResult.HANDLED;
+        }
+        if (event.isPress()) {
+            int idx = controller.mouseRowToIndex(
+                    event.y(), 1, controller.runDisplayRows().size());
+            if (idx >= 0) {
+                controller.setRunHighlightIndex(idx);
+                if (event.isRightButton()) {
+                    controller.toggleRunRecipe();
+                }
+                return dev.tamboui.toolkit.event.EventResult.HANDLED;
+            }
+        }
+        return dev.tamboui.toolkit.event.EventResult.UNHANDLED;
     }
 
     @Requirements({"atunko:TUI_0002.2"})

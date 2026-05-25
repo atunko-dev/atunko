@@ -66,7 +66,37 @@ public final class BrowserView {
                 .id("browser")
                 .addClass("app")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, app, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, app, event))
+                .onMouseEvent(event -> handleMouseEvent(controller, event));
+    }
+
+    private static EventResult handleMouseEvent(TuiController controller, dev.tamboui.tui.event.MouseEvent event) {
+        if (controller.isShowHelp()
+                || controller.isSaveConfigMode()
+                || controller.isSearchMode()
+                || controller.isShowOptions()) {
+            return EventResult.UNHANDLED;
+        }
+        if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_UP) {
+            controller.moveUp();
+            return EventResult.HANDLED;
+        }
+        if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_DOWN) {
+            controller.moveDown();
+            return EventResult.HANDLED;
+        }
+        if (event.isPress()) {
+            int idx = controller.mouseRowToIndex(
+                    event.y(), 3, controller.displayRows().size());
+            if (idx >= 0) {
+                controller.setBrowserHighlightIndex(idx);
+                if (event.isRightButton()) {
+                    controller.toggleSelection();
+                }
+                return EventResult.HANDLED;
+            }
+        }
+        return EventResult.UNHANDLED;
     }
 
     private static EventResult handleKeyEvent(
