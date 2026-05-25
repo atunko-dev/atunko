@@ -16,12 +16,15 @@ import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 import java.util.Set;
 
-@Requirements({"atunko:TUI_0001.14", "atunko:TUI_0001.21", "atunko:TUI_0002.2"})
+@Requirements({"atunko:TUI_0001.14", "atunko:TUI_0001.21", "atunko:TUI_0001.24", "atunko:TUI_0002.2"})
 public final class ConfirmRunView {
 
     private ConfirmRunView() {}
 
     public static Element render(TuiController controller) {
+        if (controller.isShowOptions()) {
+            return RecipeOptionsView.render(controller);
+        }
         if (controller.isShowExport()) {
             return ExportConfigView.render(controller);
         }
@@ -48,7 +51,8 @@ public final class ConfirmRunView {
                 .count();
         long totalCount = displayRows.size();
         String footer = hasRecipes
-                ? selectedCount + "/" + totalCount + " selected | f:flatten F:flatten-all x:export ?:help Esc:back"
+                ? selectedCount + "/" + totalCount
+                        + " selected | o:options  f:flatten  F:flatten-all  x:export  ?:help  Esc:back"
                 : "Esc:back";
 
         return column(dock().top(
@@ -160,6 +164,14 @@ public final class ConfirmRunView {
             }
             if (event.isChar('d')) {
                 controller.runSelectedRecipes(true);
+                return EventResult.HANDLED;
+            }
+            if (event.isChar('o')) {
+                List<DisplayRow> rows = controller.runDisplayRows();
+                int idx = controller.runHighlightIndex();
+                if (idx >= 0 && idx < rows.size() && !rows.get(idx).isSubRecipe()) {
+                    controller.openOptions(rows.get(idx).recipe().name());
+                }
                 return EventResult.HANDLED;
             }
             if (event.isChar('x')) {
