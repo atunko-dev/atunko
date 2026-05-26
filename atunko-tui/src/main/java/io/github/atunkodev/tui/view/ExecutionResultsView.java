@@ -10,6 +10,7 @@ import static dev.tamboui.toolkit.Toolkit.text;
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import dev.tamboui.tui.event.MouseEventKind;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.ProjectExecutionResult;
@@ -108,11 +109,11 @@ public final class ExecutionResultsView {
                 .focusable()
                 .onKeyEvent(event -> handleKeyEvent(controller, event))
                 .onMouseEvent(event -> {
-                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_UP) {
+                    if (event.kind() == MouseEventKind.SCROLL_UP) {
                         controller.moveFileUp();
                         return EventResult.HANDLED;
                     }
-                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_DOWN) {
+                    if (event.kind() == MouseEventKind.SCROLL_DOWN) {
                         controller.moveFileDown();
                         return EventResult.HANDLED;
                     }

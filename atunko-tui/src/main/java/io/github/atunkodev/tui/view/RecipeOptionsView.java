@@ -12,6 +12,7 @@ import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.tui.event.KeyCode;
+import dev.tamboui.tui.event.MouseEventKind;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.RecipeOptionInfo;
 import io.github.atunkodev.tui.TuiController;
@@ -62,11 +63,14 @@ public final class RecipeOptionsView {
                 .focusable()
                 .onKeyEvent(event -> handleKeyEvent(controller, options, event))
                 .onMouseEvent(event -> {
-                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_UP) {
+                    if (controller.isOptionsEditing()) {
+                        return EventResult.UNHANDLED;
+                    }
+                    if (event.kind() == MouseEventKind.SCROLL_UP) {
                         controller.moveOptionHighlightUp(options.size());
                         return EventResult.HANDLED;
                     }
-                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_DOWN) {
+                    if (event.kind() == MouseEventKind.SCROLL_DOWN) {
                         controller.moveOptionHighlightDown(options.size());
                         return EventResult.HANDLED;
                     }

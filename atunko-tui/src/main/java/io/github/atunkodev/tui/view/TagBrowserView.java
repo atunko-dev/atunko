@@ -12,6 +12,7 @@ import static dev.tamboui.toolkit.Toolkit.textInput;
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import dev.tamboui.tui.event.MouseEventKind;
 import dev.tamboui.widgets.input.TextInputState;
 import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
@@ -85,15 +86,15 @@ public final class TagBrowserView {
                 .focusable()
                 .onKeyEvent(event -> handleKeyEvent(controller, tags, event))
                 .onMouseEvent(event -> {
-                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_UP) {
+                    if (event.kind() == MouseEventKind.SCROLL_UP) {
                         tagIndex = Math.max(tagIndex - 1, 0);
-                        return dev.tamboui.toolkit.event.EventResult.HANDLED;
+                        return EventResult.HANDLED;
                     }
-                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_DOWN) {
+                    if (event.kind() == MouseEventKind.SCROLL_DOWN) {
                         tagIndex = Math.min(tagIndex + 1, Math.max(tags.size() - 1, 0));
-                        return dev.tamboui.toolkit.event.EventResult.HANDLED;
+                        return EventResult.HANDLED;
                     }
-                    return dev.tamboui.toolkit.event.EventResult.UNHANDLED;
+                    return EventResult.UNHANDLED;
                 });
     }
 

@@ -1035,12 +1035,14 @@ public class TuiController {
         return loadConfigHighlightIndex;
     }
 
+    @Requirements({"atunko:TUI_0001.27"})
     public void moveLoadConfigDown() {
         if (!configFiles.isEmpty()) {
             loadConfigHighlightIndex = Math.min(loadConfigHighlightIndex + 1, configFiles.size() - 1);
         }
     }
 
+    @Requirements({"atunko:TUI_0001.27"})
     public void moveLoadConfigUp() {
         loadConfigHighlightIndex = Math.max(0, loadConfigHighlightIndex - 1);
     }
@@ -1276,14 +1278,23 @@ public class TuiController {
 
     @Requirements({"atunko:TUI_0001.27"})
     public void setBrowserHighlightIndex(int idx) {
-        browserState.setHighlightedIndex(idx);
+        List<DisplayRow> rows = displayRows();
+        if (rows.isEmpty()) {
+            return;
+        }
+        browserState.setHighlightedIndex(Math.max(0, Math.min(idx, rows.size() - 1)));
     }
 
     @Requirements({"atunko:TUI_0001.27"})
     public void setRunHighlightIndex(int idx) {
-        if (runState != null) {
-            runState.setHighlightedIndex(idx);
+        if (runState == null) {
+            return;
         }
+        List<DisplayRow> rows = runDisplayRows();
+        if (rows.isEmpty()) {
+            return;
+        }
+        runState.setHighlightedIndex(Math.max(0, Math.min(idx, rows.size() - 1)));
     }
 
     private List<RecipeInfo> filterRecipes() {

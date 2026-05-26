@@ -9,6 +9,8 @@ import static dev.tamboui.toolkit.Toolkit.text;
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import dev.tamboui.tui.event.MouseEvent;
+import dev.tamboui.tui.event.MouseEventKind;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
@@ -71,21 +73,20 @@ public final class ConfirmRunView {
                 .onMouseEvent(event -> handleMouseEvent(controller, hasRecipes, event));
     }
 
-    private static dev.tamboui.toolkit.event.EventResult handleMouseEvent(
-            TuiController controller, boolean hasRecipes, dev.tamboui.tui.event.MouseEvent event) {
+    private static EventResult handleMouseEvent(TuiController controller, boolean hasRecipes, MouseEvent event) {
         if (controller.isShowHelp() || controller.isShowOptions() || controller.isShowExport()) {
-            return dev.tamboui.toolkit.event.EventResult.UNHANDLED;
+            return EventResult.UNHANDLED;
         }
         if (!hasRecipes) {
-            return dev.tamboui.toolkit.event.EventResult.UNHANDLED;
+            return EventResult.UNHANDLED;
         }
-        if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_UP) {
+        if (event.kind() == MouseEventKind.SCROLL_UP) {
             controller.moveRunHighlightUp();
-            return dev.tamboui.toolkit.event.EventResult.HANDLED;
+            return EventResult.HANDLED;
         }
-        if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_DOWN) {
+        if (event.kind() == MouseEventKind.SCROLL_DOWN) {
             controller.moveRunHighlightDown();
-            return dev.tamboui.toolkit.event.EventResult.HANDLED;
+            return EventResult.HANDLED;
         }
         if (event.isPress()) {
             int idx = controller.mouseRowToIndex(
@@ -95,10 +96,10 @@ public final class ConfirmRunView {
                 if (event.isRightButton()) {
                     controller.toggleRunRecipe();
                 }
-                return dev.tamboui.toolkit.event.EventResult.HANDLED;
+                return EventResult.HANDLED;
             }
         }
-        return dev.tamboui.toolkit.event.EventResult.UNHANDLED;
+        return EventResult.UNHANDLED;
     }
 
     @Requirements({"atunko:TUI_0002.2"})

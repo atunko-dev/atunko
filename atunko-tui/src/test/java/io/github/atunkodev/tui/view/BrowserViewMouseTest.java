@@ -96,8 +96,39 @@ class BrowserViewMouseTest {
         AtunkoTui app = new AtunkoTui(controller);
         Element el = BrowserView.render(controller, app);
 
-        el.handleMouseEvent(MouseEvent.scrollDown(0, 5));
+        EventResult result = el.handleMouseEvent(MouseEvent.scrollDown(0, 5));
 
+        assertThat(result).isEqualTo(EventResult.UNHANDLED);
+        assertThat(controller.highlightedIndex()).isEqualTo(0);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void clickAboveHeaderIsIgnored() {
+        TuiController controller = new TuiController(RECIPES);
+
+        AtunkoTui app = new AtunkoTui(controller);
+        Element el = BrowserView.render(controller, app);
+
+        // header is 3 rows; y=2 is inside the header → no list row
+        EventResult result = el.handleMouseEvent(MouseEvent.press(MouseButton.LEFT, 0, 2));
+
+        assertThat(result).isEqualTo(EventResult.UNHANDLED);
+        assertThat(controller.highlightedIndex()).isEqualTo(0);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void clickBeyondLastRowIsIgnored() {
+        TuiController controller = new TuiController(RECIPES);
+
+        AtunkoTui app = new AtunkoTui(controller);
+        Element el = BrowserView.render(controller, app);
+
+        // 3 recipes, header=3 rows; last valid y=5; y=6 is beyond list
+        EventResult result = el.handleMouseEvent(MouseEvent.press(MouseButton.LEFT, 0, 6));
+
+        assertThat(result).isEqualTo(EventResult.UNHANDLED);
         assertThat(controller.highlightedIndex()).isEqualTo(0);
     }
 }

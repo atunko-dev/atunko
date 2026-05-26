@@ -9,6 +9,7 @@ import static dev.tamboui.toolkit.Toolkit.text;
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import dev.tamboui.tui.event.MouseEventKind;
 import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
 import java.nio.file.Path;
@@ -51,7 +52,6 @@ public final class LoadConfigView {
 
         Element statusBar = text(" j/k:navigate  Enter:load  Esc/q:back").addClass("status-bar");
 
-        final List<Path> finalConfigFiles = configFiles;
         return column(dock().top(header, Constraint.length(1))
                         .center(centerContent)
                         .bottom(statusBar, Constraint.length(1))
@@ -60,16 +60,17 @@ public final class LoadConfigView {
                 .focusable()
                 .onKeyEvent(event -> handleKeyEvent(controller, event))
                 .onMouseEvent(event -> {
-                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_UP) {
+                    if (event.kind() == MouseEventKind.SCROLL_UP) {
                         controller.moveLoadConfigUp();
                         return EventResult.HANDLED;
                     }
-                    if (event.kind() == dev.tamboui.tui.event.MouseEventKind.SCROLL_DOWN) {
+                    if (event.kind() == MouseEventKind.SCROLL_DOWN) {
                         controller.moveLoadConfigDown();
                         return EventResult.HANDLED;
                     }
                     if (event.isPress() && event.isLeftButton()) {
-                        int idx = controller.mouseRowToIndex(event.y(), 1, finalConfigFiles.size());
+                        int idx = controller.mouseRowToIndex(
+                                event.y(), 1, controller.configFiles().size());
                         if (idx >= 0) {
                             controller.setLoadConfigHighlightIndex(idx);
                             return EventResult.HANDLED;

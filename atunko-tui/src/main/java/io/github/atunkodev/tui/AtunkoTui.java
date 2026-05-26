@@ -55,8 +55,8 @@ public class AtunkoTui extends ToolkitApp {
         };
     }
 
-    @Requirements({"atunko:TUI_0001.27"})
     @Override
+    @Requirements({"atunko:TUI_0001.27"})
     protected TuiConfig configure() {
         if (logFile != null) {
             return TuiConfig.builder()
