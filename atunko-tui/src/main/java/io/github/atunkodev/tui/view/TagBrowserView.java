@@ -12,6 +12,7 @@ import static dev.tamboui.toolkit.Toolkit.textInput;
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import dev.tamboui.tui.event.MouseEvent;
 import dev.tamboui.tui.event.MouseEventKind;
 import dev.tamboui.widgets.input.TextInputState;
 import io.github.atunkodev.tui.TuiController;
@@ -85,17 +86,26 @@ public final class TagBrowserView {
                 .id("tag-browser")
                 .focusable()
                 .onKeyEvent(event -> handleKeyEvent(controller, tags, event))
-                .onMouseEvent(event -> {
-                    if (event.kind() == MouseEventKind.SCROLL_UP) {
-                        tagIndex = Math.max(tagIndex - 1, 0);
-                        return EventResult.HANDLED;
-                    }
-                    if (event.kind() == MouseEventKind.SCROLL_DOWN) {
-                        tagIndex = Math.min(tagIndex + 1, Math.max(tags.size() - 1, 0));
-                        return EventResult.HANDLED;
-                    }
-                    return EventResult.UNHANDLED;
-                });
+                .onMouseEvent(event -> handleMouseEvent(controller, tags, event));
+    }
+
+    private static EventResult handleMouseEvent(TuiController controller, List<String> tags, MouseEvent event) {
+        if (event.kind() == MouseEventKind.SCROLL_UP) {
+            tagIndex = Math.max(tagIndex - 1, 0);
+            return EventResult.HANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_DOWN) {
+            tagIndex = Math.min(tagIndex + 1, Math.max(tags.size() - 1, 0));
+            return EventResult.HANDLED;
+        }
+        if (event.isPress() && event.isLeftButton()) {
+            int idx = controller.mouseRowToIndex(event.y(), 3, tags.size());
+            if (idx >= 0) {
+                tagIndex = idx;
+                return EventResult.HANDLED;
+            }
+        }
+        return EventResult.UNHANDLED;
     }
 
     private static EventResult handleKeyEvent(
