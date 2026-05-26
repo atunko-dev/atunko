@@ -1035,14 +1035,23 @@ public class TuiController {
         return loadConfigHighlightIndex;
     }
 
+    @Requirements({"atunko:TUI_0001.27"})
     public void moveLoadConfigDown() {
         if (!configFiles.isEmpty()) {
             loadConfigHighlightIndex = Math.min(loadConfigHighlightIndex + 1, configFiles.size() - 1);
         }
     }
 
+    @Requirements({"atunko:TUI_0001.27"})
     public void moveLoadConfigUp() {
         loadConfigHighlightIndex = Math.max(0, loadConfigHighlightIndex - 1);
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public void setLoadConfigHighlightIndex(int idx) {
+        if (!configFiles.isEmpty()) {
+            loadConfigHighlightIndex = Math.max(0, Math.min(idx, configFiles.size() - 1));
+        }
     }
 
     public void confirmLoadConfig() throws IOException {
@@ -1256,6 +1265,36 @@ public class TuiController {
         Files.createDirectories(dir);
         saveRunConfig(dir.resolve(saveConfigName + ".yml"));
         exitSaveConfigMode();
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public int mouseRowToIndex(int mouseY, int headerRows, int rowCount) {
+        int idx = mouseY - headerRows;
+        if (idx < 0 || idx >= rowCount) {
+            return -1;
+        }
+        return idx;
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public void setBrowserHighlightIndex(int idx) {
+        List<DisplayRow> rows = displayRows();
+        if (rows.isEmpty()) {
+            return;
+        }
+        browserState.setHighlightedIndex(Math.max(0, Math.min(idx, rows.size() - 1)));
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public void setRunHighlightIndex(int idx) {
+        if (runState == null) {
+            return;
+        }
+        List<DisplayRow> rows = runDisplayRows();
+        if (rows.isEmpty()) {
+            return;
+        }
+        runState.setHighlightedIndex(Math.max(0, Math.min(idx, rows.size() - 1)));
     }
 
     private List<RecipeInfo> filterRecipes() {

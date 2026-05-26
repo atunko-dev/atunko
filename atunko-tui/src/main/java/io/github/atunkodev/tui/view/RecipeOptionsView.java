@@ -12,6 +12,8 @@ import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.tui.event.KeyCode;
+import dev.tamboui.tui.event.MouseEvent;
+import dev.tamboui.tui.event.MouseEventKind;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.RecipeOptionInfo;
 import io.github.atunkodev.tui.TuiController;
@@ -60,7 +62,8 @@ public final class RecipeOptionsView {
                         .constraint(Constraint.fill()))
                 .id("recipe-options")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, options, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, options, event))
+                .onMouseEvent(event -> handleMouseEvent(controller, options, event));
     }
 
     private static Element buildOptionsList(
@@ -104,6 +107,22 @@ public final class RecipeOptionsView {
             rows[i] = column(row(nameCell, typeCell, spacer(), valCell), descRow);
         }
         return column(rows);
+    }
+
+    private static EventResult handleMouseEvent(
+            TuiController controller, List<RecipeOptionInfo> options, MouseEvent event) {
+        if (controller.isOptionsEditing()) {
+            return EventResult.UNHANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_UP) {
+            controller.moveOptionHighlightUp(options.size());
+            return EventResult.HANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_DOWN) {
+            controller.moveOptionHighlightDown(options.size());
+            return EventResult.HANDLED;
+        }
+        return EventResult.UNHANDLED;
     }
 
     private static EventResult handleKeyEvent(

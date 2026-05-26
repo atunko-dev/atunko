@@ -13,6 +13,8 @@ import static dev.tamboui.toolkit.Toolkit.textInput;
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import dev.tamboui.tui.event.MouseEvent;
+import dev.tamboui.tui.event.MouseEventKind;
 import dev.tamboui.widgets.input.TextInputState;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
@@ -66,7 +68,37 @@ public final class BrowserView {
                 .id("browser")
                 .addClass("app")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, app, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, app, event))
+                .onMouseEvent(event -> handleMouseEvent(controller, event));
+    }
+
+    private static EventResult handleMouseEvent(TuiController controller, MouseEvent event) {
+        if (controller.isShowHelp()
+                || controller.isSaveConfigMode()
+                || controller.isSearchMode()
+                || controller.isShowOptions()) {
+            return EventResult.UNHANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_UP) {
+            controller.moveUp();
+            return EventResult.HANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_DOWN) {
+            controller.moveDown();
+            return EventResult.HANDLED;
+        }
+        if (event.isPress()) {
+            int idx = controller.mouseRowToIndex(
+                    event.y(), 3, controller.displayRows().size());
+            if (idx >= 0) {
+                controller.setBrowserHighlightIndex(idx);
+                if (event.isRightButton()) {
+                    controller.toggleSelection();
+                }
+                return EventResult.HANDLED;
+            }
+        }
+        return EventResult.UNHANDLED;
     }
 
     private static EventResult handleKeyEvent(

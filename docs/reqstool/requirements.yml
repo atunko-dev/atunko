@@ -525,6 +525,16 @@ requirements:
     categories: [functional-suitability]
     revision: 0.1.0
 
+  - id: TUI_0001.27
+    title: TUI — Mouse Capture Enabled
+    significance: shall
+    description: >-
+      The TUI shall enable OS-level mouse capture so that scroll and click events are
+      delivered to view mouse-event handlers; both the default and logging variants of
+      TuiConfig must enable mouseCapture(true)
+    categories: [functional-suitability]
+    revision: 0.1.0
+
   # CLI requirements — list/search/run
   - id: CLI_0001
     title: CLI Default Behaviour — Launch TUI

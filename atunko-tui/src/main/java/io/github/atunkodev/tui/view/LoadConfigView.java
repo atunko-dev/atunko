@@ -9,6 +9,8 @@ import static dev.tamboui.toolkit.Toolkit.text;
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import dev.tamboui.tui.event.MouseEvent;
+import dev.tamboui.tui.event.MouseEventKind;
 import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
 import java.nio.file.Path;
@@ -57,7 +59,28 @@ public final class LoadConfigView {
                         .constraint(Constraint.fill()))
                 .id("load-config")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, event))
+                .onMouseEvent(event -> handleMouseEvent(controller, event));
+    }
+
+    private static EventResult handleMouseEvent(TuiController controller, MouseEvent event) {
+        if (event.kind() == MouseEventKind.SCROLL_UP) {
+            controller.moveLoadConfigUp();
+            return EventResult.HANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_DOWN) {
+            controller.moveLoadConfigDown();
+            return EventResult.HANDLED;
+        }
+        if (event.isPress() && event.isLeftButton()) {
+            int idx = controller.mouseRowToIndex(
+                    event.y(), 1, controller.configFiles().size());
+            if (idx >= 0) {
+                controller.setLoadConfigHighlightIndex(idx);
+                return EventResult.HANDLED;
+            }
+        }
+        return EventResult.UNHANDLED;
     }
 
     private static EventResult handleKeyEvent(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {

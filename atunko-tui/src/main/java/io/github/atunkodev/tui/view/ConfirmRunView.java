@@ -9,6 +9,8 @@ import static dev.tamboui.toolkit.Toolkit.text;
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import dev.tamboui.tui.event.MouseEvent;
+import dev.tamboui.tui.event.MouseEventKind;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
@@ -67,7 +69,37 @@ public final class ConfirmRunView {
                         .constraint(Constraint.fill()))
                 .id("confirm-run")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, hasRecipes, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, hasRecipes, event))
+                .onMouseEvent(event -> handleMouseEvent(controller, hasRecipes, event));
+    }
+
+    private static EventResult handleMouseEvent(TuiController controller, boolean hasRecipes, MouseEvent event) {
+        if (controller.isShowHelp() || controller.isShowOptions() || controller.isShowExport()) {
+            return EventResult.UNHANDLED;
+        }
+        if (!hasRecipes) {
+            return EventResult.UNHANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_UP) {
+            controller.moveRunHighlightUp();
+            return EventResult.HANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_DOWN) {
+            controller.moveRunHighlightDown();
+            return EventResult.HANDLED;
+        }
+        if (event.isPress()) {
+            int idx = controller.mouseRowToIndex(
+                    event.y(), 1, controller.runDisplayRows().size());
+            if (idx >= 0) {
+                controller.setRunHighlightIndex(idx);
+                if (event.isRightButton()) {
+                    controller.toggleRunRecipe();
+                }
+                return EventResult.HANDLED;
+            }
+        }
+        return EventResult.UNHANDLED;
     }
 
     @Requirements({"atunko:TUI_0002.2"})
