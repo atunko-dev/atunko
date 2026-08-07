@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+Headless end-to-end TUI testing via the TamboUI Pilot harness — drive the real TUI without a terminal and assert on rendered frames.
+
+## Requirements
 
 ### Requirement: TUI_0003
 The system SHALL implement TUI_0003.

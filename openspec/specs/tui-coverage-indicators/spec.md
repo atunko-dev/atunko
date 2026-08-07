@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+Indicate in TUI recipe lists which recipes are already covered by a selected composite recipe.
+
+## Requirements
 
 ### Requirement: CORE_0013
 The system SHALL implement CORE_0013.

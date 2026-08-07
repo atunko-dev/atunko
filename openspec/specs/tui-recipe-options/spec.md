@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+View and edit recipe option values via a TUI overlay before execution.
+
+## Requirements
 
 ### Requirement: TUI_0001.24
 The system SHALL implement TUI_0001.24.
