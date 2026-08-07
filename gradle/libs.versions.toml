@@ -2,7 +2,7 @@
 openrewrite-bom = "3.25.0"
 picocli = "4.7.7"
 gradle-tooling-api = "9.3.1"
-tamboui = "0.3.0"
+tamboui = "0.4.0"
 reqstool-annotations = "1.0.0"
 junit = "5.11.4"
 assertj = "3.27.3"
