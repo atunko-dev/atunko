@@ -8,6 +8,7 @@ import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectScannerFactory;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
+import io.github.atunkodev.core.project.SourceCapabilityHints;
 import io.github.atunkodev.core.project.Workspace;
 import io.github.atunkodev.core.project.WorkspaceScanner;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
@@ -65,6 +66,10 @@ public class WebUiCommand implements Runnable {
             SessionHolder.init(projectDir, projectInfo);
         }
         AppServices.init(engine, sourceParser, changeApplier);
+        // Badges are shown before anything is parsed, so start from the project-type hint; the first run replaces
+        // this with the capabilities the parse actually produced.
+        AppServices.setSourceCapabilities(
+                SourceCapabilityHints.forProjectDir(workspaceDir != null ? workspaceDir : projectDir));
         try {
             new VaadinBoot().withPort(port).run();
         } catch (Exception e) {
