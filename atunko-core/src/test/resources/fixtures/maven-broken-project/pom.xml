@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Deliberately unresolvable parent: MavenParser cannot build a resolution model
+         for this pom, so ProjectSourceParser must fall back to plain XML parsing and
+         must not claim the MAVEN capability. -->
+    <parent>
+        <groupId>io.github.atunko.test.does.not.exist</groupId>
+        <artifactId>no-such-parent-pom</artifactId>
+        <version>0.0.0-DOES-NOT-EXIST</version>
+    </parent>
+
+    <artifactId>broken-fixture</artifactId>
+</project>
