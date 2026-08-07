@@ -141,15 +141,15 @@ class ProjectSourceParserTest {
 
     @Test
     @SVCs({"atunko:SVC_CORE_0015.1"})
-    void parseWithCapabilitiesNeverReportsMavenOrGradleForAMavenProject() {
-        // Stage 1: pom.xml is parsed as plain XML and Gradle build files are not parsed at all,
-        // so neither build-model capability may be claimed.
-        Path mavenFixture = Path.of("src/test/resources/fixtures/maven-project");
+    void parseWithCapabilitiesNeverReportsGradleForAMavenProject() {
+        // Gradle build files are not parsed at all, so the GRADLE capability may never be claimed.
+        // (MAVEN is claimed from Stage 2 onwards — see ProjectSourceParserMavenTest.)
+        Path mavenFixture = Path.of("src/test/resources/fixtures/maven-multi-module");
         ProjectInfo info = new ProjectInfo(List.of(), List.of(mavenFixture), List.of(), List.of(), List.of());
 
         ParsedSources parsed = parser.parseWithCapabilities(info);
 
-        assertThat(parsed.capabilities()).doesNotContain(SourceCapability.MAVEN, SourceCapability.GRADLE);
+        assertThat(parsed.capabilities()).doesNotContain(SourceCapability.GRADLE);
     }
 
     @Test
