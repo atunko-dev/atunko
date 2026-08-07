@@ -294,7 +294,8 @@ public final class BrowserView {
                 controller.highlightedIndex(),
                 "Recipes",
                 RecipeListRenderer.RenderOptions.BROWSER,
-                Constraint.fill(2));
+                Constraint.fill(2),
+                controller::applicability);
     }
 
     @Requirements({"atunko:TUI_0001.16"})

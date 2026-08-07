@@ -75,6 +75,12 @@ $bg-title-dryrun: light-yellow;
     text-style: dim;
 }
 
+/* Recipe that cannot act on the parsed source set — dimmed name + badge */
+.inapplicable {
+    color: $fg-warning;
+    text-style: dim;
+}
+
 /* Section headers */
 .section-header {
     text-style: bold;
