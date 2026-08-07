@@ -1074,3 +1074,14 @@ requirements:
       requirement_ids: ["TUI_0002"]
     categories: [functional-suitability]
     revision: 0.1.0
+
+  - id: TUI_0003
+    title: TUI Headless End-to-End Verifiability
+    significance: shall
+    description: >-
+      The TUI shall be launchable against a headless virtual-terminal backend and
+      drivable programmatically with key, mouse, and resize events so that end-to-end
+      behaviour (rendering, input routing, screen transitions) can be verified by
+      automated tests without a real terminal
+    categories: [functional-suitability]
+    revision: 0.1.0
