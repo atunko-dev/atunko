@@ -44,6 +44,8 @@ gradle-tooling-api = { module = "org.gradle:gradle-tooling-api", version.ref = "
 
 # TamboUI
 tamboui-bom = { module = "dev.tamboui:tamboui-bom", version.ref = "tamboui" }
+tamboui-core = { module = "dev.tamboui:tamboui-core" }
+tamboui-tui = { module = "dev.tamboui:tamboui-tui" }
 tamboui-toolkit = { module = "dev.tamboui:tamboui-toolkit" }
 tamboui-css = { module = "dev.tamboui:tamboui-css" }
 tamboui-picocli = { module = "dev.tamboui:tamboui-picocli" }

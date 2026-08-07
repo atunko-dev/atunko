@@ -1387,3 +1387,63 @@ cases:
       WHEN a run configuration is saved or the config list is queried
       THEN the directory used is workspaceRoot/atunko/runs/ not the single-project directory
     revision: "0.1.0"
+
+  - id: SVC_TUI_0003
+    requirement_ids: ["TUI_0003"]
+    title: TUI launches headlessly and renders browser view
+    verification: automated-test
+    description: |
+      GIVEN a TUI with a stub recipe catalog
+      WHEN it is started against a headless TestBackend via ToolkitTestRunner
+      THEN the browser view renders with recipe list, detail panel, and status bar visible in the terminal output
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0003.1
+    requirement_ids: ["TUI_0003"]
+    title: Headless keyboard navigation and screen transitions
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly
+      WHEN arrow/vim keys, Enter, and Escape are sent through the pilot
+      THEN the highlight moves, the detail screen opens and renders, and Escape returns to the browser
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0003.2
+    requirement_ids: ["TUI_0003"]
+    title: Headless search filters the recipe list
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly
+      WHEN '/' enters search mode and a query is typed key by key
+      THEN the recipe list is filtered live, Enter confirms, and Escape clears the filter
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0003.3
+    requirement_ids: ["TUI_0003"]
+    title: Headless selection flow reaches confirm-run dialog
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly
+      WHEN recipes are selected with Space and 'r' is pressed
+      THEN the CONFIRM_RUN screen opens with the selected recipes in run order and Escape backs out without executing
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0003.4
+    requirement_ids: ["TUI_0003"]
+    title: Headless mouse events drive the browser list
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly with mouse capture enabled
+      WHEN scroll, left-click, and right-click events are dispatched through the event pipeline
+      THEN the highlight follows the scroll and click position and right-click toggles selection
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0003.5
+    requirement_ids: ["TUI_0003"]
+    title: Headless help overlay and resize
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly
+      WHEN '?' is pressed and the terminal is resized
+      THEN the help overlay renders and dismisses, and the TUI stays responsive after the resize
+    revision: "0.1.0"
