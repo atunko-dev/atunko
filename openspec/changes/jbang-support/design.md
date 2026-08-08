@@ -71,6 +71,15 @@ repo's default branch; the shorter `alias@org` form reads it from an
    therefore filters out `atunko-cli-*` before asserting a single match, and
    `files:` lists `atunko.jar` explicitly since it does not match `atunko-*.jar`.
 
+9. **(Revised per maintainer direction, 2026-08-08)** No stable release should be
+   required yet: the alias points at the rolling snapshot pre-release instead.
+   `publish-snapshot.yml` now uses the fixed tag `snapshot` (so the URL
+   `releases/download/snapshot/atunko.jar` is permanent) and uploads the same
+   stable-named `atunko.jar` copy as `release.yml`. When stable releases begin,
+   the alias can be flipped back to `releases/latest/download/atunko.jar`
+   (decision 1). Decision 1's mechanics in `release.yml` are kept so that flip is
+   a one-line catalog change.
+
 ## Risks / Trade-offs
 
 - [No release exists yet → alias 404s until the first release] → acceptable and

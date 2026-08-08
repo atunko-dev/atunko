@@ -1133,8 +1133,8 @@ cases:
     description: |
       GIVEN the jbang-catalog.json file at the repository root
       WHEN it is parsed as JSON
-      THEN it contains an atunko alias whose script-ref is the latest-release atunko.jar
-      URL, plus a description and a java version attribute
+      THEN it contains an atunko alias whose script-ref is the snapshot pre-release
+      atunko.jar URL, plus a description and a java version attribute
     revision: "0.1.0"
 
   - id: SVC_CLI_0006.1
@@ -1142,7 +1142,7 @@ cases:
     title: jbang runs atunko from the published catalog alias
     verification: manual-test
     description: |
-      GIVEN a published non-prerelease GitHub release carrying the atunko.jar asset
+      GIVEN the rolling snapshot pre-release carrying the atunko.jar asset
       WHEN `jbang atunko@atunko-dev/atunko --help` is executed on a machine with jbang installed
       THEN JBang downloads the JAR, provisions a matching JDK, and atunko prints its help text
     instructions: "Install jbang, run `jbang --verbose atunko@atunko-dev/atunko --help`

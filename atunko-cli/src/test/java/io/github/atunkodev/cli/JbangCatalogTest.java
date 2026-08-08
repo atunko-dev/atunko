@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 class JbangCatalogTest {
 
     private static final String EXPECTED_SCRIPT_REF =
-            "https://github.com/atunko-dev/atunko/releases/latest/download/atunko.jar";
+            "https://github.com/atunko-dev/atunko/releases/download/snapshot/atunko.jar";
 
     private static JsonNode catalog;
 

@@ -30,13 +30,13 @@ jbang atunko@atunko-dev/atunko search "spring"
 jbang atunko@atunko-dev/atunko run -r org.openrewrite.java.RemoveUnusedImports
 ```
 
-The alias resolves the JAR attached to the latest GitHub release (the first release is still
-pending, so the alias will not resolve until then). Once the `atunko-dev/jbang-catalog` repository
-exists, the shorter `jbang atunko@atunko-dev …` form works as well.
+The alias resolves the JAR from the rolling [snapshot pre-release](https://github.com/atunko-dev/atunko/releases/tag/snapshot)
+(stable releases will take over once published). The shorter `jbang atunko@atunko-dev …` form works
+as well, via the [`atunko-dev/jbang-catalog`](https://github.com/atunko-dev/jbang-catalog) repository.
 
 ### Download the fat JAR
 
-Download `atunko.jar` from the [releases page](https://github.com/jimisola/atunko/releases), then:
+Download `atunko.jar` from the [releases page](https://github.com/atunko-dev/atunko/releases), then:
 
 ```bash
 java -jar atunko.jar --help
