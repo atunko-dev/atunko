@@ -34,6 +34,9 @@ The alias resolves the JAR from the rolling [snapshot pre-release](https://githu
 (stable releases will take over once published). The shorter `jbang atunko@atunko-dev …` form works
 as well, via the [`atunko-dev/jbang-catalog`](https://github.com/atunko-dev/jbang-catalog) repository.
 
+> **Note:** JBang caches downloaded JARs. Since the snapshot URL is rolling, pass `--fresh` to
+> pick up the newest build: `jbang --fresh atunko@atunko-dev/atunko tui`
+
 ### Download the fat JAR
 
 Download `atunko.jar` from the [releases page](https://github.com/atunko-dev/atunko/releases), then:
