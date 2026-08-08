@@ -8,6 +8,7 @@ import io.github.atunkodev.cli.SearchCommand;
 import io.github.atunkodev.cli.ServiceFactory;
 import io.github.atunkodev.tui.TuiCommand;
 import io.github.atunkodev.web.WebUiCommand;
+import io.github.reqstool.annotations.Requirements;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
@@ -31,9 +32,9 @@ public class App implements Runnable {
     private CommandSpec spec;
 
     @Override
+    @Requirements({"atunko:CLI_0001"})
     public void run() {
-        // Default: print usage (TUI launch deferred to CLI_0001)
-        spec.commandLine().usage(spec.commandLine().getOut());
+        spec.commandLine().getSubcommands().get("tui").execute();
     }
 
     public static void main(String[] args) {

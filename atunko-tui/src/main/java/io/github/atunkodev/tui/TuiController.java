@@ -1,5 +1,7 @@
 package io.github.atunkodev.tui;
 
+import dev.tamboui.widgets.input.TextInputState;
+import io.github.atunkodev.core.config.ConfigExportService;
 import io.github.atunkodev.core.config.RecipeEntry;
 import io.github.atunkodev.core.config.RunConfig;
 import io.github.atunkodev.core.config.RunConfigService;
@@ -7,19 +9,33 @@ import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
+import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
+import io.github.atunkodev.core.project.ParsedSources;
+import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
+import io.github.atunkodev.core.project.SourceCapability;
+import io.github.atunkodev.core.project.SourceCapabilityHints;
+import io.github.atunkodev.core.project.Workspace;
+import io.github.atunkodev.core.recipe.RecipeApplicability;
+import io.github.atunkodev.core.recipe.RecipeApplicabilityService;
+import io.github.atunkodev.core.recipe.RecipeCoverageUtils;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -294,7 +310,9 @@ public class TuiController {
     private final RecipeExecutionEngine engine;
     private final ProjectSourceParser sourceParser;
     private final ChangeApplier changeApplier;
+    private final WorkspaceExecutionEngine workspaceEngine;
     private final Path projectDir;
+    private final List<ProjectEntry> workspaceProjects;
     private Screen currentScreen = Screen.BROWSER;
     private String searchQuery = "";
     private SortOrder sortOrder = SortOrder.NAME;
@@ -303,7 +321,12 @@ public class TuiController {
     private boolean searchMode;
     private boolean showHelp;
     private ExecutionResult executionResult;
+    private WorkspaceExecutionResult workspaceResult;
+    private String executionError;
     private boolean lastRunWasDryRun;
+    private int selectedFileIndex = 0;
+    private final RecipeApplicabilityService applicabilityService = new RecipeApplicabilityService();
+    private Set<SourceCapability> sourceCapabilities = Set.of();
 
     private final RecipeListState browserState;
 
@@ -326,12 +349,48 @@ public class TuiController {
             ProjectSourceParser sourceParser,
             ChangeApplier changeApplier,
             Path projectDir) {
+        this(allRecipes, runConfigService, engine, sourceParser, changeApplier, null, null, projectDir);
+    }
+
+    public TuiController(
+            List<RecipeInfo> allRecipes,
+            RunConfigService runConfigService,
+            RecipeExecutionEngine engine,
+            ProjectSourceParser sourceParser,
+            ChangeApplier changeApplier,
+            WorkspaceExecutionEngine workspaceEngine,
+            Path projectDir) {
+        this(
+                allRecipes,
+                runConfigService,
+                engine,
+                sourceParser,
+                changeApplier,
+                workspaceEngine,
+                workspaceEngine != null ? SessionHolder.getProjectEntries() : null,
+                projectDir);
+    }
+
+    public TuiController(
+            List<RecipeInfo> allRecipes,
+            RunConfigService runConfigService,
+            RecipeExecutionEngine engine,
+            ProjectSourceParser sourceParser,
+            ChangeApplier changeApplier,
+            WorkspaceExecutionEngine workspaceEngine,
+            List<ProjectEntry> workspaceProjects,
+            Path projectDir) {
         this.allRecipes = List.copyOf(allRecipes);
         this.runConfigService = runConfigService;
         this.engine = engine;
         this.sourceParser = sourceParser;
         this.changeApplier = changeApplier;
+        this.workspaceEngine = workspaceEngine;
+        this.workspaceProjects = workspaceProjects != null ? List.copyOf(workspaceProjects) : null;
         this.projectDir = projectDir;
+        // Badges are shown before anything is parsed, so start from the project-type hint; the first run replaces
+        // this with the capabilities the parse actually produced.
+        this.sourceCapabilities = SourceCapabilityHints.forProjectDir(projectDir);
         this.browserState = new RecipeListState(this::recipes, selectedRecipes);
     }
 
@@ -402,51 +461,62 @@ public class TuiController {
         return allRecipes.stream().filter(r -> r.name().equals(name)).findFirst();
     }
 
-    @Requirements({"atunko:TUI_0001.16"})
-    public Set<String> coveredRecipes() {
-        Set<String> covered = new LinkedHashSet<>();
-        for (String name : selectedRecipes) {
-            findRecipe(name).ifPresent(recipe -> {
-                if (recipe.isComposite()) {
-                    collectSubRecipeNames(recipe, covered);
-                }
-            });
-        }
-        return Set.copyOf(covered);
+    private Optional<RecipeInfo> findRecipeDeep(String name) {
+        return findRecipeInSubtree(name, allRecipes);
     }
 
-    private void collectSubRecipeNames(RecipeInfo composite, Set<String> result) {
-        for (RecipeInfo sub : composite.recipeList()) {
-            result.add(sub.name());
-            if (sub.isComposite()) {
-                collectSubRecipeNames(sub, result);
+    private static Optional<RecipeInfo> findRecipeInSubtree(String name, List<RecipeInfo> recipes) {
+        for (RecipeInfo r : recipes) {
+            if (r.name().equals(name)) {
+                return Optional.of(r);
+            }
+            if (r.isComposite()) {
+                Optional<RecipeInfo> found = findRecipeInSubtree(name, r.recipeList());
+                if (found.isPresent()) {
+                    return found;
+                }
             }
         }
+        return Optional.empty();
+    }
+
+    @Requirements({"atunko:TUI_0001.16"})
+    public Set<String> coveredRecipes() {
+        Set<RecipeInfo> selectedInfos = selectedRecipes.stream()
+                .flatMap(name -> findRecipe(name).stream())
+                .collect(Collectors.toSet());
+        return RecipeCoverageUtils.computeCovered(selectedInfos).stream()
+                .map(RecipeInfo::name)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    /**
+     * Capabilities of the source set this session operates on. Empty until a parse has reported them, which is the
+     * honest answer: nothing has been parsed, so no build model exists.
+     */
+    public Set<SourceCapability> sourceCapabilities() {
+        return sourceCapabilities;
+    }
+
+    public void setSourceCapabilities(Set<SourceCapability> capabilities) {
+        this.sourceCapabilities = capabilities == null ? Set.of() : Set.copyOf(capabilities);
+    }
+
+    /** Whether {@code recipe} can act on the parsed source set, with a reason when it cannot. */
+    @Requirements({"atunko:TUI_0004"})
+    public RecipeApplicability applicability(RecipeInfo recipe) {
+        return applicabilityService.applicability(recipe, sourceCapabilities);
     }
 
     @Requirements({"atunko:TUI_0001.16"})
     public List<String> includedIn(String recipeName) {
-        List<String> parents = new ArrayList<>();
-        for (String name : selectedRecipes) {
-            findRecipe(name).ifPresent(recipe -> {
-                if (recipe.isComposite() && containsSubRecipe(recipe, recipeName)) {
-                    parents.add(recipe.displayName());
-                }
-            });
-        }
-        return List.copyOf(parents);
-    }
-
-    private boolean containsSubRecipe(RecipeInfo composite, String recipeName) {
-        for (RecipeInfo sub : composite.recipeList()) {
-            if (sub.name().equals(recipeName)) {
-                return true;
-            }
-            if (sub.isComposite() && containsSubRecipe(sub, recipeName)) {
-                return true;
-            }
-        }
-        return false;
+        Map<RecipeInfo, List<RecipeInfo>> index = RecipeCoverageUtils.buildReverseIndex(allRecipes);
+        return findRecipeDeep(recipeName)
+                .map(target -> index.getOrDefault(target, List.of()).stream()
+                        .filter(p -> selectedRecipes.contains(p.name()))
+                        .map(RecipeInfo::displayName)
+                        .collect(Collectors.toUnmodifiableList()))
+                .orElseGet(List::of);
     }
 
     @Requirements({"atunko:TUI_0001.12", "atunko:TUI_0001.13"})
@@ -599,6 +669,7 @@ public class TuiController {
         this.searchQuery = "";
         this.selectedTags.clear();
         this.selectedRecipes.clear();
+        this.recipeOptions.clear();
         browserState.resetHighlight();
     }
 
@@ -620,16 +691,9 @@ public class TuiController {
     public void openConfirmRun() {
         // Deduplicate: omit sub-recipes whose parent composite is also selected,
         // since running the composite already executes its sub-recipes.
-        Set<String> coveredBySeleectedComposites = new LinkedHashSet<>();
-        for (String name : selectedRecipes) {
-            findRecipe(name).ifPresent(recipe -> {
-                if (recipe.isComposite()) {
-                    collectSubRecipeNames(recipe, coveredBySeleectedComposites);
-                }
-            });
-        }
+        Set<String> coveredBySelectedComposites = coveredRecipes();
         runOrder = selectedRecipes.stream()
-                .filter(name -> !coveredBySeleectedComposites.contains(name))
+                .filter(name -> !coveredBySelectedComposites.contains(name))
                 .collect(Collectors.toCollection(ArrayList::new));
         runState = new RecipeListState(this::resolveRunRecipes, selectedRecipes, false);
         currentScreen = Screen.CONFIRM_RUN;
@@ -761,6 +825,38 @@ public class TuiController {
         }
     }
 
+    @Requirements({"atunko:TUI_0001.14.1"})
+    public void flattenAllRunRecipes() {
+        if (runState == null) {
+            return;
+        }
+        boolean anyChanged = false;
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            LinkedHashSet<String> next = new LinkedHashSet<>();
+            for (String name : runOrder) {
+                Optional<RecipeInfo> r = findRecipeDeep(name);
+                if (r.isPresent() && r.get().isComposite()) {
+                    List<String> subs =
+                            r.get().recipeList().stream().map(RecipeInfo::name).toList();
+                    next.addAll(subs);
+                    if (selectedRecipes.remove(name)) {
+                        selectedRecipes.addAll(subs);
+                    }
+                    changed = true;
+                    anyChanged = true;
+                } else {
+                    next.add(name);
+                }
+            }
+            runOrder = new ArrayList<>(next);
+        }
+        if (anyChanged) {
+            runState = new RecipeListState(this::resolveRunRecipes, selectedRecipes, false);
+        }
+    }
+
     @Requirements({"atunko:TUI_0001.14"})
     public void flattenRunRecipe() {
         if (runState == null) {
@@ -796,21 +892,93 @@ public class TuiController {
         return Optional.ofNullable(executionResult);
     }
 
+    /** The message of the last run that could not produce a result, e.g. a failed project scan. */
+    @Requirements({"atunko:TUI_0005.1"})
+    public Optional<String> executionError() {
+        return Optional.ofNullable(executionError);
+    }
+
+    @Requirements({"atunko:TUI_0002.4"})
+    public WorkspaceExecutionResult lastWorkspaceResult() {
+        return workspaceResult;
+    }
+
     public boolean lastRunWasDryRun() {
         return lastRunWasDryRun;
     }
 
+    @Requirements({"atunko:TUI_0001.19", "atunko:TUI_0001.20"})
+    public int selectedFileIndex() {
+        return selectedFileIndex;
+    }
+
+    @Requirements({"atunko:TUI_0001.19"})
+    public void moveFileDown() {
+        int size = executionResult == null ? 0 : executionResult.changes().size();
+        if (size > 0) {
+            selectedFileIndex = Math.min(selectedFileIndex + 1, size - 1);
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.19"})
+    public void moveFileUp() {
+        selectedFileIndex = Math.max(0, selectedFileIndex - 1);
+    }
+
+    @Requirements({"atunko:TUI_0001.20"})
+    public void openFileDiff() {
+        if (executionResult != null && !executionResult.changes().isEmpty()) {
+            currentScreen = Screen.FILE_DIFF;
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.20"})
+    public void returnFromFileDiff() {
+        currentScreen = Screen.EXECUTION_RESULTS;
+    }
+
+    @Requirements({"atunko:TUI_0002"})
+    public boolean isWorkspaceMode() {
+        return workspaceEngine != null;
+    }
+
+    @Requirements({"atunko:TUI_0002.2"})
+    public List<ProjectEntry> workspaceProjects() {
+        return workspaceProjects != null ? workspaceProjects : List.of();
+    }
+
+    @Requirements({"atunko:TUI_0002.5"})
+    public Path runsDir() {
+        return projectDir.resolve("atunko/runs");
+    }
+
+    /**
+     * Shows a failed run — the session stays alive so the user can fix the cause and run again.
+     */
+    @Requirements({"atunko:TUI_0005.1"})
+    public void showExecutionError(String message) {
+        this.executionError = message;
+        this.executionResult = null;
+        this.workspaceResult = null;
+        this.selectedFileIndex = 0;
+        this.currentScreen = Screen.EXECUTION_RESULTS;
+    }
+
     @Requirements({"atunko:TUI_0001.8"})
     public void showDryRunResult(ExecutionResult result) {
+        this.executionError = null;
         this.executionResult = result;
         this.lastRunWasDryRun = true;
+        this.selectedFileIndex = 0;
         this.currentScreen = Screen.EXECUTION_RESULTS;
     }
 
     @Requirements({"atunko:TUI_0001.9"})
     public void showExecutionResult(ExecutionResult result) {
+        this.executionError = null;
         this.executionResult = result;
         this.lastRunWasDryRun = false;
+        this.selectedFileIndex = 0;
         this.currentScreen = Screen.EXECUTION_RESULTS;
     }
 
@@ -818,24 +986,47 @@ public class TuiController {
         return projectDir;
     }
 
-    @Requirements({"atunko:TUI_0001.8", "atunko:TUI_0001.9"})
+    @Requirements({"atunko:TUI_0001.8", "atunko:TUI_0001.9", "atunko:TUI_0002.3", "atunko:TUI_0005"})
     public void runSelectedRecipes(boolean dryRun) {
+        LOG.fine(() -> "Running " + (dryRun ? "dry-run" : "execution") + " for " + runOrder.size() + " recipes");
+
+        this.executionError = null;
+        List<String> recipesToRun =
+                runOrder.stream().filter(selectedRecipes::contains).toList();
+
+        if (isWorkspaceMode()) {
+            Workspace workspace = new Workspace(projectDir, workspaceProjects);
+            WorkspaceExecutionResult wsResult = workspaceEngine.execute(recipesToRun, workspace);
+            if (!dryRun && changeApplier != null) {
+                wsResult.results().stream()
+                        .filter(r -> r.succeeded() && r.result() != null)
+                        .forEach(r -> changeApplier.apply(
+                                r.entry().projectDir(), r.result().changes()));
+            }
+            this.workspaceResult = wsResult;
+            this.lastRunWasDryRun = dryRun;
+            this.currentScreen = Screen.WORKSPACE_RESULTS;
+            return;
+        }
+
         if (engine == null || sourceParser == null) {
             return;
         }
-        LOG.fine(() -> "Running " + (dryRun ? "dry-run" : "execution") + " for " + runOrder.size() + " recipes");
 
-        List<SourceFile> sources;
-        ProjectInfo projectInfo = SessionHolder.getProjectInfo();
-        if (projectInfo != null) {
-            sources = sourceParser.parse(projectInfo);
-        } else {
-            sources = sourceParser.parse(new ProjectInfo(List.of(), List.of(projectDir)));
+        // The project scan is deferred to the first run, so it happens here rather than at startup.
+        try {
+            SessionHolder.ensureScanned();
+        } catch (RuntimeException e) {
+            LOG.warning(() -> "Project scan failed: " + e);
+            showExecutionError("Project scan failed: " + describe(e));
+            return;
         }
 
-        // Use runOrder filtered to selected recipes, preserving user-defined execution order
-        List<String> recipesToRun =
-                runOrder.stream().filter(selectedRecipes::contains).toList();
+        ProjectInfo projectInfo = SessionHolder.getProjectInfo();
+        ParsedSources parsed = sourceParser.parseWithCapabilities(
+                projectInfo != null ? projectInfo : new ProjectInfo(List.of(), List.of(projectDir)));
+        setSourceCapabilities(parsed.capabilities());
+        List<SourceFile> sources = parsed.sources();
 
         List<FileChange> allChanges = new ArrayList<>();
         for (String recipeName : recipesToRun) {
@@ -853,12 +1044,318 @@ public class TuiController {
         }
     }
 
+    private static String describe(Throwable e) {
+        return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+    }
+
     @Requirements({"atunko:TUI_0001.10"})
     public void saveRunConfig(Path file) throws IOException {
-        List<RecipeEntry> entries =
-                selectedRecipes.stream().map(RecipeEntry::new).toList();
-        RunConfig config = new RunConfig(entries);
-        runConfigService.save(config, file);
+        List<RecipeEntry> entries = selectedRecipes.stream()
+                .map(name -> {
+                    Map<String, Object> opts = recipeOptions.get(name);
+                    return new RecipeEntry(name, (opts != null && !opts.isEmpty()) ? opts : null, null);
+                })
+                .toList();
+        runConfigService.save(new RunConfig(entries), file);
+    }
+
+    @Requirements({"atunko:TUI_0001.19"})
+    public void loadRunConfig(RunConfig config) {
+        selectedRecipes.clear();
+        config.recipes().stream().map(RecipeEntry::name).forEach(selectedRecipes::add);
+        browserState.resetHighlight();
+    }
+
+    @Requirements({"atunko:TUI_0001.19", "atunko:TUI_0002.5"})
+    public List<Path> listRunConfigs() {
+        Path dir = runsDir();
+        if (!Files.isDirectory(dir)) {
+            return List.of();
+        }
+        try (var stream = Files.list(dir)) {
+            return stream.filter(p -> p.toString().endsWith(".yml")).sorted().toList();
+        } catch (IOException e) {
+            return List.of();
+        }
+    }
+
+    private int loadConfigHighlightIndex = 0;
+    private List<Path> configFiles = List.of();
+
+    public void openLoadConfig() {
+        configFiles = listRunConfigs();
+        loadConfigHighlightIndex = 0;
+        currentScreen = Screen.LOAD_CONFIG;
+    }
+
+    public List<Path> configFiles() {
+        return configFiles;
+    }
+
+    public int loadConfigHighlightIndex() {
+        return loadConfigHighlightIndex;
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public void moveLoadConfigDown() {
+        if (!configFiles.isEmpty()) {
+            loadConfigHighlightIndex = Math.min(loadConfigHighlightIndex + 1, configFiles.size() - 1);
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public void moveLoadConfigUp() {
+        loadConfigHighlightIndex = Math.max(0, loadConfigHighlightIndex - 1);
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public void setLoadConfigHighlightIndex(int idx) {
+        if (!configFiles.isEmpty()) {
+            loadConfigHighlightIndex = Math.max(0, Math.min(idx, configFiles.size() - 1));
+        }
+    }
+
+    public void confirmLoadConfig() throws IOException {
+        if (configFiles.isEmpty()) {
+            return;
+        }
+        RunConfig config = runConfigService.load(configFiles.get(loadConfigHighlightIndex));
+        loadRunConfig(config);
+        currentScreen = Screen.BROWSER;
+    }
+
+    // Export state
+    public enum ExportFormat {
+        GRADLE,
+        MAVEN
+    }
+
+    private ExportFormat exportFormat = ExportFormat.GRADLE;
+    private ConfigExportService.ExportMode exportMode = ConfigExportService.ExportMode.MINIMAL;
+    private boolean showExport = false;
+
+    @Requirements({"atunko:TUI_0001.21"})
+    public boolean isShowExport() {
+        return showExport;
+    }
+
+    @Requirements({"atunko:TUI_0001.21"})
+    public void openExport() {
+        this.showExport = true;
+    }
+
+    @Requirements({"atunko:TUI_0001.21"})
+    public void closeExport() {
+        this.showExport = false;
+    }
+
+    @Requirements({"atunko:TUI_0001.22"})
+    public ExportFormat exportFormat() {
+        return exportFormat;
+    }
+
+    @Requirements({"atunko:TUI_0001.22"})
+    public void setExportFormat(ExportFormat format) {
+        this.exportFormat = format;
+    }
+
+    @Requirements({"atunko:TUI_0001.23"})
+    public ConfigExportService.ExportMode exportMode() {
+        return exportMode;
+    }
+
+    @Requirements({"atunko:TUI_0001.23"})
+    public void toggleExportMode() {
+        this.exportMode = exportMode == ConfigExportService.ExportMode.MINIMAL
+                ? ConfigExportService.ExportMode.FULL
+                : ConfigExportService.ExportMode.MINIMAL;
+    }
+
+    // Recipe options state
+    private final Map<String, Map<String, Object>> recipeOptions = new HashMap<>();
+    private boolean showOptions = false;
+    private boolean optionsEditing = false;
+    private final TextInputState optionsEditState = new TextInputState();
+
+    public TextInputState optionsEditState() {
+        return optionsEditState;
+    }
+
+    private String focusedRecipeForOptions = null;
+    private int focusedOptionIndex = 0;
+
+    @Requirements({"atunko:TUI_0001.25"})
+    public Map<String, Object> getRecipeOptions(String recipeName) {
+        return recipeOptions.getOrDefault(recipeName, Map.of());
+    }
+
+    @Requirements({"atunko:TUI_0001.25"})
+    public void setRecipeOption(String recipeName, String optionName, Object value) {
+        recipeOptions.computeIfAbsent(recipeName, k -> new LinkedHashMap<>()).put(optionName, value);
+    }
+
+    @Requirements({"atunko:TUI_0001.25"})
+    public void clearRecipeOption(String recipeName, String optionName) {
+        Map<String, Object> opts = recipeOptions.get(recipeName);
+        if (opts != null) {
+            opts.remove(optionName);
+            if (opts.isEmpty()) {
+                recipeOptions.remove(recipeName);
+            }
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public boolean isShowOptions() {
+        return showOptions;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public void openOptions(String recipeName) {
+        this.focusedRecipeForOptions = recipeName;
+        this.focusedOptionIndex = 0;
+        this.optionsEditing = false;
+        this.optionsEditState.clear();
+        this.showOptions = true;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public void closeOptions() {
+        this.showOptions = false;
+        this.optionsEditing = false;
+        this.optionsEditState.clear();
+        this.focusedRecipeForOptions = null;
+        this.focusedOptionIndex = 0;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public boolean isOptionsEditing() {
+        return optionsEditing;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public void startOptionsEditing() {
+        this.optionsEditing = true;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public void stopOptionsEditing() {
+        this.optionsEditing = false;
+        this.optionsEditState.clear();
+    }
+
+    @Requirements({"atunko:TUI_0001.25"})
+    public void cycleRecipeOptionBoolean(String recipeName, String optionName) {
+        Object cur = getRecipeOptions(recipeName).get(optionName);
+        if (cur == null) {
+            setRecipeOption(recipeName, optionName, Boolean.TRUE);
+        } else if (Boolean.TRUE.equals(cur)) {
+            setRecipeOption(recipeName, optionName, Boolean.FALSE);
+        } else {
+            clearRecipeOption(recipeName, optionName);
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public String focusedRecipeForOptions() {
+        return focusedRecipeForOptions;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public int focusedOptionIndex() {
+        return focusedOptionIndex;
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public void moveOptionHighlightDown(int optionCount) {
+        if (optionCount > 0) {
+            focusedOptionIndex = (focusedOptionIndex + 1) % optionCount;
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.24"})
+    public void moveOptionHighlightUp(int optionCount) {
+        if (optionCount > 0) {
+            focusedOptionIndex = (focusedOptionIndex - 1 + optionCount) % optionCount;
+        }
+    }
+
+    @Requirements({"atunko:TUI_0001.21", "atunko:TUI_0001.26"})
+    public RunConfig buildRunConfig() {
+        List<RecipeEntry> entries = runOrder.stream()
+                .filter(selectedRecipes::contains)
+                .map(name -> {
+                    Map<String, Object> opts = recipeOptions.get(name);
+                    return new RecipeEntry(name, (opts != null && !opts.isEmpty()) ? opts : null, null);
+                })
+                .toList();
+        return new RunConfig(entries);
+    }
+
+    private boolean saveConfigMode = false;
+    private String saveConfigName = "";
+
+    public boolean isSaveConfigMode() {
+        return saveConfigMode;
+    }
+
+    public String saveConfigName() {
+        return saveConfigName;
+    }
+
+    public void enterSaveConfigMode() {
+        saveConfigMode = true;
+        saveConfigName = "";
+    }
+
+    public void exitSaveConfigMode() {
+        saveConfigMode = false;
+        saveConfigName = "";
+    }
+
+    public void setSaveConfigName(String name) {
+        saveConfigName = name;
+    }
+
+    public void confirmSaveConfig() throws IOException {
+        if (saveConfigName.isBlank()) {
+            exitSaveConfigMode();
+            return;
+        }
+        Path dir = runsDir();
+        Files.createDirectories(dir);
+        saveRunConfig(dir.resolve(saveConfigName + ".yml"));
+        exitSaveConfigMode();
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public int mouseRowToIndex(int mouseY, int headerRows, int rowCount) {
+        int idx = mouseY - headerRows;
+        if (idx < 0 || idx >= rowCount) {
+            return -1;
+        }
+        return idx;
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public void setBrowserHighlightIndex(int idx) {
+        List<DisplayRow> rows = displayRows();
+        if (rows.isEmpty()) {
+            return;
+        }
+        browserState.setHighlightedIndex(Math.max(0, Math.min(idx, rows.size() - 1)));
+    }
+
+    @Requirements({"atunko:TUI_0001.27"})
+    public void setRunHighlightIndex(int idx) {
+        if (runState == null) {
+            return;
+        }
+        List<DisplayRow> rows = runDisplayRows();
+        if (rows.isEmpty()) {
+            return;
+        }
+        runState.setHighlightedIndex(Math.max(0, Math.min(idx, rows.size() - 1)));
     }
 
     private List<RecipeInfo> filterRecipes() {

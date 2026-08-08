@@ -62,16 +62,29 @@ public class RecipeDiscoveryService {
                         .anyMatch(tag -> tag.toLowerCase(Locale.ROOT).contains(lowerQuery));
     }
 
-    @Requirements({"atunko:CORE_0001.1"})
+    @Requirements({"atunko:CORE_0001.1", "atunko:CORE_0014"})
     private RecipeInfo toRecipeInfo(RecipeDescriptor descriptor) {
         List<RecipeInfo> subRecipes = descriptor.getRecipeList() != null
                 ? descriptor.getRecipeList().stream().map(this::toRecipeInfo).toList()
+                : List.of();
+        List<RecipeOptionInfo> options = descriptor.getOptions() != null
+                ? descriptor.getOptions().stream()
+                        .map(o -> new RecipeOptionInfo(
+                                o.getName(),
+                                o.getType(),
+                                o.getDisplayName(),
+                                o.getDescription(),
+                                o.getExample(),
+                                o.getValid(),
+                                o.isRequired()))
+                        .toList()
                 : List.of();
         return new RecipeInfo(
                 descriptor.getName(),
                 descriptor.getDisplayName(),
                 descriptor.getDescription(),
                 descriptor.getTags(),
-                subRecipes);
+                subRecipes,
+                options);
     }
 }

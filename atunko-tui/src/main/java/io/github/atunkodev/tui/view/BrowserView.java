@@ -11,25 +11,35 @@ import static dev.tamboui.toolkit.Toolkit.text;
 import static dev.tamboui.toolkit.Toolkit.textInput;
 
 import dev.tamboui.layout.Constraint;
-import dev.tamboui.style.Color;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import dev.tamboui.tui.event.MouseEvent;
+import dev.tamboui.tui.event.MouseEventKind;
 import dev.tamboui.widgets.input.TextInputState;
+import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.tui.AtunkoTui;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 
 @Requirements({"atunko:TUI_0001.1", "atunko:TUI_0001.2", "atunko:TUI_0001.13"})
 public final class BrowserView {
 
+    private static final Logger LOG = Logger.getLogger(BrowserView.class.getName());
     private static final TextInputState SEARCH_STATE = new TextInputState();
+    private static final TextInputState SAVE_NAME_STATE = new TextInputState();
 
     private BrowserView() {}
 
     public static Element render(TuiController controller, AtunkoTui app) {
+        if (controller.isShowOptions()) {
+            return RecipeOptionsView.render(controller);
+        }
+
         List<DisplayRow> displayRows = controller.displayRows();
 
         Element centerContent;
@@ -41,13 +51,54 @@ public final class BrowserView {
                     .constraint(Constraint.fill());
         }
 
+        Element bottomBar = controller.isSaveConfigMode()
+                ? row(
+                        text(" Save config: ").addClass("detail-label"),
+                        textInput(SAVE_NAME_STATE)
+                                .placeholder("config-name")
+                                .rounded()
+                                .constraint(Constraint.fill()),
+                        text("  Enter:save  Esc:cancel "))
+                : renderStatusBar(controller, displayRows);
+
         return column(dock().top(renderHeader(controller), Constraint.length(3))
                         .center(centerContent)
-                        .bottom(renderStatusBar(controller, displayRows), Constraint.length(1))
+                        .bottom(bottomBar, Constraint.length(1))
                         .constraint(Constraint.fill()))
                 .id("browser")
+                .addClass("app")
                 .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, app, event));
+                .onKeyEvent(event -> handleKeyEvent(controller, app, event))
+                .onMouseEvent(event -> handleMouseEvent(controller, event));
+    }
+
+    private static EventResult handleMouseEvent(TuiController controller, MouseEvent event) {
+        if (controller.isShowHelp()
+                || controller.isSaveConfigMode()
+                || controller.isSearchMode()
+                || controller.isShowOptions()) {
+            return EventResult.UNHANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_UP) {
+            controller.moveUp();
+            return EventResult.HANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_DOWN) {
+            controller.moveDown();
+            return EventResult.HANDLED;
+        }
+        if (event.isPress()) {
+            int idx = controller.mouseRowToIndex(
+                    event.y(), 3, controller.displayRows().size());
+            if (idx >= 0) {
+                controller.setBrowserHighlightIndex(idx);
+                if (event.isRightButton()) {
+                    controller.toggleSelection();
+                }
+                return EventResult.HANDLED;
+            }
+        }
+        return EventResult.UNHANDLED;
     }
 
     private static EventResult handleKeyEvent(
@@ -56,10 +107,33 @@ public final class BrowserView {
             controller.toggleHelp();
             return EventResult.HANDLED;
         }
+        if (controller.isSaveConfigMode()) {
+            return handleSaveConfigModeKey(controller, event);
+        }
         if (controller.isSearchMode()) {
             return handleSearchModeKey(controller, event);
         }
         return handleBrowseModeKey(controller, app, event);
+    }
+
+    private static EventResult handleSaveConfigModeKey(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
+        if (event.isConfirm()) {
+            try {
+                controller.confirmSaveConfig();
+            } catch (java.io.IOException e) {
+                LOG.log(java.util.logging.Level.WARNING, "Failed to save run config", e);
+            }
+            return EventResult.HANDLED;
+        }
+        if (event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
+            controller.exitSaveConfigMode();
+            return EventResult.HANDLED;
+        }
+        if (handleTextInputKey(SAVE_NAME_STATE, event)) {
+            controller.setSaveConfigName(SAVE_NAME_STATE.text());
+            return EventResult.HANDLED;
+        }
+        return EventResult.UNHANDLED;
     }
 
     private static EventResult handleSearchModeKey(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
@@ -115,6 +189,13 @@ public final class BrowserView {
             controller.prevSearchMatch();
             return EventResult.HANDLED;
         }
+        if (event.isChar('o')) {
+            controller
+                    .highlightedDisplayRow()
+                    .filter(row -> !row.isSubRecipe())
+                    .ifPresent(row -> controller.openOptions(row.recipe().name()));
+            return EventResult.HANDLED;
+        }
         if (event.isChar('r')) {
             controller.openConfirmRun();
             return EventResult.HANDLED;
@@ -164,6 +245,15 @@ public final class BrowserView {
             controller.toggleHelp();
             return EventResult.HANDLED;
         }
+        if (event.isChar('S')) {
+            SAVE_NAME_STATE.clear();
+            controller.enterSaveConfigMode();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('L')) {
+            controller.openLoadConfig();
+            return EventResult.HANDLED;
+        }
         return EventResult.UNHANDLED;
     }
 
@@ -172,13 +262,12 @@ public final class BrowserView {
             SEARCH_STATE.setText(controller.searchQuery());
         }
         var headerLabel = controller.isSearchMode()
-                ? text(" SEARCH ").bold().fg(Color.BLACK).bg(Color.LIGHT_YELLOW)
-                : text(" atunko ").bold().fg(Color.WHITE).bg(Color.BLUE);
+                ? text(" SEARCH ").addClass("screen-title", "search-mode")
+                : text(" atunko ").addClass("screen-title");
         var tagIndicator = controller.selectedTags().isEmpty()
                 ? spacer()
                 : text(" tags:" + String.join(",", controller.selectedTags()) + " ")
-                        .fg(Color.BLACK)
-                        .bg(Color.LIGHT_CYAN);
+                        .addClass("tag-indicator");
         return row(
                 headerLabel,
                 text(" "),
@@ -205,7 +294,8 @@ public final class BrowserView {
                 controller.highlightedIndex(),
                 "Recipes",
                 RecipeListRenderer.RenderOptions.BROWSER,
-                Constraint.fill(2));
+                Constraint.fill(2),
+                controller::applicability);
     }
 
     @Requirements({"atunko:TUI_0001.16"})
@@ -215,43 +305,48 @@ public final class BrowserView {
                 .map(recipe -> {
                     var content = column(
                             text(RecipeListRenderer.cleanDisplayName(recipe.displayName()))
-                                    .bold()
-                                    .fg(Color.LIGHT_CYAN),
+                                    .addClass("recipe-name"),
                             text(""),
-                            text(recipe.name()).dim(),
+                            text(recipe.name()).addClass("unselected"),
                             text(""),
                             text(recipe.description() != null ? recipe.description() : ""),
                             text(""),
                             row(
-                                    text("Tags: ").bold(),
+                                    text("Tags: ").addClass("detail-label"),
                                     text(recipe.tags().isEmpty() ? "none" : String.join(", ", recipe.tags()))
-                                            .fg(Color.LIGHT_CYAN)),
+                                            .addClass("detail-value")),
                             recipe.isComposite()
-                                    ? text("Composite: " + recipe.recipeList().size() + " sub-recipes")
-                                            .fg(Color.LIGHT_CYAN)
+                                    ? text(compositeLabel(recipe, controller)).addClass("detail-value")
                                     : text(""));
                     java.util.List<String> parents = controller.includedIn(recipe.name());
                     if (!parents.isEmpty()) {
                         content.add(text(""));
                         content.add(row(
-                                text("Included in: ").bold().fg(Color.LIGHT_YELLOW),
-                                text(String.join(", ", parents)).fg(Color.LIGHT_YELLOW)));
+                                text("Included in: ").addClass("detail-label", "included-in"),
+                                text(String.join(", ", parents)).addClass("included-in")));
                     }
-                    return (Element) panel("Detail", content)
-                            .rounded()
-                            .borderColor(Color.LIGHT_CYAN)
-                            .constraint(Constraint.fill(1));
+                    return (Element) panel("Detail", content).addClass("panel").constraint(Constraint.fill(1));
                 })
                 .orElse(panel("Detail", text("No recipe selected"))
-                        .rounded()
-                        .borderColor(Color.LIGHT_CYAN)
+                        .addClass("panel")
                         .constraint(Constraint.fill(1)));
+    }
+
+    @Requirements({"atunko:TUI_0001.16"})
+    private static String compositeLabel(RecipeInfo recipe, TuiController controller) {
+        int total = recipe.recipeList().size();
+        Set<String> covered = controller.coveredRecipes();
+        Set<String> selected = controller.selectedRecipes();
+        long coveredCount = recipe.recipeList().stream()
+                .filter(sub -> covered.contains(sub.name()) || selected.contains(sub.name()))
+                .count();
+        return "Composite: " + coveredCount + "/" + total + " covered";
     }
 
     private static Element renderStatusBar(TuiController controller, List<DisplayRow> displayRows) {
         int selected = controller.selectedRecipes().size();
         long parentCount = displayRows.stream().filter(r -> !r.isSubRecipe()).count();
-        String status = parentCount + " recipes | " + selected + " selected | ?:help q:quit";
-        return text(" " + status).fg(Color.WHITE).bg(Color.indexed(236));
+        String status = parentCount + " recipes | " + selected + " selected | o:options  ?:help  q:quit";
+        return text(" " + status).addClass("status-bar");
     }
 }

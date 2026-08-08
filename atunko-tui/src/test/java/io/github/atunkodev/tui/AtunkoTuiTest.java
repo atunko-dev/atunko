@@ -23,7 +23,7 @@ class AtunkoTuiTest {
         Path logFile = tempDir.resolve("debug.log");
         TuiController controller = new TuiController(RECIPES);
 
-        new AtunkoTui(controller, logFile);
+        new AtunkoTui(controller, logFile, ThemeConfig.DEFAULT);
 
         Logger logger = Logger.getLogger("io.github.atunkodev");
         assertThat(logger.getLevel()).isNotNull();

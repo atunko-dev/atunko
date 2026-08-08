@@ -529,6 +529,56 @@ cases:
       THEN the recipes are applied and results are displayed
     revision: "0.1.0"
 
+  - id: SVC_TUI_0001.19
+    requirement_ids: ["TUI_0001.19"]
+    title: TUI navigates results file list
+    verification: automated-test
+    description: |
+      GIVEN execution or dry-run results are shown with one or more changed files
+      WHEN the user presses j/k or arrow keys
+      THEN the highlighted file in the results list moves accordingly and index is clamped within bounds
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.19.1
+    requirement_ids: ["TUI_0001.19"]
+    title: TUI resets file index on new execution result
+    verification: automated-test
+    description: |
+      GIVEN a file is highlighted in the results list
+      WHEN a new execution or dry-run result is stored
+      THEN the highlighted file index resets to the first file
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.20
+    requirement_ids: ["TUI_0001.20"]
+    title: TUI opens file diff view
+    verification: automated-test
+    description: |
+      GIVEN a file is highlighted in the results list
+      WHEN the user presses Enter
+      THEN the file diff screen is shown with before and after content panels
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.20.1
+    requirement_ids: ["TUI_0001.20"]
+    title: TUI returns from file diff to results list
+    verification: automated-test
+    description: |
+      GIVEN the file diff screen is shown
+      WHEN the user presses Esc or q
+      THEN the results list screen is shown (not the browser)
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.20.2
+    requirement_ids: ["TUI_0001.20"]
+    title: TUI file diff is no-op when no changes exist
+    verification: automated-test
+    description: |
+      GIVEN no execution results exist or the changed files list is empty
+      WHEN openFileDiff is called
+      THEN the screen does not change
+    revision: "0.1.0"
+
   - id: SVC_TUI_0001.10
     requirement_ids: ["TUI_0001.10"]
     title: TUI saves run configuration
@@ -577,6 +627,16 @@ cases:
       GIVEN the run dialog is open with selected recipes
       WHEN the user reorders, toggles, or cycles selection
       THEN the execution order and selection state update accordingly
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.14.1
+    requirement_ids: ["TUI_0001.14.1"]
+    title: Flatten-all replaces all composites with leaf recipes
+    verification: automated-test
+    description: |
+      GIVEN the run dialog contains one or more composite recipes
+      WHEN the user triggers flatten-all
+      THEN all composites are replaced by their leaf constituents, with shared leaves deduplicated
     revision: "0.1.0"
 
   - id: SVC_TUI_0001.15
@@ -657,6 +717,183 @@ cases:
       GIVEN a composite recipe with multiple sub-recipes
       WHEN only some (but not all) sub-recipes are selected
       THEN the composite is tracked in the partial (indeterminate) set and rendered with an indeterminate indicator
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.18
+    requirement_ids: ["TUI_0001.18"]
+    title: Default theme is dark
+    verification: automated-test
+    description: |
+      GIVEN the TUI is launched without specifying a theme
+      WHEN no --theme flag or --css-file flag is provided
+      THEN the dark theme stylesheet is loaded from bundled resources
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.18.1
+    requirement_ids: ["TUI_0001.18"]
+    title: Light theme via --theme flag
+    verification: automated-test
+    description: |
+      GIVEN the TUI is launched with --theme light
+      WHEN the StyleEngine is initialized
+      THEN the light theme stylesheet is loaded from bundled resources
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.18.2
+    requirement_ids: ["TUI_0001.18"]
+    title: User CSS file via --css-file flag
+    verification: automated-test
+    description: |
+      GIVEN the TUI is launched with --css-file pointing to a valid TCSS file
+      WHEN the StyleEngine is initialized
+      THEN the user-provided CSS file is loaded and replaces the bundled theme
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.18.3
+    requirement_ids: ["TUI_0001.18"]
+    title: XDG config CSS auto-loaded
+    verification: automated-test
+    description: |
+      GIVEN ~/.config/atunko/theme.tcss exists and no --css-file flag is specified
+      WHEN the TUI is launched
+      THEN the XDG config CSS file is loaded and replaces the bundled theme
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.18.4
+    requirement_ids: ["TUI_0001.18"]
+    title: Theme flag selects bundled theme
+    verification: automated-test
+    description: |
+      GIVEN the TUI is launched with --theme dark or --theme light
+      WHEN the StyleEngine is initialized
+      THEN the corresponding bundled theme stylesheet is loaded
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.19
+    requirement_ids: ["TUI_0001.19"]
+    title: Load config restores recipe selection
+    verification: automated-test
+    description: |
+      GIVEN a saved run configuration file
+      WHEN the user loads the configuration
+      THEN the current recipe selection is replaced with the saved selection
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.19.1
+    requirement_ids: ["TUI_0001.19"]
+    title: Load config replaces existing selection
+    verification: automated-test
+    description: |
+      GIVEN recipes are already selected
+      WHEN the user loads a different run configuration
+      THEN the previous selection is cleared and replaced with the loaded selection
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.19.2
+    requirement_ids: ["TUI_0001.19"]
+    title: List run configs returns available yml files
+    verification: automated-test
+    description: |
+      GIVEN the atunko/runs/ directory contains .yml files
+      WHEN the load config screen is opened
+      THEN all .yml files are listed for selection
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.20
+    requirement_ids: ["TUI_0001.20"]
+    title: Detail view renders recipe descriptions as markdown
+    verification: automated-test
+    description: |
+      GIVEN a recipe with a markdown description
+      WHEN the detail view is displayed
+      THEN the description is rendered as formatted markdown
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.21
+    requirement_ids: ["TUI_0001.21"]
+    title: TUI export overlay opens from confirm-run screen
+    verification: automated-test
+    description: |
+      GIVEN recipes are selected and the confirm-run screen is shown
+      WHEN the user presses x
+      THEN the export overlay is shown with a Gradle or Maven snippet
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.22
+    requirement_ids: ["TUI_0001.22"]
+    title: TUI export format toggle switches between Gradle and Maven
+    verification: automated-test
+    description: |
+      GIVEN the export overlay is open
+      WHEN the user presses g or m
+      THEN the snippet format switches to Gradle or Maven respectively
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.23
+    requirement_ids: ["TUI_0001.23"]
+    title: TUI export mode toggle switches between Minimal and Full
+    verification: automated-test
+    description: |
+      GIVEN the export overlay is open
+      WHEN the user presses Tab
+      THEN the output mode cycles between Minimal and Full
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.24
+    requirement_ids: ["TUI_0001.24"]
+    title: Recipe options overlay opens on o key and shows option details
+    verification: automated-test
+    description: |
+      GIVEN a recipe is focused in the TUI
+      WHEN the user presses o
+      THEN the options overlay is displayed showing each option's name, type,
+      required flag, description, example, valid values, and current value;
+      if the recipe has no options, a "No configurable options" message is shown
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.25
+    requirement_ids: ["TUI_0001.25"]
+    title: User can edit and clear recipe option values in the overlay
+    verification: automated-test
+    description: |
+      GIVEN the options overlay is open
+      WHEN the user navigates to an option and edits its value
+      THEN the value is stored on the controller for that recipe and option;
+      WHEN the user clears an option
+      THEN the stored value is removed
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.26
+    requirement_ids: ["TUI_0001.26"]
+    title: Configured option values are merged into RecipeEntry when building RunConfig
+    verification: automated-test
+    description: |
+      GIVEN option values have been configured for one or more recipes
+      WHEN buildRunConfig is called
+      THEN each RecipeEntry includes the configured options map;
+      recipes with no configured options have a null options map
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.27
+    requirement_ids: ["TUI_0001.27"]
+    title: Mouse capture enabled — mouse events handled in TUI views
+    verification: automated-test
+    description: |
+      GIVEN the TUI is configured
+      WHEN TuiConfig is built in AtunkoTui.configure()
+      THEN mouseCapture(true) is set in both the default and logging-enabled variants;
+      WHEN a mouse scroll or click event arrives
+      THEN the view mouse-event handler processes it correctly
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0001
+    requirement_ids: ["CLI_0001"]
+    title: No-args invocation delegates to TUI subcommand
+    verification: automated-test
+    description: |
+      GIVEN the atunko CLI is configured
+      WHEN no subcommand is provided
+      THEN the "tui" subcommand is registered and is the delegation target for the default run() path
     revision: "0.1.0"
 
   - id: SVC_CLI_0002
@@ -859,53 +1096,609 @@ cases:
       THEN the snippet includes a complete pom.xml with XML declaration and GAV coordinates
     revision: "0.1.0"
 
-  - id: SVC_CORE_0010
-    requirement_ids: ["CORE_0010"]
-    title: LST cache warms on first parse and is used on subsequent parses
+  - id: SVC_CLI_0005
+    requirement_ids: ["CLI_0005"]
+    title: run and list accept --workspace option
     verification: automated-test
     description: |
-      GIVEN a project with source files
-      WHEN ProjectSourceParser.parse() is called twice for the same project
-      THEN the second call returns sources with identical printAll() output
-      AND no re-parsing of unchanged files occurs
+      GIVEN a directory containing multiple projects
+      WHEN the user runs `atunko list --workspace <dir>` or `atunko run -r <recipe> --workspace <dir>`
+      THEN the workspace is scanned and the command operates across all discovered projects
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0005.1
+    requirement_ids: ["CLI_0005.1"]
+    title: run --workspace prints per-project summary table
+    verification: automated-test
+    description: |
+      GIVEN a workspace run completes
+      WHEN results are printed
+      THEN a table row per project shows project name, changed file count, and pass/fail status
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0005.2
+    requirement_ids: ["CLI_0005.2"]
+    title: run --workspace exits non-zero on any project failure
+    verification: automated-test
+    description: |
+      GIVEN a workspace run where at least one project fails
+      WHEN the process exits
+      THEN the exit code is non-zero
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0006
+    requirement_ids: ["CLI_0006"]
+    title: JBang catalog defines a valid atunko alias
+    verification: automated-test
+    description: |
+      GIVEN the jbang-catalog.json file at the repository root
+      WHEN it is parsed as JSON
+      THEN it contains an atunko alias whose script-ref is the snapshot pre-release
+      atunko.jar URL, plus a description and a java version attribute
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0006.1
+    requirement_ids: ["CLI_0006"]
+    title: jbang runs atunko from the published catalog alias
+    verification: manual-test
+    description: |
+      GIVEN the rolling snapshot pre-release carrying the atunko.jar asset
+      WHEN `jbang atunko@atunko-dev/atunko --help` is executed on a machine with jbang installed
+      THEN JBang downloads the JAR, provisions a matching JDK, and atunko prints its help text
+    instructions: "Install jbang, run `jbang --verbose atunko@atunko-dev/atunko --help`
+      and confirm the alias resolves and the CLI help is printed with exit code 0."
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0007.1
+    requirement_ids: ["CORE_0007.1"]
+    title: Save run configuration includes workspace block
+    verification: automated-test
+    description: |
+      GIVEN a RunConfig with a non-null workspace field
+      WHEN it is serialised to YAML
+      THEN the output contains a workspace: block with root and filter fields
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0008.1
+    requirement_ids: ["CORE_0008.1"]
+    title: Load run configuration deserialises workspace block
+    verification: automated-test
+    description: |
+      GIVEN a .atunko.yml with a workspace: block
+      WHEN it is loaded via RunConfigService
+      THEN the resulting RunConfig has a non-null workspace with the correct root and filters
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0010
+    requirement_ids: ["CORE_0010"]
+    title: WorkspaceScanner discovers all projects under a root
+    verification: automated-test
+    description: |
+      GIVEN a root directory containing multiple Gradle and Maven projects
+      WHEN WorkspaceScanner.scan() is called
+      THEN all project directories are returned as ProjectEntry instances in a Workspace
     revision: "0.1.0"
 
   - id: SVC_CORE_0010.1
     requirement_ids: ["CORE_0010.1"]
-    title: Codec round-trip preserves printAll() for all supported subtypes
+    title: WorkspaceScanner skips build output and hidden directories
     verification: automated-test
     description: |
-      GIVEN a parsed SourceFile of each supported subtype (Java, XML, YAML, JSON, properties)
-      WHEN the codec serializes and then deserializes the SourceFile
-      THEN printAll() on the deserialized result equals the original source bytes
+      GIVEN a workspace root containing build/, target/, .gradle/, node_modules/, .git/, and hidden dirs
+      WHEN WorkspaceScanner.scan() is called
+      THEN none of those directories are entered during the walk
     revision: "0.1.0"
 
   - id: SVC_CORE_0010.2
     requirement_ids: ["CORE_0010.2"]
-    title: Cache key changes when file content changes
+    title: WorkspaceScanner skips directories with .atunkoignore
     verification: automated-test
     description: |
-      GIVEN a cached entry for a source file
-      WHEN the file content is modified
-      THEN a different cache key is derived and the entry is treated as a miss
+      GIVEN a directory containing a .atunkoignore file with a valid project inside
+      WHEN WorkspaceScanner.scan() is called
+      THEN that directory is not descended into and the project is not discovered
     revision: "0.1.0"
 
   - id: SVC_CORE_0010.3
     requirement_ids: ["CORE_0010.3"]
-    title: LRU eviction removes oldest entries when size limit is exceeded
+    title: WorkspaceScanner treats Gradle multi-project root as one project
     verification: automated-test
     description: |
-      GIVEN a cache at its configured size limit
-      WHEN a new entry is written
-      THEN the least-recently-used entries are deleted until size is below 90% of the limit
+      GIVEN a Gradle root with settings.gradle declaring subprojects
+      WHEN WorkspaceScanner.scan() is called
+      THEN the root is returned as a single ProjectEntry and subproject dirs are not independently scanned
     revision: "0.1.0"
 
   - id: SVC_CORE_0010.4
     requirement_ids: ["CORE_0010.4"]
-    title: Disabled cache performs no disk operations
+    title: WorkspaceScanner treats Maven multi-module root as one project
     verification: automated-test
     description: |
-      GIVEN the cache is configured with enabled=false
-      WHEN ProjectSourceParser.parse() is called
-      THEN no files are read from or written to the cache directory
+      GIVEN a Maven pom.xml with a <modules> block declaring submodule directories
+      WHEN WorkspaceScanner.scan() is called
+      THEN the root is returned as a single ProjectEntry and module dirs are not independently scanned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0010.5
+    requirement_ids: ["CORE_0010.5"]
+    title: ProjectEntry pairs projectDir with ProjectInfo
+    verification: automated-test
+    description: |
+      GIVEN a ProjectEntry created with a directory path and a ProjectInfo
+      WHEN projectDir() and info() are accessed
+      THEN the values match what was provided at construction
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0011
+    requirement_ids: ["CORE_0011"]
+    title: WorkspaceExecutionEngine executes recipe across all projects
+    verification: automated-test
+    description: |
+      GIVEN a Workspace containing multiple projects
+      WHEN WorkspaceExecutionEngine.execute() is called with a recipe name
+      THEN a ProjectExecutionResult is produced for every project in the workspace
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0011.1
+    requirement_ids: ["CORE_0011.1"]
+    title: WorkspaceExecutionEngine isolates per-project failures
+    verification: automated-test
+    description: |
+      GIVEN a Workspace where one project's execution throws an exception
+      WHEN WorkspaceExecutionEngine.execute() is called
+      THEN the failing project's result captures the exception and remaining projects are still executed
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0012
+    requirement_ids: ["CORE_0012"]
+    title: RunConfig workspace field is optional
+    verification: automated-test
+    description: |
+      GIVEN a RunConfig with a null workspace field
+      WHEN it is serialised and deserialised
+      THEN the workspace field is absent from YAML and null after loading
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0002
+    requirement_ids: ["WEB_0002"]
+    title: Web UI scan workspace toggle discovers projects
+    verification: automated-test
+    description: |
+      GIVEN a directory containing multiple projects
+      WHEN the user enables the workspace toggle and provides a root path
+      THEN the project list shows all discovered projects with checkboxes
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0002.1
+    requirement_ids: ["WEB_0002.1"]
+    title: Execution dialog shows per-project progress
+    verification: automated-test
+    description: |
+      GIVEN a workspace run is in progress
+      WHEN the execution dialog is displayed
+      THEN it shows the current project name and N-of-M progress
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0002.2
+    requirement_ids: ["WEB_0002.2"]
+    title: Aggregate results table shows per-project rows
+    verification: automated-test
+    description: |
+      GIVEN a workspace run has completed
+      WHEN results are displayed
+      THEN a table shows each project with its changed file count and pass/fail status
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0002.3
+    requirement_ids: ["WEB_0002.3"]
+    title: Diff viewer scopes to one project with dropdown switch
+    verification: automated-test
+    description: |
+      GIVEN a workspace run has produced diffs for multiple projects
+      WHEN the diff viewer is opened
+      THEN a dropdown allows switching between projects and the diff updates accordingly
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0002.4
+    requirement_ids: ["WEB_0002.4"]
+    title: Workspace root persisted in run configuration
+    verification: automated-test
+    description: |
+      GIVEN the user has configured a workspace root in the Web UI
+      WHEN the run configuration is saved and reloaded
+      THEN the workspace root is preserved
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0013
+    requirement_ids: ["CORE_0013"]
+    title: computeCovered returns all transitive sub-recipes of selected composites
+    verification: automated-test
+    description: |
+      GIVEN a set of selected recipes containing at least one composite
+      WHEN computeCovered is called with that set
+      THEN all sub-recipes transitively reachable from selected composites are returned
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0013.1
+    requirement_ids: ["CORE_0013.1"]
+    title: buildReverseIndex maps each recipe to its containing composites
+    verification: automated-test
+    description: |
+      GIVEN a list of recipes including at least one composite with sub-recipes
+      WHEN buildReverseIndex is called with that list
+      THEN each sub-recipe is mapped to the composites that directly contain it
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0014
+    requirement_ids: ["CORE_0014"]
+    title: RecipeInfo exposes options populated from OptionDescriptor
+    verification: automated-test
+    description: |
+      GIVEN the discovery service loads recipes
+      WHEN a recipe with declared options is discovered
+      THEN RecipeInfo.options() contains a non-empty list of RecipeOptionInfo entries
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0014.1
+    requirement_ids: ["CORE_0014.1"]
+    title: RecipeOptionInfo captures all OptionDescriptor fields
+    verification: automated-test
+    description: |
+      GIVEN a RecipeOptionInfo instance
+      WHEN constructed from an OptionDescriptor
+      THEN name, type, displayName, description, example, valid, required, and
+      defaultValue are all accessible and match the source descriptor
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0002
+    requirement_ids: ["TUI_0002"]
+    title: TUI workspace session initialised from --workspace flag
+    verification: automated-test
+    description: |
+      GIVEN a directory containing multiple projects
+      WHEN the TUI is launched with --workspace pointing to that directory
+      THEN SessionHolder is initialised in workspace mode with all discovered projects
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0002.1
+    requirement_ids: ["TUI_0002.1"]
+    title: TuiCommand --workspace option is mutually exclusive with --project-dir
+    verification: automated-test
+    description: |
+      GIVEN TuiCommand is invoked with both --workspace and --project-dir
+      WHEN the command line is parsed
+      THEN an error is reported and the TUI does not launch
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0002.2
+    requirement_ids: ["TUI_0002.2"]
+    title: Run dialog lists all workspace project names in workspace mode
+    verification: automated-test
+    description: |
+      GIVEN the TUI is in workspace mode with multiple discovered projects
+      WHEN the Run Recipes dialog is rendered
+      THEN the header area lists all project directory names instead of a single path
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0002.3
+    requirement_ids: ["TUI_0002.3"]
+    title: TUI executes recipes via WorkspaceExecutionEngine in workspace mode
+    verification: automated-test
+    description: |
+      GIVEN the TUI is in workspace mode and recipes are selected
+      WHEN the user triggers execution
+      THEN WorkspaceExecutionEngine.execute() is called and the result is stored as lastWorkspaceResult
+      AND the screen transitions to WORKSPACE_RESULTS
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0002.4
+    requirement_ids: ["TUI_0002.4"]
+    title: Workspace results screen shows per-project table
+    verification: automated-test
+    description: |
+      GIVEN a workspace run has completed
+      WHEN the WORKSPACE_RESULTS screen is rendered
+      THEN each project appears as a row with its directory name, changed-file count, and PASS or FAIL status
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0002.5
+    requirement_ids: ["TUI_0002.5"]
+    title: Run configs stored under workspaceRoot in workspace mode
+    verification: automated-test
+    description: |
+      GIVEN the TUI is in workspace mode
+      WHEN a run configuration is saved or the config list is queried
+      THEN the directory used is workspaceRoot/atunko/runs/ not the single-project directory
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0003
+    requirement_ids: ["TUI_0003"]
+    title: TUI launches headlessly and renders browser view
+    verification: automated-test
+    description: |
+      GIVEN a TUI with a stub recipe catalog
+      WHEN it is started against a headless TestBackend via ToolkitTestRunner
+      THEN the browser view renders with recipe list, detail panel, and status bar visible in the terminal output
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0003.1
+    requirement_ids: ["TUI_0003"]
+    title: Headless keyboard navigation and screen transitions
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly
+      WHEN arrow/vim keys, Enter, and Escape are sent through the pilot
+      THEN the highlight moves, the detail screen opens and renders, and Escape returns to the browser
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0003.2
+    requirement_ids: ["TUI_0003"]
+    title: Headless search filters the recipe list
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly
+      WHEN '/' enters search mode and a query is typed key by key
+      THEN the recipe list is filtered live, Enter confirms, and Escape clears the filter
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0003.3
+    requirement_ids: ["TUI_0003"]
+    title: Headless selection flow reaches confirm-run dialog
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly
+      WHEN recipes are selected with Space and 'r' is pressed
+      THEN the CONFIRM_RUN screen opens with the selected recipes in run order and Escape backs out without executing
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0003.4
+    requirement_ids: ["TUI_0003"]
+    title: Headless mouse events drive the browser list
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly with mouse capture enabled
+      WHEN scroll, left-click, and right-click events are dispatched through the event pipeline
+      THEN the highlight follows the scroll and click position and right-click toggles selection
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0003.5
+    requirement_ids: ["TUI_0003"]
+    title: Headless help overlay and resize
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly
+      WHEN '?' is pressed and the terminal is resized
+      THEN the help overlay renders and dismisses, and the TUI stays responsive after the resize
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0015
+    requirement_ids: ["CORE_0015"]
+    title: Applicability service reports maven and gradle recipes as inapplicable with a reason
+    verification: automated-test
+    description: |
+      GIVEN a capability set without MAVEN and without GRADLE
+      WHEN applicability is queried for an org.openrewrite.maven.* and an org.openrewrite.gradle.* recipe
+      THEN both are reported inapplicable with the missing capability and a human-readable reason
+      AND the same maven recipe is reported applicable once MAVEN is present in the capability set
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0015.1
+    requirement_ids: ["CORE_0015.1"]
+    title: ProjectSourceParser reports the capabilities it actually produced
+    verification: automated-test
+    description: |
+      GIVEN a fixture project with Java, XML, YAML, JSON and properties sources
+      WHEN parseWithCapabilities is called
+      THEN the reported capability set contains exactly the capabilities for the file types parsed
+      AND GRADLE is never reported, not even for a project containing Gradle build files
+      AND recipes outside the maven/gradle namespaces are always applicable
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0015.2
+    requirement_ids: ["CORE_0015.2"]
+    title: Composite applicability follows transitive sub-recipes and terminates on cycles
+    verification: automated-test
+    description: |
+      GIVEN a composite recipe whose sub-recipe graph mixes maven, gradle and plain recipes
+      WHEN applicability is queried for the composite
+      THEN it is applicable if and only if at least one transitive sub-recipe is applicable
+      AND a composite whose sub-recipes all require the same missing capability reports that capability
+      AND a cyclic sub-recipe graph terminates instead of recursing forever
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0015.3
+    requirement_ids: ["CORE_0015.3"]
+    title: Applicability results are cached per capability set
+    verification: automated-test
+    description: |
+      GIVEN applicability has been computed for a recipe and a capability set
+      WHEN it is queried again for the same recipe with an equal capability set in any iteration order
+      THEN the cached result instance is returned and a different capability set is computed separately
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0016
+    requirement_ids: ["CORE_0016"]
+    title: Poms are parsed into a Maven build model that Maven recipes can act on
+    verification: automated-test
+    description: |
+      GIVEN a Maven fixture project whose poms have no external parent and no external dependencies
+      WHEN the project is parsed by ProjectSourceParser
+      THEN each pom.xml is an Xml.Document carrying a MavenResolutionResult marker
+      AND the reported capability set contains MAVEN
+      AND a real org.openrewrite.maven.* recipe run through RecipeExecutionEngine produces changes on those sources
+      AND XML files that are not poms are still produced by the generic XML parser
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0016.1
+    requirement_ids: ["CORE_0016.1"]
+    title: All poms of a multi-module build are discovered and parsed together
+    verification: automated-test
+    description: |
+      GIVEN a multi-module Maven fixture with a parent pom and two module poms
+      WHEN the project is parsed
+      THEN all three poms are parsed in one call and each carries a resolution marker
+      AND a module pom's resolution result resolves to the fixture's own parent and inherits its properties
+      AND poms declared as ProjectInfo build files are parsed even when they sit outside the source directories
+      AND MavenProjectScanner reports the poms of the build as build files
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0016.2
+    requirement_ids: ["CORE_0016.2"]
+    title: An unresolvable pom falls back to plain XML without claiming MAVEN
+    verification: automated-test
+    description: |
+      GIVEN a fixture pom whose parent cannot be resolved
+      WHEN the project is parsed
+      THEN the pom is still present as a plain Xml.Document with no parse-failure marker
+      AND the reported capability set contains XML but not MAVEN
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0016.3
+    requirement_ids: ["CORE_0016.3"]
+    title: Capabilities are hinted from the project type before the first parse
+    verification: automated-test
+    description: |
+      GIVEN a project directory that has not been parsed yet
+      WHEN the pre-parse capability hint is computed
+      THEN MAVEN is hinted exactly when the project root has a pom.xml
+      AND GRADLE is never hinted, not even for a Gradle build
+      AND a null or pom-less directory hints nothing
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0017
+    requirement_ids: ["CORE_0017"]
+    title: A lazily initialised session records the directory and defers the scan
+    verification: automated-test
+    description: |
+      GIVEN a session initialised lazily with a project directory
+      WHEN the session is queried before any scan has been triggered
+      THEN the project directory is returned and no project entries and no project info exist
+      AND triggering the scan populates the project info from the detected scanner
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0017.1
+    requirement_ids: ["CORE_0017.1"]
+    title: The deferred scan runs exactly once even under concurrent callers
+    verification: automated-test
+    description: |
+      GIVEN a lazily initialised session whose scanner counts its invocations
+      WHEN the scan is triggered repeatedly and from several threads at once
+      THEN the scanner runs exactly once and every caller observes the same project info
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0017.2
+    requirement_ids: ["CORE_0017.2"]
+    title: A failing deferred scan is rethrown, not cached, and retried on the next call
+    verification: automated-test
+    description: |
+      GIVEN a lazily initialised session whose scan fails on its first attempt
+      WHEN the scan is triggered
+      THEN the exception is propagated to the caller and the session keeps its project directory
+      AND a subsequent trigger runs the scan again and succeeds
+      AND eager initialisation of a single project and of a workspace is unchanged
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0004
+    requirement_ids: ["TUI_0004"]
+    title: TUI recipe list badges inapplicable recipes
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly with a source set that provides no Maven or Gradle capability
+      WHEN the browser view renders a catalog containing a maven recipe and a plain java recipe
+      THEN the maven recipe row carries the "needs Maven" badge and the java recipe row carries no badge
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0004.1
+    requirement_ids: ["TUI_0004.1"]
+    title: TUI detail view shows the applicability reason
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly and an inapplicable recipe is highlighted
+      WHEN the detail screen is opened
+      THEN an "Applicability:" line with the reason is rendered, and it is absent for an applicable recipe
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0005
+    requirement_ids: ["TUI_0005"]
+    title: The TUI launches and browses recipes before the project has been scanned
+    verification: automated-test
+    description: |
+      GIVEN the TUI is started headlessly against a project directory whose scan has not run
+      WHEN the recipe browser is rendered and navigated
+      THEN the browser is usable and the session still reports no project info
+      AND running a recipe triggers the scan and produces an execution result
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0005.1
+    requirement_ids: ["TUI_0005.1"]
+    title: A failing deferred scan is shown as an execution error and the TUI survives
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly against a lazily initialised session whose scan fails
+      WHEN a recipe run is triggered
+      THEN an error naming the scan failure is rendered in the interface
+      AND the TUI keeps running so that the run can be retried
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0003
+    requirement_ids: ["WEB_0003"]
+    title: Web UI recipe tree badges inapplicable recipes
+    verification: automated-test
+    description: |
+      GIVEN the Web UI is loaded with a catalog containing a maven recipe and the session provides no MAVEN capability
+      WHEN the recipe tree renders the name column for that recipe
+      THEN the rendered component carries a "needs Maven" badge with the reason as its tooltip and a muted style
+      AND the detail panel for that recipe shows the applicability reason
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0004
+    requirement_ids: ["WEB_0004"]
+    title: The Web UI opens on an unscanned session and reports a failing scan as a notification
+    verification: automated-test
+    description: |
+      GIVEN the Web UI recipe browser is opened against a lazily initialised session whose scan has not run
+      WHEN the view is rendered
+      THEN it is usable and no scan has been triggered
+      AND when a run is executed against a session whose scan fails, an error notification is shown
+      AND the view stays usable with its action buttons re-enabled
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0018
+    requirement_ids: ["CORE_0018"]
+    title: Repeated executions reuse cached LSTs
+    verification: automated-test
+    description: |
+      GIVEN a project parsed once through the LST cache
+      WHEN the same project is requested again without any file change
+      THEN the cached ParsedSources instance is returned and the parser is not invoked again
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0018.1
+    requirement_ids: ["CORE_0018.1"]
+    title: Source or build file changes invalidate the cache
+    verification: automated-test
+    description: |
+      GIVEN a project parsed once through the LST cache
+      WHEN a source file is modified, added, or removed (or a build file changes)
+      THEN the next request re-parses the project and returns fresh LSTs
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0018.2
+    requirement_ids: ["CORE_0018.2"]
+    title: Workspace projects are cached independently
+    verification: automated-test
+    description: |
+      GIVEN two projects parsed through the same LST cache
+      WHEN a file in the first project changes
+      THEN only the first project is re-parsed and the second still serves its cached LSTs
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0018.3
+    requirement_ids: ["CORE_0018.3"]
+    title: Disabled cache always re-parses
+    verification: automated-test
+    description: |
+      GIVEN the LST cache is disabled
+      WHEN the same unchanged project is requested twice
+      THEN the parser runs on every request and no entry is served from cache
     revision: "0.1.0"

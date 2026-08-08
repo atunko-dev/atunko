@@ -42,6 +42,7 @@ class ListCommandTest {
         List<Map<String, Object>> recipes = mapper.readValue(output, new TypeReference<>() {});
         assertThat(recipes).isNotEmpty();
         assertThat(recipes.get(0)).containsKeys("name", "displayName", "description", "tags");
+        assertThat(recipes.get(0)).doesNotContainKey("options");
     }
 
     @Test

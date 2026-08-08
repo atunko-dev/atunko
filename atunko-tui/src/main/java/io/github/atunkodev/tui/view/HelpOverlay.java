@@ -6,7 +6,6 @@ import static dev.tamboui.toolkit.Toolkit.row;
 import static dev.tamboui.toolkit.Toolkit.text;
 
 import dev.tamboui.layout.Constraint;
-import dev.tamboui.style.Color;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.elements.Column;
 import java.util.List;
@@ -38,9 +37,12 @@ public final class HelpOverlay {
                     "Actions",
                     List.of(
                             new Entry("Enter", "Detail view"),
+                            new Entry("o", "Recipe options"),
                             new Entry("r", "Run dialog"),
                             new Entry("t", "Tag browser"),
                             new Entry("s", "Sort order"),
+                            new Entry("S", "Save run config"),
+                            new Entry("L", "Load run config"),
                             new Entry("/", "Search"),
                             new Entry("n/N", "Next/prev match"),
                             new Entry("Esc", "Clear all"),
@@ -52,22 +54,26 @@ public final class HelpOverlay {
                     "Navigation",
                     List.of(
                             new Entry("\u2191\u2193/jk", "Move"),
-                            new Entry("+/-", "Reorder"),
-                            new Entry(">/\u2192", "Expand"),
-                            new Entry("</\u2190", "Collapse"))),
+                            new Entry("+/-", "Reorder up/down"),
+                            new Entry("Ctrl+\u2191\u2193", "Reorder up/down"),
+                            new Entry("e/>", "Expand composite"),
+                            new Entry("c/<", "Collapse composite"))),
             new Section(
                     "Selection",
                     List.of(
-                            new Entry("Space", "Toggle"),
+                            new Entry("Space/Enter", "Toggle"),
                             new Entry("a", "Select all"),
                             new Entry("A", "Deselect all"))),
             new Section(
                     "Actions",
                     List.of(
+                            new Entry("o", "Recipe options"),
+                            new Entry("f", "Flatten highlighted"),
+                            new Entry("F", "Flatten all composites"),
                             new Entry("r", "Run"),
                             new Entry("d", "Dry-run"),
-                            new Entry("f", "Flatten"),
-                            new Entry("Esc", "Back"))));
+                            new Entry("?", "Toggle help"),
+                            new Entry("Esc/q", "Back"))));
 
     public static final List<Section> DETAIL_HELP = List.of(
             new Section("Actions", List.of(new Entry("Space", "Toggle selection"), new Entry("Esc/q", "Back"))));
@@ -75,16 +81,13 @@ public final class HelpOverlay {
     public static Element render(List<Section> sections) {
         Column cols = column();
         for (Section section : sections) {
-            cols.add(text(" " + section.title()).bold().fg(Color.LIGHT_CYAN));
+            cols.add(text(" " + section.title()).addClass("help-title"));
             for (Entry entry : section.entries()) {
-                cols.add(row(text("  " + padRight(entry.key(), 8)).fg(Color.LIGHT_YELLOW), text(entry.description())));
+                cols.add(row(text("  " + padRight(entry.key(), 8)).addClass("help-key"), text(entry.description())));
             }
             cols.add(text(""));
         }
-        return panel("Help — press any key to close", cols)
-                .rounded()
-                .borderColor(Color.LIGHT_CYAN)
-                .constraint(Constraint.percentage(60));
+        return panel("Help — press any key to close", cols).addClass("panel").constraint(Constraint.percentage(60));
     }
 
     private static String padRight(String s, int width) {

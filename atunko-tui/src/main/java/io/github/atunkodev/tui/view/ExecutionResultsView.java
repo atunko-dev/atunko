@@ -8,58 +8,58 @@ import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
 
 import dev.tamboui.layout.Constraint;
-import dev.tamboui.style.Color;
-import dev.tamboui.style.Style;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import dev.tamboui.tui.event.MouseEvent;
+import dev.tamboui.tui.event.MouseEventKind;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
+import io.github.atunkodev.core.engine.ProjectExecutionResult;
+import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
 import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 
-@Requirements({"atunko:TUI_0001.8", "atunko:TUI_0001.9"})
+@Requirements({"atunko:TUI_0001.8", "atunko:TUI_0001.9", "atunko:TUI_0002.4"})
 public final class ExecutionResultsView {
 
     private ExecutionResultsView() {}
 
     public static Element render(TuiController controller) {
+        Element error = controller
+                .executionError()
+                .map(msg -> renderError(controller, msg))
+                .orElse(null);
+        if (error != null) {
+            return error;
+        }
+        WorkspaceExecutionResult wsResult = controller.lastWorkspaceResult();
+        if (wsResult != null) {
+            return renderWorkspaceResult(controller, wsResult);
+        }
         String title = controller.lastRunWasDryRun() ? "Dry-Run Preview" : "Execution Results";
-
         return controller
                 .executionResult()
                 .map(result -> renderResult(controller, title, result))
                 .orElse(text("No results"));
     }
 
-    private static Element renderResult(TuiController controller, String title, ExecutionResult result) {
-        List<FileChange> changes = result.changes();
-        List<String> items = changes.stream().map(c -> c.path().toString()).toList();
-
-        String summary = changes.size() + " file(s) " + (controller.lastRunWasDryRun() ? "would change" : "changed");
-
-        var titleElement = controller.lastRunWasDryRun()
-                ? text(" " + title + " ").bold().fg(Color.BLACK).bg(Color.LIGHT_YELLOW)
-                : text(" " + title + " ").bold().fg(Color.WHITE).bg(Color.LIGHT_GREEN);
-
+    /** Renders a run that could not complete — the session stays alive so the run can be retried. */
+    @Requirements({"atunko:TUI_0005.1"})
+    private static Element renderError(TuiController controller, String message) {
         return column(dock().top(
                                 row(
-                                        titleElement,
+                                        text(" Execution Failed ").addClass("screen-title", "error-mode"),
                                         spacer(),
-                                        text(summary + " ").bold().fg(Color.LIGHT_GREEN)),
+                                        text("0 file(s) changed ").addClass("coverage-indicator")),
                                 Constraint.length(1))
-                        .center(list(items)
-                                .title("Changed Files")
-                                .rounded()
-                                .borderColor(Color.LIGHT_CYAN)
-                                .highlightStyle(Style.EMPTY
-                                        .fg(Color.WHITE)
-                                        .bg(Color.BLUE)
-                                        .bold())
-                                .autoScroll())
-                        .bottom(text(" Esc/q:back").fg(Color.WHITE).bg(Color.indexed(236)), Constraint.length(1))
+                        .center(list(List.of(message)).title("Error").addClass("panel", "error-message"))
+                        .bottom(
+                                text(" Esc/q:back — fix the cause and run again")
+                                        .addClass("status-bar"),
+                                Constraint.length(1))
                         .constraint(Constraint.fill()))
-                .id("execution-results")
+                .id("execution-error")
                 .focusable()
                 .onKeyEvent(event -> {
                     if (event.isChar('q') || event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
@@ -68,5 +68,116 @@ public final class ExecutionResultsView {
                     }
                     return EventResult.UNHANDLED;
                 });
+    }
+
+    @Requirements({"atunko:TUI_0002.4"})
+    private static Element renderWorkspaceResult(TuiController controller, WorkspaceExecutionResult wsResult) {
+        String title = controller.lastRunWasDryRun() ? "Dry-Run Preview" : "Workspace Results";
+        var titleElement = controller.lastRunWasDryRun()
+                ? text(" " + title + " ").addClass("screen-title", "dryrun-mode")
+                : text(" " + title + " ").addClass("screen-title", "success-mode");
+
+        long total = wsResult.totalChanges();
+        long failures = wsResult.failureCount();
+        String summary = total + " change(s)";
+        if (failures > 0) {
+            summary += ", " + failures + " failure(s)";
+        }
+
+        List<String> rows =
+                wsResult.results().stream().map(r -> formatProjectRow(r)).toList();
+
+        return column(dock().top(
+                                row(titleElement, spacer(), text(summary + " ").addClass("coverage-indicator")),
+                                Constraint.length(1))
+                        .center(list(rows)
+                                .title("Project Results")
+                                .addClass("panel")
+                                .autoScroll())
+                        .bottom(text(" Esc/q:back").addClass("status-bar"), Constraint.length(1))
+                        .constraint(Constraint.fill()))
+                .id("workspace-results")
+                .focusable()
+                .onKeyEvent(event -> {
+                    if (event.isChar('q') || event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
+                        controller.goBack();
+                        return EventResult.HANDLED;
+                    }
+                    return EventResult.UNHANDLED;
+                });
+    }
+
+    private static String formatProjectRow(ProjectExecutionResult r) {
+        String projectName = r.entry().projectDir().getFileName().toString();
+        if (r.succeeded()) {
+            int changes = r.result() != null ? r.result().changes().size() : 0;
+            return String.format("%-40s  %4d change(s)  PASS", projectName, changes);
+        }
+        return String.format("%-40s     -           FAIL", projectName);
+    }
+
+    private static Element renderResult(TuiController controller, String title, ExecutionResult result) {
+        List<FileChange> changes = result.changes();
+        List<String> items = changes.stream().map(c -> c.path().toString()).toList();
+        boolean hasChanges = !changes.isEmpty();
+
+        String summary = changes.size() + " file(s) " + (controller.lastRunWasDryRun() ? "would change" : "changed");
+
+        var titleElement = controller.lastRunWasDryRun()
+                ? text(" " + title + " ").addClass("screen-title", "dryrun-mode")
+                : text(" " + title + " ").addClass("screen-title", "success-mode");
+
+        String footer = hasChanges ? " ↑↓/jk:navigate  Enter:diff  Esc/q:back" : " Esc/q:back";
+
+        return column(dock().top(
+                                row(titleElement, spacer(), text(summary + " ").addClass("coverage-indicator")),
+                                Constraint.length(1))
+                        .center(list(items)
+                                .selected(controller.selectedFileIndex())
+                                .title("Changed Files")
+                                .addClass("panel")
+                                .autoScroll())
+                        .bottom(text(footer).addClass("status-bar"), Constraint.length(1))
+                        .constraint(Constraint.fill()))
+                .id("execution-results")
+                .focusable()
+                .onKeyEvent(event -> handleKeyEvent(controller, event))
+                .onMouseEvent(event -> handleMouseEvent(controller, event));
+    }
+
+    private static EventResult handleMouseEvent(TuiController controller, MouseEvent event) {
+        if (event.kind() == MouseEventKind.SCROLL_UP) {
+            controller.moveFileUp();
+            return EventResult.HANDLED;
+        }
+        if (event.kind() == MouseEventKind.SCROLL_DOWN) {
+            controller.moveFileDown();
+            return EventResult.HANDLED;
+        }
+        return EventResult.UNHANDLED;
+    }
+
+    private static EventResult handleKeyEvent(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
+        boolean hasChanges =
+                controller.executionResult().map(r -> !r.changes().isEmpty()).orElse(false);
+        if (hasChanges) {
+            if (event.isDown() || event.isChar('j')) {
+                controller.moveFileDown();
+                return EventResult.HANDLED;
+            }
+            if (event.isUp() || event.isChar('k')) {
+                controller.moveFileUp();
+                return EventResult.HANDLED;
+            }
+            if (event.isConfirm()) {
+                controller.openFileDiff();
+                return EventResult.HANDLED;
+            }
+        }
+        if (event.isChar('q') || event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
+            controller.goBack();
+            return EventResult.HANDLED;
+        }
+        return EventResult.UNHANDLED;
     }
 }

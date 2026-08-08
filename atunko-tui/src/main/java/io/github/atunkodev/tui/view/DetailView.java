@@ -6,17 +6,18 @@ import static dev.tamboui.toolkit.Toolkit.panel;
 import static dev.tamboui.toolkit.Toolkit.row;
 import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
+import static dev.tamboui.toolkit.markdown.MarkdownElement.markdown;
 
 import dev.tamboui.layout.Constraint;
-import dev.tamboui.style.Color;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import io.github.atunkodev.core.recipe.RecipeApplicability;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 
-@Requirements({"atunko:TUI_0001.4", "atunko:TUI_0001.7"})
+@Requirements({"atunko:TUI_0001.4", "atunko:TUI_0001.7", "atunko:TUI_0001.20", "atunko:TUI_0004.1"})
 public final class DetailView {
 
     private DetailView() {}
@@ -28,66 +29,94 @@ public final class DetailView {
                 .orElse(text("No recipe selected"));
     }
 
+    // Name(1) + DisplayName(1) + blank(1) + Tags(1) = 4 base rows
+    // composite:     blank(1) + "Recipe List:"(1) + N sub-recipes
+    // parents:       blank(1) + "Included in:"(1)
+    // applicability: "Applicability:"(1)
+    // +1 buffer so a wrapping name/tag line doesn't push the description off-screen
+    static int metadataLineCount(RecipeInfo recipe, int parentCount) {
+        return metadataLineCount(recipe, parentCount, false);
+    }
+
+    static int metadataLineCount(RecipeInfo recipe, int parentCount, boolean hasApplicabilityLine) {
+        return 4
+                + (recipe.isComposite() ? 2 + recipe.recipeList().size() : 0)
+                + (parentCount > 0 ? 2 : 0)
+                + (hasApplicabilityLine ? 1 : 0)
+                + 1;
+    }
+
     private static Element renderRecipeDetail(TuiController controller, RecipeInfo recipe) {
         boolean selected = controller.selectedRecipes().contains(recipe.name());
         var selectionLabel = selected
-                ? text("Selected ").fg(Color.LIGHT_GREEN)
-                : text("Not selected ").dim();
+                ? text("Selected ").addClass("selected")
+                : text("Not selected ").addClass("unselected");
 
-        var detailContent = column(
-                row(text("Name: ").bold(), text(recipe.name())),
-                row(text("Display Name: ").bold(), text(RecipeListRenderer.cleanDisplayName(recipe.displayName()))),
+        var metadataContent = column(
+                row(text("Name: ").addClass("detail-label"), text(recipe.name())),
+                row(
+                        text("Display Name: ").addClass("detail-label"),
+                        text(RecipeListRenderer.cleanDisplayName(recipe.displayName()))),
                 text(""),
-                text("Description:").bold(),
-                text(recipe.description() != null ? recipe.description() : "(none)"),
-                text(""),
-                text("Tags:").bold(),
-                text(recipe.tags().isEmpty() ? "(none)" : String.join(", ", recipe.tags()))
-                        .fg(Color.LIGHT_CYAN));
+                row(
+                        text("Tags: ").addClass("detail-label"),
+                        text(recipe.tags().isEmpty() ? "(none)" : String.join(", ", recipe.tags()))
+                                .addClass("detail-value")));
+
+        RecipeApplicability applicability = controller.applicability(recipe);
+        if (!applicability.applicable()) {
+            metadataContent.add(row(
+                    text("Applicability: ").addClass("detail-label"),
+                    text(applicability.reason()).addClass("inapplicable")));
+        }
 
         if (recipe.isComposite()) {
-            detailContent.add(text(""));
-            detailContent.add(text("Recipe List:").bold());
+            metadataContent.add(text(""));
+            metadataContent.add(text("Recipe List:").addClass("detail-label"));
             int index = 1;
             for (RecipeInfo sub : recipe.recipeList()) {
-                detailContent.add(row(
-                        text("  " + index + ". ").fg(Color.LIGHT_YELLOW),
+                metadataContent.add(row(
+                        text("  " + index + ". ").addClass("included-in"),
                         text(RecipeListRenderer.cleanDisplayName(sub.displayName()))
-                                .fg(Color.LIGHT_CYAN)));
+                                .addClass("detail-value")));
                 index++;
             }
         }
 
         List<String> parents = controller.includedIn(recipe.name());
         if (!parents.isEmpty()) {
-            detailContent.add(text(""));
-            detailContent.add(row(
-                    text("Included in: ").bold().fg(Color.LIGHT_YELLOW),
-                    text(String.join(", ", parents)).fg(Color.LIGHT_YELLOW)));
+            metadataContent.add(text(""));
+            metadataContent.add(row(
+                    text("Included in: ").addClass("detail-label", "included-in"),
+                    text(String.join(", ", parents)).addClass("included-in")));
         }
+
+        String description = recipe.description() != null ? recipe.description() : "*(no description)*";
 
         Element centerContent;
         if (controller.isShowHelp()) {
             centerContent = row(spacer(), HelpOverlay.render(HelpOverlay.DETAIL_HELP), spacer());
         } else {
-            centerContent = panel("Recipe Detail", detailContent).rounded().borderColor(Color.LIGHT_CYAN);
+            centerContent = panel(
+                            "Recipe Detail",
+                            dock().top(
+                                            metadataContent,
+                                            Constraint.length(metadataLineCount(
+                                                    recipe, parents.size(), !applicability.applicable())))
+                                    .center(markdown(description))
+                                    .constraint(Constraint.fill()))
+                    .addClass("panel");
         }
 
         return column(dock().top(
                                 row(
                                         text(" " + RecipeListRenderer.cleanDisplayName(recipe.displayName()))
-                                                .bold()
-                                                .fg(Color.WHITE)
-                                                .bg(Color.BLUE),
+                                                .addClass("screen-title"),
                                         spacer(),
                                         selectionLabel),
                                 Constraint.length(1))
                         .center(centerContent)
-                        .bottom(
-                                text(" ?:help Space:toggle Esc/q:back")
-                                        .fg(Color.WHITE)
-                                        .bg(Color.indexed(236)),
-                                Constraint.length(1))
+                        .bottom(text(" ?:help Space:toggle Esc/q:back").addClass("status-bar"), Constraint.length(1))
                         .constraint(Constraint.fill()))
                 .id("detail")
                 .focusable()

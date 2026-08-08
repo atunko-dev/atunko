@@ -1,0 +1,17 @@
+name: Other
+description: Anything that does not fit the other categories
+labels: ["triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for questions or topics that don't fit the bug report or feature request forms.
+        For general questions, consider using [Discussions](https://github.com/atunko-dev/atunko/discussions) instead.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe your issue or question in as much detail as possible.
+    validations:
+      required: true

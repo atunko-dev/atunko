@@ -302,6 +302,24 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: TUI_0001.19
+    title: TUI — Results File Navigation
+    significance: shall
+    description: The TUI shall allow the user to navigate the list of changed files in execution and dry-run results
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.20
+    title: TUI — File Diff View
+    significance: shall
+    description: The TUI shall display a before/after diff panel for any changed file selected from the results list
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   - id: TUI_0001.10
     title: TUI — Save Run Config
     significance: shall
@@ -349,6 +367,17 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: TUI_0001.14.1
+    title: TUI — Run Dialog Flatten-All
+    significance: shall
+    description: >-
+      The TUI run dialog shall support flattening all composite recipes to their
+      leaf constituents in a single operation, deduplicating any shared leaves
+    references:
+      requirement_ids: ["TUI_0001.14"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   - id: TUI_0001.15
     title: TUI — Debug Logging
     significance: shall
@@ -384,7 +413,138 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
+  - id: TUI_0001.18
+    title: TUI — CSS Theming
+    significance: shall
+    description: >-
+      The TUI shall support CSS-based theming via TamboUI TCSS stylesheets,
+      shipping bundled dark and light themes, with user-provided CSS file support
+      and theme selection via --theme CLI flag
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.19
+    title: TUI — Load Run Config
+    significance: shall
+    description: >-
+      The TUI shall support loading a previously saved run configuration from an
+      atunko/runs/*.yml file, replacing the current recipe selection
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.20
+    title: TUI — Markdown Recipe Descriptions
+    significance: shall
+    description: >-
+      The TUI detail view shall render recipe descriptions as formatted markdown
+      using the tamboui-toolkit-markdown library
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0001.21
+    title: TUI — Export Config Overlay
+    significance: shall
+    description: >-
+      The TUI shall provide an export overlay accessible from the confirm-run
+      screen (x key) that displays the current run configuration as a Maven or
+      Gradle plugin snippet using the core ConfigExportService
+    references:
+      requirement_ids: ["TUI_0001", "CORE_0009"]
+    categories: [compatibility]
+    revision: 0.1.0
+
+  - id: TUI_0001.22
+    title: TUI — Export Format Toggle
+    significance: shall
+    description: >-
+      The export overlay shall support toggling between Gradle and Maven output
+      formats via the g and m keys
+    references:
+      requirement_ids: ["TUI_0001.21"]
+    categories: [compatibility]
+    revision: 0.1.0
+
+  - id: TUI_0001.23
+    title: TUI — Export Mode Toggle
+    significance: shall
+    description: >-
+      The export overlay shall support toggling between Minimal (plugin snippet
+      only) and Full (standalone build file) output modes via the Tab key
+    references:
+      requirement_ids: ["TUI_0001.21"]
+    categories: [compatibility]
+    revision: 0.1.0
+
+  - id: TUI_0001.24
+    title: TUI — Recipe Options Overlay
+    significance: shall
+    description: >-
+      The TUI shall provide a full-screen options overlay, accessible by pressing the
+      `o` key from both the recipe list (browse/search) screen and the confirm-run
+      screen, that displays all configurable options for the currently focused recipe
+      including each option's name, type, required flag, description, example,
+      valid values, and current configured value; if the recipe has no options the
+      overlay shall display a "No configurable options" message
+    references:
+      requirement_ids: ["TUI_0001", "CORE_0014"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0001.25
+    title: TUI — Recipe Option Value Editing
+    significance: shall
+    description: >-
+      Within the recipe options overlay the user shall be able to navigate options
+      with j/k, press Enter to edit a string or integer option value via inline
+      text input, toggle a boolean option between true/false/(unset) with Enter,
+      and clear an option value with Delete/Backspace; edited values shall be stored
+      on the controller keyed by recipe name and option name; pressing Esc while
+      editing shall cancel the edit, and pressing Esc when not editing shall close
+      the overlay
+    references:
+      requirement_ids: ["TUI_0001.24"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0001.26
+    title: TUI — Options Applied to RunConfig
+    significance: shall
+    description: >-
+      When building a RunConfig for execution or export, configured option values
+      stored on the controller shall be merged into the corresponding RecipeEntry
+      options map; recipes with no configured options shall have a null options map
+      (consistent with @JsonInclude NON_NULL serialisation)
+    references:
+      requirement_ids: ["TUI_0001.24", "TUI_0001.25"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0001.27
+    title: TUI — Mouse Capture Enabled
+    significance: shall
+    description: >-
+      The TUI shall enable OS-level mouse capture so that scroll and click events are
+      delivered to view mouse-event handlers; both the default and logging variants of
+      TuiConfig must enable mouseCapture(true)
+    categories: [functional-suitability]
+    revision: 0.1.0
+
   # CLI requirements — list/search/run
+  - id: CLI_0001
+    title: CLI Default Behaviour — Launch TUI
+    significance: shall
+    description: >-
+      When the tool is invoked without a subcommand, it shall launch the interactive TUI
+      (equivalent to running `atunko tui`)
+    categories: [functional-suitability]
+    revision: 0.1.0
+
   - id: CLI_0002
     title: CLI Recipe Listing
     significance: shall
@@ -589,55 +749,613 @@ requirements:
     categories: [compatibility]
     revision: 0.1.0
 
-  - id: CORE_0010
-    title: LST Caching
+  - id: CORE_0007.1
+    title: Save Run Configuration — Workspace Block
     significance: shall
     description: >-
-      The core engine shall cache serialized parsed LSTs on disk, keyed by content hash,
-      so that repeated runs against unchanged files skip re-parsing
-    categories: [performance-efficiency]
+      When saving a run configuration that includes a workspace, the tool shall include
+      the workspace root and glob filters in the .atunko.yml file
+    references:
+      requirement_ids: ["CORE_0007"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0008.1
+    title: Load Run Configuration — Workspace Block
+    significance: shall
+    description: >-
+      When loading a run configuration, the tool shall deserialise the optional
+      workspace block and make it available for workspace-mode execution
+    references:
+      requirement_ids: ["CORE_0008"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  # Workspace support
+  - id: CORE_0010
+    title: Workspace Scanning
+    significance: shall
+    description: >-
+      The core engine shall discover all Gradle and Maven projects under a given root
+      directory by walking the directory tree top-down, returning a Workspace containing
+      a list of ProjectEntry (projectDir + ProjectInfo) pairs
+    categories: [functional-suitability]
     revision: 0.1.0
 
   - id: CORE_0010.1
-    title: LST Serialization Round-Trip
+    title: Workspace Scanner — Skip Build Output Directories
     significance: shall
     description: >-
-      The cache shall serialize and deserialize each supported SourceFile subtype
-      (Java, XML, YAML, JSON, properties) with printAll() output identical to the original
+      The workspace scanner shall skip build/, target/, .gradle/, node_modules/,
+      .git/, and hidden directories (names starting with .) during the tree walk
     references:
       requirement_ids: ["CORE_0010"]
     categories: [functional-suitability]
     revision: 0.1.0
 
   - id: CORE_0010.2
-    title: LST Cache Key Derivation
+    title: Workspace Scanner — .atunkoignore Marker
     significance: shall
     description: >-
-      The cache key shall be derived from SHA-256 of file content, relative path,
-      parser type tag, and rewrite BOM version, ensuring stable and collision-resistant keys
+      The workspace scanner shall not descend into any directory that contains
+      a .atunkoignore file
     references:
       requirement_ids: ["CORE_0010"]
     categories: [functional-suitability]
     revision: 0.1.0
 
   - id: CORE_0010.3
-    title: LST Cache LRU Eviction
+    title: Workspace Scanner — Gradle Multi-Project Root Handling
     significance: shall
     description: >-
-      The cache shall evict the least-recently-used entries when the total size exceeds the
-      configured limit, using filesystem mtime as the LRU signal
+      When the workspace scanner encounters a settings.gradle or settings.gradle.kts file,
+      it shall parse include declarations to determine subproject directories and exclude
+      those directories from further independent scanning, treating the root as a single project
     references:
       requirement_ids: ["CORE_0010"]
     categories: [functional-suitability]
     revision: 0.1.0
 
   - id: CORE_0010.4
+    title: Workspace Scanner — Maven Multi-Module Root Handling
+    significance: shall
+    description: >-
+      When the workspace scanner encounters a pom.xml containing a <modules> block,
+      it shall treat that directory as a Maven multi-module root and exclude its
+      declared module directories from further independent scanning
+    references:
+      requirement_ids: ["CORE_0010"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0010.5
+    title: ProjectEntry Type
+    significance: shall
+    description: >-
+      The core engine shall provide a ProjectEntry record that pairs a project
+      directory path with its corresponding ProjectInfo, used as the unit of
+      identity throughout workspace operations
+    references:
+      requirement_ids: ["CORE_0010"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0011
+    title: Workspace Execution
+    significance: shall
+    description: >-
+      The core engine shall execute a named recipe sequentially across all projects
+      in a Workspace, returning a WorkspaceExecutionResult containing per-project results
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0011.1
+    title: Workspace Execution — Per-Project Failure Isolation
+    significance: shall
+    description: >-
+      A failure (exception or execution error) in one project shall not abort the
+      workspace execution loop; the failure shall be captured in the ProjectExecutionResult
+      for that project and execution shall continue with remaining projects
+    references:
+      requirement_ids: ["CORE_0011"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0012
+    title: Run Configuration — Workspace Block
+    significance: shall
+    description: >-
+      The RunConfig model shall support an optional workspace block containing
+      a root path and optional include/exclude glob filters; when absent, single-project
+      mode is assumed
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0013
+    title: Core — Recipe Coverage Computation
+    significance: shall
+    description: >-
+      The core module shall provide a utility that, given the current set of selected
+      recipes, computes which recipes are transitively covered (i.e. included as
+      sub-recipes of a selected composite)
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0013.1
+    title: Core — Recipe Reverse-Index
+    significance: shall
+    description: >-
+      The core module shall provide a utility that builds a reverse index mapping
+      each recipe to the list of composite recipes that directly or transitively
+      contain it, enabling efficient "included in" lookups
+    references:
+      requirement_ids: ["CORE_0013"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0014
+    title: Core — Recipe Option Metadata
+    significance: shall
+    description: >-
+      RecipeInfo shall include a list of RecipeOptionInfo entries representing the
+      configurable options declared by the recipe, populated from OpenRewrite's
+      OptionDescriptor at discovery time
+    references:
+      requirement_ids: ["CORE_0001.1"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0014.1
+    title: Core — RecipeOptionInfo Fields
+    significance: shall
+    description: >-
+      RecipeOptionInfo shall capture: name, type, displayName, description, example
+      (nullable), valid values list (nullable), required flag, and defaultValue
+      (nullable), providing all information needed to render and validate an option
+      in a UI without depending on the OpenRewrite OptionDescriptor type directly
+    references:
+      requirement_ids: ["CORE_0014"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  # CLI workspace requirements
+  - id: CLI_0005
+    title: CLI Workspace Support
+    significance: shall
+    description: >-
+      The run and list CLI subcommands shall accept a --workspace <dir> option that
+      scans the given directory for projects and operates across all discovered projects
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0005.1
+    title: CLI Workspace — Per-Project Summary Table
+    significance: shall
+    description: >-
+      After a workspace run, the CLI shall print a per-project summary table showing
+      each project name, number of changed files, and pass/fail status
+    references:
+      requirement_ids: ["CLI_0005"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0005.2
+    title: CLI Workspace — Non-Zero Exit on Failure
+    significance: shall
+    description: >-
+      If any project fails during a workspace run, the CLI process shall exit with
+      a non-zero exit code
+    references:
+      requirement_ids: ["CLI_0005"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  # JBang distribution
+  - id: CLI_0006
+    title: JBang Zero-Install Distribution
+    significance: shall
+    description: >-
+      The repository shall provide a JBang catalog defining an atunko alias that runs the
+      released shadow JAR, so that users can execute atunko with jbang
+      atunko@atunko-dev/atunko <args> without cloning or building the project
+    categories: [compatibility]
+    revision: 0.1.0
+
+  # Web UI workspace requirements
+  - id: WEB_0002
+    title: Web UI — Workspace Scan and Multi-Select
+    significance: shall
+    description: >-
+      The Web UI shall provide a "Scan workspace" toggle on the project-dir picker
+      that scans the given directory and displays discovered projects in a multi-select list
+    references:
+      requirement_ids: ["WEB_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0002.1
+    title: Web UI — Per-Project Execution Progress
+    significance: shall
+    description: >-
+      The Web UI execution dialog shall show per-project progress during a workspace run,
+      displaying the current project name and N-of-M count
+    references:
+      requirement_ids: ["WEB_0002"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0002.2
+    title: Web UI — Aggregate Results Table
+    significance: shall
+    description: >-
+      After a workspace run the Web UI shall display an aggregate results table with
+      a per-project row showing project name, changed file count, and pass/fail status
+    references:
+      requirement_ids: ["WEB_0002"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0002.3
+    title: Web UI — Scoped Diff Viewer
+    significance: shall
+    description: >-
+      The Web UI diff viewer shall scope to one project at a time with a dropdown
+      to switch between projects when a workspace run has been performed
+    references:
+      requirement_ids: ["WEB_0002"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0002.4
+    title: Web UI — Persist Workspace Config
+    significance: shall
+    description: >-
+      The Web UI shall persist the workspace root path in the session and run
+      configuration, allowing it to be saved and reloaded via .atunko.yml
+    references:
+      requirement_ids: ["WEB_0002"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  # TUI workspace requirements
+  - id: TUI_0002
+    title: TUI Workspace Support
+    significance: shall
+    description: >-
+      The TUI shall support a --workspace option that scans a root directory for
+      projects and initialises a multi-project session, allowing recipe execution
+      across all discovered projects
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0002.1
+    title: TUI — --workspace Option
+    significance: shall
+    description: >-
+      The TUI subcommand shall accept a --workspace <path> option that is mutually
+      exclusive with --project-dir; when supplied it scans the path with
+      WorkspaceScanner and calls SessionHolder.initWorkspace()
+    references:
+      requirement_ids: ["TUI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0002.2
+    title: TUI — Run Dialog Shows All Workspace Projects
+    significance: shall
+    description: >-
+      When in workspace mode the Run Recipes dialog shall display the list of all
+      discovered project directory names instead of the single-project path line
+    references:
+      requirement_ids: ["TUI_0002"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0002.3
+    title: TUI — Workspace Execution via WorkspaceExecutionEngine
+    significance: shall
+    description: >-
+      When in workspace mode the TUI shall execute selected recipes across all
+      workspace projects using WorkspaceExecutionEngine and navigate to the
+      WORKSPACE_RESULTS screen on completion
+    references:
+      requirement_ids: ["TUI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0002.4
+    title: TUI — Aggregate Workspace Results Screen
+    significance: shall
+    description: >-
+      After a workspace run the TUI shall display a per-project results table
+      showing each project directory name, the number of changed files, and
+      pass/fail status for each project
+    references:
+      requirement_ids: ["TUI_0002"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0002.5
+    title: TUI — Workspace Config Directory
+    significance: shall
+    description: >-
+      When in workspace mode run configurations shall be saved to and loaded from
+      <workspaceRoot>/atunko/runs/ rather than the single-project directory
+    references:
+      requirement_ids: ["TUI_0002"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0003
+    title: TUI Headless End-to-End Verifiability
+    significance: shall
+    description: >-
+      The TUI shall be launchable against a headless virtual-terminal backend and
+      drivable programmatically with key, mouse, and resize events so that end-to-end
+      behaviour (rendering, input routing, screen transitions) can be verified by
+      automated tests without a real terminal
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  # Recipe applicability requirements
+  - id: CORE_0015
+    title: Core — Recipe Applicability Detection
+    significance: shall
+    description: >-
+      The core module shall determine, for each recipe and a given set of source
+      capabilities produced by parsing a project, whether the recipe is able to act
+      on that source set, and shall provide a human-readable reason when it is not,
+      so that a genuinely clean project can be told apart from a recipe that never
+      had a chance to act
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0015.1
+    title: Core — Parsed Source Capability Reporting
+    significance: shall
+    description: >-
+      ProjectSourceParser shall report the set of SourceCapability values that the
+      parsed source set actually provides (JAVA, XML, YAML, JSON, PROPERTIES per the
+      file types successfully parsed); MAVEN and GRADLE shall only be reported when
+      a Maven or Gradle build model was genuinely produced, never merely because
+      build files exist on disk
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0015.2
+    title: Core — Applicability by Recipe Name Prefix and Composition
+    significance: shall
+    description: >-
+      Recipes named org.openrewrite.maven.* shall require the MAVEN capability and
+      recipes named org.openrewrite.gradle.* shall require the GRADLE capability;
+      all other recipes shall be treated as applicable; a composite recipe shall be
+      applicable if and only if at least one of its transitive sub-recipes is
+      applicable, with traversal guarded against cycles
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0015.3
+    title: Core — Applicability Caching
+    significance: shall
+    description: >-
+      Applicability results shall be cached per capability set and recipe name so
+      that browsing thousands of recipes does not recompute composite traversals
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [performance-efficiency]
+    revision: 0.1.0
+
+  - id: CORE_0016
+    title: Core — Maven Build Model Parsing
+    significance: shall
+    description: >-
+      The core module shall parse a project's pom.xml files with OpenRewrite's Maven
+      parser so that the resulting documents carry a MavenResolutionResult marker,
+      which is what every org.openrewrite.maven.* recipe requires in order to act;
+      XML files that are not poms shall keep being parsed by the generic XML parser
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0016.1
+    title: Core — Whole-Build Pom Parsing
+    significance: shall
+    description: >-
+      All poms of a project shall be discovered — including the poms of the modules of
+      a multi-module build, which live outside the source and resource directories —
+      and shall be parsed in a single parser invocation, so that parent/child and
+      inter-module relationships resolve against each other rather than against a
+      remote repository
+    references:
+      requirement_ids: ["CORE_0016"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0016.2
+    title: Core — Maven Parse Fallback
+    significance: shall
+    description: >-
+      When a pom cannot be resolved into a Maven build model (unresolvable parent or
+      dependency, offline or air-gapped run) it shall fall back to being parsed as
+      plain XML without parse-failure markers, and the MAVEN capability shall not be
+      reported for it, so that applicability badges stay honest instead of promising
+      an ability the source set does not have
+    references:
+      requirement_ids: ["CORE_0016"]
+    categories: [functional-suitability, reliability]
+    revision: 0.1.0
+
+  - id: CORE_0016.3
+    title: Core — Pre-Parse Capability Hint
+    significance: shall
+    description: >-
+      Before a project has been parsed, the capability set used for badging shall be
+      seeded from the detected project type — MAVEN when the project root has a
+      pom.xml — and shall be replaced by the capabilities the parse actually produced
+      as soon as the project is parsed; GRADLE shall never be hinted, because Gradle
+      build files are not parsed at all
+    references:
+      requirement_ids: ["CORE_0016"]
+    categories: [functional-suitability, usability]
+    revision: 0.1.0
+
+  - id: CORE_0017
+    title: Core — Lazy Session Initialisation
+    significance: shall
+    description: >-
+      A single-project session shall be initialisable lazily: startup shall record the
+      project directory only, and the build-system scan — the expensive Gradle Tooling
+      API connection or Maven invocation — shall be deferred until the project model is
+      first needed, so that the TUI and the Web UI launch without waiting for it
+    categories: [performance-efficiency]
+    revision: 0.1.0
+
+  - id: CORE_0017.1
+    title: Core — Memoized Thread-Safe Scan
+    significance: shall
+    description: >-
+      The deferred scan shall run at most once per session and shall be safe to trigger
+      from concurrent threads: callers that arrive while a scan is in progress shall
+      block and then reuse its result rather than starting a second scan
+    references:
+      requirement_ids: ["CORE_0017"]
+    categories: [performance-efficiency, reliability]
+    revision: 0.1.0
+
+  - id: CORE_0017.2
+    title: Core — Scan Failure Is Retryable
+    significance: shall
+    description: >-
+      A failing deferred scan shall propagate its exception to the caller and shall not
+      be memoized, so that the session survives the failure and the next attempt runs
+      the scan again; workspace sessions shall keep scanning eagerly at startup
+    references:
+      requirement_ids: ["CORE_0017"]
+    categories: [reliability]
+    revision: 0.1.0
+
+  - id: TUI_0004
+    title: TUI — Inapplicable Recipe Badging
+    significance: shall
+    description: >-
+      The TUI recipe browser shall dim recipes that cannot act on the parsed source
+      set and append a short badge naming the missing capability (for example
+      "needs Maven" or "needs Gradle"); the detail view shall show the full reason;
+      badging shall be purely informational and shall not change selection or
+      execution behaviour
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0004.1
+    title: TUI — Detail View Applicability Reason
+    significance: shall
+    description: >-
+      When the highlighted recipe cannot act on the parsed source set the TUI detail
+      view shall display an "Applicability:" line carrying the reason returned by
+      the core applicability service
+    references:
+      requirement_ids: ["TUI_0004"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0005
+    title: TUI — Deferred Project Scan
+    significance: shall
+    description: >-
+      The TUI shall launch a single-project session without scanning the project —
+      validating only that build files exist — and shall trigger the scan on the first
+      recipe execution, so that the interface is usable for browsing and configuring
+      recipes while no project model has been built yet
+    references:
+      requirement_ids: ["CORE_0017"]
+    categories: [performance-efficiency, interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0005.1
+    title: TUI — Execution-Time Scan Failure
+    significance: shall
+    description: >-
+      When the deferred scan fails on a run, the TUI shall report the failure as an
+      execution error inside the interface and shall keep the session alive so that the
+      user can correct the project and run again, instead of terminating at startup
+      with a stack trace
+    references:
+      requirement_ids: ["TUI_0005"]
+    categories: [interaction-capability, reliability]
+    revision: 0.1.0
+
+  - id: WEB_0003
+    title: Web UI — Inapplicable Recipe Badging
+    significance: shall
+    description: >-
+      The Web UI recipe tree shall render recipes that cannot act on the parsed
+      source set with a muted style and a badge naming the missing capability, with
+      the full reason available as a tooltip, and shall show the reason in the recipe
+      detail panel
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0004
+    title: Web UI — Deferred Project Scan
+    significance: shall
+    description: >-
+      The Web UI shall start serving a single-project session without scanning the
+      project — validating only that build files exist — and shall trigger the scan in
+      the existing background execution thread inside the progress dialog; a scan
+      failure shall surface through the existing error notification and shall leave the
+      view usable
+    references:
+      requirement_ids: ["CORE_0017"]
+    categories: [performance-efficiency, interaction-capability]
+    revision: 0.1.0
+
+  # LST in-process caching (#11)
+  - id: CORE_0018
+    title: LST In-Process Caching
+    significance: shall
+    description: >-
+      The core engine shall cache parsed LSTs in memory for the duration of a session,
+      so that repeated recipe executions against unchanged sources skip re-parsing
+    categories: [performance-efficiency]
+    revision: 0.1.0
+
+  - id: CORE_0018.1
+    title: LST Cache Invalidation on Source Change
+    significance: shall
+    description: >-
+      The LST cache shall detect changes to any source or build file of a cached project
+      (added, removed, or modified content) and re-parse the project on the next execution
+      instead of serving stale LSTs
+    references:
+      requirement_ids: ["CORE_0018"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0018.2
+    title: LST Cache Per-Project Scope
+    significance: shall
+    description: >-
+      The LST cache shall key entries by project directory so that each project of a
+      workspace is cached and invalidated independently
+    references:
+      requirement_ids: ["CORE_0018"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0018.3
     title: LST Cache Disable
     significance: shall
     description: >-
-      The cache shall be fully disabled when configured (enabled=false), with no disk reads,
-      writes, or evictions occurring
+      The LST cache shall be fully disabled when configured off, with every execution
+      re-parsing the project sources
     references:
-      requirement_ids: ["CORE_0010"]
+      requirement_ids: ["CORE_0018"]
     categories: [functional-suitability]
     revision: 0.1.0

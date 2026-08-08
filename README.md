@@ -14,9 +14,32 @@ browsing, configuration, execution, and saveable run configurations — all from
 
 ## Installation
 
+### Run with JBang (zero install)
+
+With [JBang](https://www.jbang.dev) installed, no download or build is needed — JBang fetches
+the JAR and provisions a matching JDK:
+
+```bash
+# Launch the interactive recipe browser
+jbang atunko@atunko-dev/atunko tui
+
+# Search for recipes
+jbang atunko@atunko-dev/atunko search "spring"
+
+# Run a recipe against the current project
+jbang atunko@atunko-dev/atunko run -r org.openrewrite.java.RemoveUnusedImports
+```
+
+The alias resolves the JAR from the rolling [snapshot pre-release](https://github.com/atunko-dev/atunko/releases/tag/snapshot)
+(stable releases will take over once published). The shorter `jbang atunko@atunko-dev …` form works
+as well, via the [`atunko-dev/jbang-catalog`](https://github.com/atunko-dev/jbang-catalog) repository.
+
+> **Note:** JBang caches downloaded JARs. Since the snapshot URL is rolling, pass `--fresh` to
+> pick up the newest build: `jbang --fresh atunko@atunko-dev/atunko tui`
+
 ### Download the fat JAR
 
-Download `atunko.jar` from the [releases page](https://github.com/jimisola/atunko/releases), then:
+Download `atunko.jar` from the [releases page](https://github.com/atunko-dev/atunko/releases), then:
 
 ```bash
 java -jar atunko.jar --help
@@ -40,11 +63,23 @@ The fat JAR is produced at `atunko-cli/build/libs/atunko.jar`.
 # Launch the interactive recipe browser (default command)
 java -jar atunko-cli/build/libs/atunko.jar tui
 
+# Launch with light theme
+java -jar atunko-cli/build/libs/atunko.jar tui --theme light
+
+# Launch with a custom CSS theme file
+java -jar atunko-cli/build/libs/atunko.jar tui --css-file ~/.config/atunko/mytheme.tcss
+
 # Launch with debug logging to a file
 java -jar atunko-cli/build/libs/atunko.jar tui --log-file tui.log
 ```
 
-Options: `--log-file <path>` — write TUI debug output to a file (useful for troubleshooting).
+Options:
+
+- `--theme <dark|light>` — select a bundled theme (default: `dark`)
+- `--css-file <path>` — load a custom TCSS theme file (overrides `--theme` and the XDG default)
+- `--log-file <path>` — write TUI debug output to a file (useful for troubleshooting)
+
+**Theme resolution order:** `--css-file` → `~/.config/atunko/theme.tcss` (XDG) → `--theme` → `dark`
 
 Key bindings:
 

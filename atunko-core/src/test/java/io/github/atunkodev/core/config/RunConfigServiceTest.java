@@ -168,4 +168,41 @@ class RunConfigServiceTest {
         assertThat(loaded.recipes().get(0).options()).isNull();
         assertThat(loaded.recipes().get(0).exclude()).isNull();
     }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0012"})
+    void configWithoutWorkspaceHasNullWorkspaceField() throws IOException {
+        RunConfig config = new RunConfig(List.of(new RecipeEntry("org.openrewrite.java.RemoveUnusedImports")));
+
+        Path file = tempDir.resolve("run.yaml");
+        service.save(config, file);
+
+        String content = Files.readString(file);
+        assertThat(content).doesNotContain("workspace");
+
+        RunConfig loaded = service.load(file);
+        assertThat(loaded.workspace()).isNull();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0007.1", "atunko:SVC_CORE_0008.1"})
+    void workspaceBlockRoundTrips() throws IOException {
+        WorkspaceConfig workspace = new WorkspaceConfig("./services", List.of("**/*"), List.of("**/target/**"));
+        RunConfig config =
+                new RunConfig(null, workspace, List.of(new RecipeEntry("org.openrewrite.java.RemoveUnusedImports")));
+
+        Path file = tempDir.resolve("run.yaml");
+        service.save(config, file);
+
+        String content = Files.readString(file);
+        assertThat(content).contains("workspace:");
+        assertThat(content).contains("root:");
+        assertThat(content).contains("./services");
+
+        RunConfig loaded = service.load(file);
+        assertThat(loaded.workspace()).isNotNull();
+        assertThat(loaded.workspace().root()).isEqualTo("./services");
+        assertThat(loaded.workspace().include()).containsExactly("**/*");
+        assertThat(loaded.workspace().exclude()).containsExactly("**/target/**");
+    }
 }

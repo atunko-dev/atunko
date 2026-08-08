@@ -1,6 +1,8 @@
 package io.github.atunkodev.tui;
 
+import dev.tamboui.css.engine.StyleEngine;
 import dev.tamboui.toolkit.app.ToolkitApp;
+import dev.tamboui.toolkit.app.ToolkitRunner;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.tui.TuiConfig;
 import dev.tamboui.tui.error.ErrorAction;
@@ -8,6 +10,8 @@ import io.github.atunkodev.tui.view.BrowserView;
 import io.github.atunkodev.tui.view.ConfirmRunView;
 import io.github.atunkodev.tui.view.DetailView;
 import io.github.atunkodev.tui.view.ExecutionResultsView;
+import io.github.atunkodev.tui.view.FileDiffView;
+import io.github.atunkodev.tui.view.LoadConfigView;
 import io.github.atunkodev.tui.view.TagBrowserView;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
@@ -22,14 +26,16 @@ public class AtunkoTui extends ToolkitApp {
 
     private final TuiController controller;
     private final Path logFile;
+    private final ThemeConfig themeConfig;
 
     public AtunkoTui(TuiController controller) {
-        this(controller, null);
+        this(controller, null, ThemeConfig.DEFAULT);
     }
 
-    public AtunkoTui(TuiController controller, Path logFile) {
+    public AtunkoTui(TuiController controller, Path logFile, ThemeConfig themeConfig) {
         this.controller = controller;
         this.logFile = logFile;
+        this.themeConfig = themeConfig;
         if (logFile != null) {
             configureLogging(logFile);
         }
@@ -42,25 +48,57 @@ public class AtunkoTui extends ToolkitApp {
             case DETAIL -> DetailView.render(controller);
             case TAG_BROWSER -> TagBrowserView.render(controller);
             case EXECUTION_RESULTS -> ExecutionResultsView.render(controller);
+            case WORKSPACE_RESULTS -> ExecutionResultsView.render(controller);
+            case FILE_DIFF -> FileDiffView.render(controller);
             case CONFIRM_RUN -> ConfirmRunView.render(controller);
+            case LOAD_CONFIG -> LoadConfigView.render(controller);
         };
     }
 
     @Override
+    @Requirements({"atunko:TUI_0001.27"})
     protected TuiConfig configure() {
         if (logFile != null) {
             return TuiConfig.builder()
+                    .mouseCapture(true)
                     .errorHandler((error, context) -> {
                         Logger.getLogger("io.github.atunkodev").log(Level.SEVERE, "Render error", error.cause());
                         return ErrorAction.QUIT_IMMEDIATELY;
                     })
                     .build();
         }
-        return TuiConfig.defaults();
+        return TuiConfig.builder().mouseCapture(true).build();
+    }
+
+    @Override
+    public void run() throws Exception {
+        StyleEngine styleEngine = createStyleEngine();
+        try (ToolkitRunner r = ToolkitRunner.builder()
+                .config(configure())
+                .styleEngine(styleEngine)
+                .build()) {
+            onStart();
+            r.run(this::render);
+        } finally {
+            onStop();
+        }
     }
 
     public void requestQuit() {
         quit();
+    }
+
+    @Requirements({"atunko:TUI_0001.18"})
+    private StyleEngine createStyleEngine() throws IOException {
+        StyleEngine engine = StyleEngine.create();
+        if (themeConfig.isUserCss()) {
+            engine.loadStylesheet(themeConfig.cssFile());
+        } else {
+            engine.loadStylesheet("dark", "/themes/dark.tcss");
+            engine.loadStylesheet("light", "/themes/light.tcss");
+            engine.setActiveStylesheet(themeConfig.themeName());
+        }
+        return engine;
     }
 
     private static void configureLogging(Path logFile) {

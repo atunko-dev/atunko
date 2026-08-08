@@ -6,6 +6,12 @@ import io.github.atunkodev.core.config.RunConfig;
 import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
+import io.github.atunkodev.core.engine.ProjectExecutionResult;
+import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
+import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
+import io.github.atunkodev.core.project.ProjectEntry;
+import io.github.atunkodev.core.project.ProjectInfo;
+import io.github.atunkodev.core.project.Workspace;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
@@ -370,6 +376,187 @@ class TuiControllerTest {
                 .containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
     }
 
+    // --- Load Run Configuration ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19"})
+    void loadRunConfigRestoresRecipeSelection(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service);
+        controller.toggleSelection(); // select Alpha
+        controller.moveDown();
+        controller.toggleSelection(); // select Beta
+        Path configFile = tempDir.resolve("myconfig.yml");
+        controller.saveRunConfig(configFile);
+        controller.deselectAll();
+
+        RunConfig loaded = service.load(configFile);
+        controller.loadRunConfig(loaded);
+
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19.1"})
+    void loadRunConfigReplacesExistingSelection(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service);
+        controller.toggleSelection(); // select Alpha (cursor at 0)
+        Path configFile = tempDir.resolve("alpha.yml");
+        controller.saveRunConfig(configFile);
+        // Switch to a different selection before loading
+        controller.deselectAll();
+        controller.moveDown();
+        controller.moveDown();
+        controller.toggleSelection(); // select Gamma
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Gamma");
+
+        RunConfig loaded = service.load(configFile);
+        controller.loadRunConfig(loaded);
+
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Alpha");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19.2"})
+    void listRunConfigsReturnsEmptyWhenDirectoryAbsent(@TempDir Path tempDir) {
+        TuiController controller = new TuiController(RECIPES, new RunConfigService(), null, null, null, tempDir);
+
+        List<Path> configs = controller.listRunConfigs();
+
+        assertThat(configs).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19.2"})
+    void listRunConfigsReturnsYmlFiles(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
+        controller.toggleSelection();
+        java.nio.file.Files.createDirectories(tempDir.resolve("atunko/runs"));
+        controller.saveRunConfig(tempDir.resolve("atunko/runs/first.yml"));
+        controller.saveRunConfig(tempDir.resolve("atunko/runs/second.yml"));
+
+        List<Path> configs = controller.listRunConfigs();
+
+        assertThat(configs).hasSize(2);
+        assertThat(configs).allMatch(p -> p.toString().endsWith(".yml"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void confirmSaveConfigWritesFileUnderProjectDir(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
+        controller.toggleSelection(); // select Alpha
+        controller.enterSaveConfigMode();
+        controller.setSaveConfigName("my-run");
+
+        controller.confirmSaveConfig();
+
+        Path expected = tempDir.resolve("atunko/runs/my-run.yml");
+        assertThat(expected).exists();
+        RunConfig loaded = service.load(expected);
+        assertThat(loaded.recipes()).hasSize(1);
+        assertThat(loaded.recipes().get(0).name()).isEqualTo("org.test.Alpha");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void confirmSaveConfigWithBlankNameExitsWithoutSaving(@TempDir Path tempDir) throws Exception {
+        TuiController controller = new TuiController(RECIPES, new RunConfigService(), null, null, null, tempDir);
+        controller.toggleSelection();
+        controller.enterSaveConfigMode();
+        controller.setSaveConfigName("   ");
+
+        controller.confirmSaveConfig();
+
+        assertThat(controller.isSaveConfigMode()).isFalse();
+        assertThat(tempDir.resolve("atunko/runs")).doesNotExist();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void enterSaveConfigModeSetsModeFlag() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.enterSaveConfigMode();
+
+        assertThat(controller.isSaveConfigMode()).isTrue();
+        assertThat(controller.saveConfigName()).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void exitSaveConfigModeClearsFlag() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.enterSaveConfigMode();
+        controller.setSaveConfigName("draft");
+
+        controller.exitSaveConfigMode();
+
+        assertThat(controller.isSaveConfigMode()).isFalse();
+        assertThat(controller.saveConfigName()).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19"})
+    void openLoadConfigSetsScreenAndPopulatesFileList(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
+        controller.toggleSelection();
+        java.nio.file.Files.createDirectories(tempDir.resolve("atunko/runs"));
+        controller.saveRunConfig(tempDir.resolve("atunko/runs/saved.yml"));
+
+        controller.openLoadConfig();
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.LOAD_CONFIG);
+        assertThat(controller.configFiles()).hasSize(1);
+        assertThat(controller.loadConfigHighlightIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19"})
+    void confirmLoadConfigLoadsFileAndReturnsToBrowser(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
+        controller.moveDown();
+        controller.toggleSelection(); // select Beta
+        java.nio.file.Files.createDirectories(tempDir.resolve("atunko/runs"));
+        controller.saveRunConfig(tempDir.resolve("atunko/runs/beta.yml"));
+        controller.deselectAll();
+
+        controller.openLoadConfig();
+        controller.confirmLoadConfig();
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.BROWSER);
+        assertThat(controller.selectedRecipes()).containsExactly("org.test.Beta");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10"})
+    void moveLoadConfigDownAndUpNavigatesList(@TempDir Path tempDir) throws Exception {
+        RunConfigService service = new RunConfigService();
+        TuiController controller = new TuiController(RECIPES, service, null, null, null, tempDir);
+        controller.toggleSelection();
+        java.nio.file.Files.createDirectories(tempDir.resolve("atunko/runs"));
+        controller.saveRunConfig(tempDir.resolve("atunko/runs/aaa.yml"));
+        controller.saveRunConfig(tempDir.resolve("atunko/runs/bbb.yml"));
+        controller.openLoadConfig();
+
+        controller.moveLoadConfigDown();
+        assertThat(controller.loadConfigHighlightIndex()).isEqualTo(1);
+
+        controller.moveLoadConfigDown(); // clamp at 1
+        assertThat(controller.loadConfigHighlightIndex()).isEqualTo(1);
+
+        controller.moveLoadConfigUp();
+        assertThat(controller.loadConfigHighlightIndex()).isZero();
+
+        controller.moveLoadConfigUp(); // clamp at 0
+        assertThat(controller.loadConfigHighlightIndex()).isZero();
+    }
+
     // --- Cycle Selection ---
 
     @Test
@@ -582,6 +769,106 @@ class TuiControllerTest {
         controller.flattenRunRecipe();
 
         assertThat(controller.runOrder()).containsExactly("org.test.Alpha");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14.1"})
+    void flattenAllRunRecipesReplacesAllCompositesWithSubRecipes() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.moveDown(); // highlight Composite
+        controller.toggleSelection(); // select Composite (cascade: Sub1, Sub2 also selected)
+        controller.openConfirmRun();
+
+        controller.flattenAllRunRecipes();
+
+        assertThat(controller.runOrder()).containsExactly("org.test.Sub1", "org.test.Sub2");
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Sub1", "org.test.Sub2");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14.1"})
+    void flattenAllRunRecipesHandlesNestedComposites() {
+        TuiController controller = new TuiController(RECIPES_WITH_NESTED);
+        // Sorted: Alpha(0), Gamma(1), Outer(2) — highlight Outer
+        controller.moveDown(); // Gamma
+        controller.moveDown(); // Outer
+        controller.toggleSelection(); // select Outer (cascade: Composite, Sub1, Sub2, Sub3)
+        controller.openConfirmRun();
+
+        controller.flattenAllRunRecipes();
+
+        // Outer flattened to Composite + Sub3, then Composite flattened to Sub1 + Sub2
+        assertThat(controller.runOrder()).containsExactly("org.test.Sub1", "org.test.Sub2", "org.test.Sub3");
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder("org.test.Sub1", "org.test.Sub2", "org.test.Sub3");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14.1"})
+    void flattenAllRunRecipesAlreadyFlatListIsUnchanged() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // select Alpha
+        controller.moveDown();
+        controller.toggleSelection(); // select Beta
+        controller.openConfirmRun();
+
+        controller.flattenAllRunRecipes();
+
+        assertThat(controller.runOrder()).containsExactly("org.test.Alpha", "org.test.Beta");
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14.1"})
+    void flattenAllRunRecipesMixedListFlattensOnlyComposites() {
+        TuiController controller = new TuiController(RECIPES_WITH_COMPOSITE);
+        controller.toggleSelection(); // select Alpha
+        controller.moveDown(); // Composite
+        controller.toggleSelection(); // select Composite (cascade: Sub1, Sub2)
+        controller.openConfirmRun();
+
+        controller.flattenAllRunRecipes();
+
+        assertThat(controller.runOrder()).containsExactly("org.test.Alpha", "org.test.Sub1", "org.test.Sub2");
+        assertThat(controller.selectedRecipes())
+                .containsExactlyInAnyOrder("org.test.Alpha", "org.test.Sub1", "org.test.Sub2");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14.1"})
+    void flattenAllRunRecipesDeduplicatesSharedLeaves() {
+        // Two composites sharing Sub1 — flattening both should produce Sub1 only once
+        RecipeInfo shared = new RecipeInfo("org.test.Shared", "Shared", "Shared leaf", Set.of());
+        RecipeInfo compA =
+                new RecipeInfo("org.test.CompA", "Comp A", "First composite", Set.of(), List.of(shared, SUB_2));
+        RecipeInfo compB =
+                new RecipeInfo("org.test.CompB", "Comp B", "Second composite", Set.of(), List.of(shared, SUB_3));
+        TuiController controller = new TuiController(List.of(compA, compB));
+        controller.toggleSelection(); // select CompA
+        controller.moveDown();
+        controller.toggleSelection(); // select CompB
+        controller.openConfirmRun();
+
+        controller.flattenAllRunRecipes();
+
+        assertThat(controller.runOrder())
+                .containsExactlyInAnyOrder("org.test.Shared", "org.test.Sub2", "org.test.Sub3");
+        assertThat(controller.runOrder()).doesNotHaveDuplicates();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.14.1"})
+    void flattenAllRunRecipesMultipleLeafListIsUnchanged() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // select Alpha (leaf)
+        controller.moveDown();
+        controller.toggleSelection(); // select Beta (leaf)
+        controller.openConfirmRun();
+
+        controller.flattenAllRunRecipes();
+
+        assertThat(controller.runOrder()).containsExactly("org.test.Alpha", "org.test.Beta");
+        assertThat(controller.selectedRecipes()).containsExactlyInAnyOrder("org.test.Alpha", "org.test.Beta");
     }
 
     @Test
@@ -808,11 +1095,12 @@ class TuiControllerTest {
 
     @Test
     @SVCs({"atunko:SVC_TUI_0001"})
-    void clearAllResetsSearchTagsAndSelections() {
+    void clearAllResetsSearchTagsSelectionsAndOptions() {
         TuiController controller = new TuiController(RECIPES);
         controller.setSearchQuery("alpha");
         controller.toggleTag("java");
         controller.toggleSelection(); // select Alpha
+        controller.setRecipeOption("org.test.Alpha", "targetVersion", "17");
 
         controller.clearAll();
 
@@ -820,6 +1108,7 @@ class TuiControllerTest {
         assertThat(controller.selectedTags()).isEmpty();
         assertThat(controller.selectedRecipes()).isEmpty();
         assertThat(controller.highlightedIndex()).isZero();
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).isEmpty();
     }
 
     // --- Nested Composites ---
@@ -977,6 +1266,143 @@ class TuiControllerTest {
         assertThat(rows.get(6).depth()).isEqualTo(2);
         assertThat(rows.get(7).recipe().name()).isEqualTo("org.test.Sub3");
         assertThat(rows.get(7).depth()).isEqualTo(1);
+    }
+
+    // --- File Diff Navigation (TUI_0001.19 / TUI_0001.20) ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19"})
+    void selectedFileIndexStartsAtZero() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.selectedFileIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19"})
+    void moveFileDownIncrementsIndex() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(
+                List.of(new FileChange(Path.of("A.java"), "a", "a2"), new FileChange(Path.of("B.java"), "b", "b2")));
+        controller.showDryRunResult(result);
+
+        controller.moveFileDown();
+
+        assertThat(controller.selectedFileIndex()).isEqualTo(1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19"})
+    void moveFileDownClampsAtLastIndex() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(
+                List.of(new FileChange(Path.of("A.java"), "a", "a2"), new FileChange(Path.of("B.java"), "b", "b2")));
+        controller.showDryRunResult(result);
+        controller.moveFileDown(); // 1
+
+        controller.moveFileDown(); // should stay at 1
+
+        assertThat(controller.selectedFileIndex()).isEqualTo(1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19"})
+    void moveFileUpDecrementsIndex() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(
+                List.of(new FileChange(Path.of("A.java"), "a", "a2"), new FileChange(Path.of("B.java"), "b", "b2")));
+        controller.showDryRunResult(result);
+        controller.moveFileDown();
+
+        controller.moveFileUp();
+
+        assertThat(controller.selectedFileIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19"})
+    void moveFileUpClampsAtZero() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(List.of(new FileChange(Path.of("A.java"), "a", "a2")));
+        controller.showDryRunResult(result);
+
+        controller.moveFileUp(); // already 0
+
+        assertThat(controller.selectedFileIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.20"})
+    void openFileDiffSwitchesToFileDiffScreen() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(List.of(new FileChange(Path.of("A.java"), "a", "a2")));
+        controller.showDryRunResult(result);
+
+        controller.openFileDiff();
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.FILE_DIFF);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.20.2"})
+    void openFileDiffDoesNothingWhenNoResults() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.openFileDiff();
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.BROWSER);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.20.2"})
+    void openFileDiffDoesNothingWhenEmptyChangesList() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.showExecutionResult(new ExecutionResult(List.of()));
+
+        controller.openFileDiff();
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.EXECUTION_RESULTS);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.20.1"})
+    void returnFromFileDiffGoesBackToExecutionResults() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(List.of(new FileChange(Path.of("A.java"), "a", "a2")));
+        controller.showDryRunResult(result);
+        controller.openFileDiff();
+
+        controller.returnFromFileDiff();
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.EXECUTION_RESULTS);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19.1"})
+    void showDryRunResultResetsSelectedFileIndex() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(
+                List.of(new FileChange(Path.of("A.java"), "a", "a2"), new FileChange(Path.of("B.java"), "b", "b2")));
+        controller.showDryRunResult(result);
+        controller.moveFileDown();
+
+        controller.showDryRunResult(result); // new result resets index
+
+        assertThat(controller.selectedFileIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.19.1"})
+    void showExecutionResultResetsSelectedFileIndex() {
+        TuiController controller = new TuiController(RECIPES);
+        ExecutionResult result = new ExecutionResult(
+                List.of(new FileChange(Path.of("A.java"), "a", "a2"), new FileChange(Path.of("B.java"), "b", "b2")));
+        controller.showExecutionResult(result);
+        controller.moveFileDown();
+
+        controller.showExecutionResult(result);
+
+        assertThat(controller.selectedFileIndex()).isZero();
     }
 
     // --- Help Overlay ---
@@ -1224,5 +1650,362 @@ class TuiControllerTest {
         assertThat(rows.get(2).path()).isEqualTo("org.test.Composite/org.test.Sub1");
         assertThat(rows.get(3).path()).isEqualTo("org.test.Composite/org.test.Sub2");
         assertThat(rows.get(4).path()).isEqualTo("org.test.Gamma");
+    }
+
+    // --- Workspace execution ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0002.3"})
+    void runSelectedRecipesInWorkspaceModeStoresWorkspaceResultAndNavigatesToWorkspaceResultsScreen(
+            @TempDir Path workspaceDir, @TempDir Path projectA, @TempDir Path projectB) {
+        ProjectInfo info = new ProjectInfo(List.of(), List.of());
+        ProjectEntry entryA = new ProjectEntry(projectA, info);
+        ProjectEntry entryB = new ProjectEntry(projectB, info);
+        List<ProjectEntry> entries = List.of(entryA, entryB);
+
+        WorkspaceExecutionResult fakeResult = new WorkspaceExecutionResult(List.of(
+                new ProjectExecutionResult(entryA, new ExecutionResult(List.of()), null),
+                new ProjectExecutionResult(
+                        entryB, new ExecutionResult(List.of(new FileChange(Path.of("Foo.java"), "a", "b"))), null)));
+
+        WorkspaceExecutionEngine stubEngine = new WorkspaceExecutionEngine(null, null) {
+            @Override
+            public WorkspaceExecutionResult execute(List<String> recipeNames, Workspace workspace) {
+                return fakeResult;
+            }
+        };
+
+        TuiController controller =
+                new TuiController(RECIPES, new RunConfigService(), null, null, null, stubEngine, entries, workspaceDir);
+        controller.toggleSelection(); // select Alpha
+        controller.openConfirmRun();
+
+        controller.runSelectedRecipes(false);
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.WORKSPACE_RESULTS);
+        assertThat(controller.lastWorkspaceResult()).isSameAs(fakeResult);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0002.5"})
+    void runsDirUsesWorkspaceRootWhenInWorkspaceMode(@TempDir Path workspaceDir) {
+        TuiController controller = new TuiController(RECIPES, new RunConfigService(), null, null, null, workspaceDir);
+
+        assertThat(controller.runsDir()).isEqualTo(workspaceDir.resolve("atunko/runs"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0002.5"})
+    void runsDirUsesProjectDirWhenInSingleProjectMode(@TempDir Path projectDir) {
+        TuiController controller = new TuiController(RECIPES, new RunConfigService(), null, null, null, projectDir);
+
+        assertThat(controller.runsDir()).isEqualTo(projectDir.resolve("atunko/runs"));
+    }
+
+    // --- Export config state ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.21"})
+    void defaultExportStateIsGradleMinimalAndClosed() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.exportFormat()).isEqualTo(TuiController.ExportFormat.GRADLE);
+        assertThat(controller.exportMode())
+                .isEqualTo(io.github.atunkodev.core.config.ConfigExportService.ExportMode.MINIMAL);
+        assertThat(controller.isShowExport()).isFalse();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.22"})
+    void setExportFormatTogglesFormat() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.setExportFormat(TuiController.ExportFormat.MAVEN);
+        assertThat(controller.exportFormat()).isEqualTo(TuiController.ExportFormat.MAVEN);
+
+        controller.setExportFormat(TuiController.ExportFormat.GRADLE);
+        assertThat(controller.exportFormat()).isEqualTo(TuiController.ExportFormat.GRADLE);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.23"})
+    void toggleExportModeCyclesMinimalAndFull() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.exportMode())
+                .isEqualTo(io.github.atunkodev.core.config.ConfigExportService.ExportMode.MINIMAL);
+
+        controller.toggleExportMode();
+        assertThat(controller.exportMode())
+                .isEqualTo(io.github.atunkodev.core.config.ConfigExportService.ExportMode.FULL);
+
+        controller.toggleExportMode();
+        assertThat(controller.exportMode())
+                .isEqualTo(io.github.atunkodev.core.config.ConfigExportService.ExportMode.MINIMAL);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void defaultOptionStateIsClosedAndNoFocusedRecipe() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.isShowOptions()).isFalse();
+        assertThat(controller.focusedRecipeForOptions()).isNull();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void openOptionsSetsFocusedRecipeAndShowsOverlay() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.openOptions("org.test.Alpha");
+
+        assertThat(controller.isShowOptions()).isTrue();
+        assertThat(controller.focusedRecipeForOptions()).isEqualTo("org.test.Alpha");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void closeOptionsHidesOverlayAndResetsState() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.openOptions("org.test.Alpha");
+        controller.moveOptionHighlightDown(3);
+        controller.closeOptions();
+
+        assertThat(controller.isShowOptions()).isFalse();
+        assertThat(controller.focusedRecipeForOptions()).isNull();
+        assertThat(controller.focusedOptionIndex()).isZero();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void setAndGetRecipeOption() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.setRecipeOption("org.test.Alpha", "targetVersion", "17");
+
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).containsEntry("targetVersion", "17");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void getRecipeOptionsReturnsEmptyMapForUnknownRecipe() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.getRecipeOptions("org.test.Unknown")).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void clearRecipeOptionRemovesValue() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.setRecipeOption("org.test.Alpha", "targetVersion", "17");
+        controller.clearRecipeOption("org.test.Alpha", "targetVersion");
+
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void clearLastOptionRemovesRecipeEntryFromMap() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.setRecipeOption("org.test.Alpha", "opt", "val");
+        controller.clearRecipeOption("org.test.Alpha", "opt");
+
+        // After clearing all options, the recipe entry is removed (no stale empty maps)
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.26"})
+    void buildRunConfigIncludesConfiguredOptions() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // selects ALPHA (highlighted by default)
+        controller.openConfirmRun();
+        controller.setRecipeOption("org.test.Alpha", "targetVersion", "17");
+
+        io.github.atunkodev.core.config.RunConfig config = controller.buildRunConfig();
+
+        assertThat(config.recipes()).hasSize(1);
+        assertThat(config.recipes().get(0).options()).containsEntry("targetVersion", "17");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.26"})
+    void buildRunConfigOmitsNullOptionsMapForRecipeWithNoOptions() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // selects ALPHA (highlighted by default)
+        controller.openConfirmRun();
+
+        io.github.atunkodev.core.config.RunConfig config = controller.buildRunConfig();
+
+        assertThat(config.recipes()).hasSize(1);
+        assertThat(config.recipes().get(0).options()).isNull();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void moveOptionHighlightUpWrapsFromZeroToLast() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.openOptions("org.test.Alpha");
+
+        controller.moveOptionHighlightUp(3);
+
+        assertThat(controller.focusedOptionIndex()).isEqualTo(2);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.25"})
+    void cycleRecipeOptionBooleanCyclesNullTrueFalseNull() {
+        TuiController controller = new TuiController(RECIPES);
+
+        controller.cycleRecipeOptionBoolean("org.test.Alpha", "flag");
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).containsEntry("flag", Boolean.TRUE);
+
+        controller.cycleRecipeOptionBoolean("org.test.Alpha", "flag");
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).containsEntry("flag", Boolean.FALSE);
+
+        controller.cycleRecipeOptionBoolean("org.test.Alpha", "flag");
+        assertThat(controller.getRecipeOptions("org.test.Alpha")).doesNotContainKey("flag");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void startOptionsEditingSetsFlag() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.openOptions("org.test.Alpha");
+
+        controller.startOptionsEditing();
+
+        assertThat(controller.isOptionsEditing()).isTrue();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void stopOptionsEditingClearsFlag() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.openOptions("org.test.Alpha");
+        controller.startOptionsEditing();
+
+        controller.stopOptionsEditing();
+
+        assertThat(controller.isOptionsEditing()).isFalse();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.24"})
+    void closeOptionsResetsEditingFlagWhenCalledMidEdit() {
+        TuiController controller = new TuiController(RECIPES);
+        controller.openOptions("org.test.Alpha");
+        controller.startOptionsEditing();
+
+        controller.closeOptions();
+
+        assertThat(controller.isOptionsEditing()).isFalse();
+        assertThat(controller.isShowOptions()).isFalse();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.10", "atunko:SVC_TUI_0001.26"})
+    void saveRunConfigPreservesConfiguredOptions(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tempDir)
+            throws Exception {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // select Alpha
+        controller.setRecipeOption("org.test.Alpha", "targetVersion", "17");
+        java.nio.file.Path file = tempDir.resolve("run.yml");
+
+        controller.saveRunConfig(file);
+
+        io.github.atunkodev.core.config.RunConfig loaded =
+                new io.github.atunkodev.core.config.RunConfigService().load(file);
+        assertThat(loaded.recipes()).hasSize(1);
+        assertThat(loaded.recipes().get(0).options()).containsEntry("targetVersion", "17");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.26"})
+    void buildRunConfigOptionsFlowThroughToYamlRoundTrip(@TempDir Path tempDir) throws Exception {
+        TuiController controller = new TuiController(RECIPES);
+        controller.toggleSelection(); // select Alpha
+        controller.openConfirmRun();
+        controller.setRecipeOption("org.test.Alpha", "targetVersion", "17");
+
+        io.github.atunkodev.core.config.RunConfig config = controller.buildRunConfig();
+        Path file = tempDir.resolve("run.yml");
+        new io.github.atunkodev.core.config.RunConfigService().save(config, file);
+        io.github.atunkodev.core.config.RunConfig loaded =
+                new io.github.atunkodev.core.config.RunConfigService().load(file);
+
+        assertThat(loaded.recipes().get(0).options()).containsEntry("targetVersion", "17");
+    }
+
+    // --- Mouse row-to-index (TUI_0001.27) ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexInRange() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.mouseRowToIndex(3, 1, 5)).isEqualTo(2);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexBelowHeader() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.mouseRowToIndex(0, 2, 5)).isEqualTo(-1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexInsideHeader() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.mouseRowToIndex(1, 2, 5)).isEqualTo(-1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexAboveRowCount() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.mouseRowToIndex(10, 1, 5)).isEqualTo(-1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexAtFirstValidRow() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.mouseRowToIndex(2, 2, 5)).isEqualTo(0);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexAtLastValidRow() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.mouseRowToIndex(5, 1, 5)).isEqualTo(4);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexEmptyList() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.mouseRowToIndex(1, 1, 0)).isEqualTo(-1);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0001.27"})
+    void mouseRowToIndexNoHeader() {
+        TuiController controller = new TuiController(RECIPES);
+
+        assertThat(controller.mouseRowToIndex(0, 0, 5)).isEqualTo(0);
+        assertThat(controller.mouseRowToIndex(4, 0, 5)).isEqualTo(4);
     }
 }

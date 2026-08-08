@@ -27,9 +27,33 @@ atunko        # same as above — tui is the default
 | Project directory for recipe execution (default: `.`). Uses the Gradle Tooling API to
 resolve source dirs, resource dirs, test dirs, and compile classpath for each module.
 
+| `--theme <dark\|light>`
+| Select a bundled colour theme (default: `dark`).
+
+| `--css-file <path>`
+| Load a custom TCSS theme file. Overrides `--theme` and the XDG default
+(`~/.config/atunko/theme.tcss`).
+
 | `--log-file <path>`
 | Write TUI debug output to a file (useful for troubleshooting)
 |===
+
+==== Theming
+
+The TUI ships with bundled `dark` and `light` themes and supports user-provided TCSS stylesheets.
+
+Theme resolution order:
+
+. `--css-file <path>` — explicit file path (highest priority)
+. `~/.config/atunko/theme.tcss` — XDG config auto-load (if the file exists)
+. `--theme <dark|light>` — bundled theme selection
+. `dark` — built-in default
+
+[source,bash]
+----
+atunko tui --theme light
+atunko tui --css-file ~/.config/atunko/mytheme.tcss
+----
 
 ==== Browser key bindings
 

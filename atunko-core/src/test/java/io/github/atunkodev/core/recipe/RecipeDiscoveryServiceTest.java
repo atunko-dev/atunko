@@ -118,4 +118,32 @@ class RecipeDiscoveryServiceTest {
         assertThat(nonComposites)
                 .allSatisfy(recipe -> assertThat(recipe.recipeList()).isEmpty());
     }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0014"})
+    void discoverAllPopulatesOptionMetadata() {
+        List<RecipeInfo> recipes = service.discoverAll();
+
+        // At least some recipes should have options (OpenRewrite ships many with options)
+        boolean anyHasOptions = recipes.stream().anyMatch(r -> !r.options().isEmpty());
+        assertThat(anyHasOptions).isTrue();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0014.1"})
+    void optionInfoFieldsArePopulated() {
+        List<RecipeInfo> recipes = service.discoverAll();
+
+        // Find the first recipe that has options to verify RecipeOptionInfo field mapping
+        RecipeInfo withOptions = recipes.stream()
+                .filter(r -> !r.options().isEmpty())
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No recipe with options found"));
+
+        withOptions.options().forEach(opt -> {
+            assertThat(opt.name()).isNotBlank();
+            assertThat(opt.type()).isNotBlank();
+            assertThat(opt.displayName()).isNotBlank();
+        });
+    }
 }

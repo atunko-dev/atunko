@@ -28,6 +28,7 @@ import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
@@ -40,10 +41,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.openrewrite.SourceFile;
 
 class RecipeBrowserViewTest {
 
@@ -86,7 +90,7 @@ class RecipeBrowserViewTest {
     @BeforeEach
     void resetServices() {
         AppServices.init(null, null, null);
-        SessionHolder.init(Path.of("."), null);
+        SessionHolder.init(List.of(new ProjectEntry(Path.of("."), null)));
     }
 
     @AfterEach
@@ -948,5 +952,120 @@ class RecipeBrowserViewTest {
         RecipeBrowserView view = setupView(List.of(ALPHA));
 
         assertThat(view.getExportButton().getThemeNames()).contains("small", "primary");
+    }
+
+    // ==========================================================================
+    // Workspace mode tests (SVC_WEB_0002, SVC_WEB_0002.4)
+    // ==========================================================================
+
+    private static ProjectEntry makeProjectEntry(String name) {
+        return new ProjectEntry(Path.of("/workspace/" + name), new ProjectInfo(List.of(), List.of()));
+    }
+
+    private RecipeBrowserView setupWorkspaceView(List<RecipeInfo> recipes, Path root, List<ProjectEntry> projects) {
+        SessionHolder.initWorkspace(root, projects);
+        return setupView(recipes);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002"})
+    void workspaceModePanelIsShownWhenMultipleProjects() {
+        Path root = Path.of("/workspace");
+        List<ProjectEntry> projects = List.of(makeProjectEntry("alpha"), makeProjectEntry("beta"));
+        setupWorkspaceView(List.of(ALPHA), root, projects);
+
+        List<String> spanTexts = _find(Span.class).stream().map(Span::getText).toList();
+        assertThat(spanTexts).anyMatch(t -> t.startsWith("Workspace:") && t.contains("/workspace"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002"})
+    void workspaceModeListsAllProjects() {
+        Path root = Path.of("/workspace");
+        List<ProjectEntry> projects = List.of(makeProjectEntry("alpha"), makeProjectEntry("beta"));
+        RecipeBrowserView view = setupWorkspaceView(List.of(ALPHA), root, projects);
+
+        List<String> checkboxLabels =
+                _find(Checkbox.class).stream().map(Checkbox::getLabel).toList();
+        assertThat(checkboxLabels).containsExactlyInAnyOrder("alpha", "beta");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002"})
+    void singleProjectModeDoesNotShowWorkspacePanel() {
+        setupView(List.of(ALPHA));
+
+        List<String> spanTexts = _find(Span.class).stream().map(Span::getText).toList();
+        assertThat(spanTexts).noneMatch(t -> t.startsWith("Workspace:"));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002.1"})
+    void workspaceExecutionDialogShowsProgress() throws Exception {
+        CountDownLatch parserStarted = new CountDownLatch(1);
+        CountDownLatch releaseParsing = new CountDownLatch(1);
+        AppServices.init(
+                new RecipeExecutionEngine() {
+                    @Override
+                    public ExecutionResult execute(String recipeName, List<SourceFile> sources) {
+                        return new ExecutionResult(List.of());
+                    }
+                },
+                new ProjectSourceParser() {
+                    @Override
+                    public List<SourceFile> parse(ProjectInfo info) {
+                        parserStarted.countDown();
+                        try {
+                            releaseParsing.await(3, TimeUnit.SECONDS);
+                        } catch (InterruptedException ignored) {
+                            Thread.currentThread().interrupt();
+                        }
+                        return List.of();
+                    }
+                },
+                null);
+
+        Path root = Path.of("/workspace");
+        RecipeBrowserView view =
+                setupWorkspaceView(List.of(ALPHA), root, List.of(makeProjectEntry("alpha"), makeProjectEntry("beta")));
+        view.selectAllVisible();
+
+        _click(_get(Button.class, spec -> spec.withText("Dry Run")));
+        // RunOrderDialog opens — confirm it to start execution
+        _click(_get(Button.class, spec -> spec.withText("Confirm")));
+
+        assertThat(parserStarted.await(3, TimeUnit.SECONDS)).isTrue();
+
+        List<com.vaadin.flow.component.dialog.Dialog> openDialogs =
+                _find(com.vaadin.flow.component.dialog.Dialog.class).stream()
+                        .filter(com.vaadin.flow.component.dialog.Dialog::isOpened)
+                        .toList();
+        assertThat(openDialogs).isNotEmpty();
+        assertThat(openDialogs.get(0).getHeaderTitle()).containsIgnoringCase("dry run");
+
+        releaseParsing.countDown();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_WEB_0002.4"})
+    void saveButtonInWorkspaceModeUsesWorkspaceRoot() throws IOException {
+        Path root = tempDir.resolve("ws-save-test");
+        Files.createDirectories(root);
+        List<ProjectEntry> projects = List.of(makeProjectEntry("alpha"), makeProjectEntry("beta"));
+        SessionHolder.initWorkspace(root, projects);
+        RecipeBrowserView view = setupView(List.of(ALPHA));
+        view.selectAllVisible();
+        clearNotifications();
+
+        _click(_get(Button.class, spec -> spec.withText("Save")));
+        _setValue(_get(TextField.class, spec -> spec.withLabel("Name")), "workspace-run");
+        com.vaadin.flow.component.dialog.Dialog saveDialog = _get(com.vaadin.flow.component.dialog.Dialog.class);
+        _click(_get(saveDialog, Button.class, spec -> spec.withText("Save")));
+
+        Path savedFile = root.resolve("atunko/runs/workspace-run.yaml");
+        assertThat(savedFile).exists();
+        RunConfig loaded = new RunConfigService().load(savedFile);
+        assertThat(loaded.workspace()).isNotNull();
+        assertThat(loaded.workspace().root()).isEqualTo(root.toString());
     }
 }

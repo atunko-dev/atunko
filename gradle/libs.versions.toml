@@ -2,7 +2,7 @@
 openrewrite-bom = "3.25.0"
 picocli = "4.7.7"
 gradle-tooling-api = "9.3.1"
-tamboui = "0.2.0-SNAPSHOT"
+tamboui = "0.4.0"
 reqstool-annotations = "1.0.0"
 junit = "5.11.4"
 assertj = "3.27.3"
@@ -44,10 +44,13 @@ gradle-tooling-api = { module = "org.gradle:gradle-tooling-api", version.ref = "
 
 # TamboUI
 tamboui-bom = { module = "dev.tamboui:tamboui-bom", version.ref = "tamboui" }
+tamboui-core = { module = "dev.tamboui:tamboui-core" }
+tamboui-tui = { module = "dev.tamboui:tamboui-tui" }
 tamboui-toolkit = { module = "dev.tamboui:tamboui-toolkit" }
 tamboui-css = { module = "dev.tamboui:tamboui-css" }
 tamboui-picocli = { module = "dev.tamboui:tamboui-picocli" }
 tamboui-jline3-backend = { module = "dev.tamboui:tamboui-jline3-backend" }
+tamboui-toolkit-markdown = { module = "dev.tamboui:tamboui-toolkit-markdown" }
 
 # reqstool
 reqstool-annotations = { module = "io.github.reqstool:reqstool-java-annotations", version.ref = "reqstool-annotations" }

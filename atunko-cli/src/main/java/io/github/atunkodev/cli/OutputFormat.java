@@ -1,5 +1,6 @@
 package io.github.atunkodev.cli;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.atunkodev.core.recipe.RecipeInfo;
@@ -11,7 +12,10 @@ public enum OutputFormat {
     TEXT,
     JSON;
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    @JsonIgnoreProperties({"options"})
+    private abstract static class RecipeInfoMixin {}
+
+    private static final ObjectMapper MAPPER = new ObjectMapper().addMixIn(RecipeInfo.class, RecipeInfoMixin.class);
 
     public void render(PrintWriter out, List<RecipeInfo> recipes) {
         if (recipes.isEmpty()) {

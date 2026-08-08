@@ -1,0 +1,6 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.example</groupId>
+  <artifactId>service-payments</artifactId>
+  <version>1.0-SNAPSHOT</version>
+</project>
