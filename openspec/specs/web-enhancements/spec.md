@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+Incremental Web UI recipe browser and execution enhancements, tracked as WEB_0001 sub-requirements.
+
+## Requirements
 
 ### Requirement: WEB_0001.10
 The system SHALL implement WEB_0001.10.
