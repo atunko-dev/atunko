@@ -950,6 +950,17 @@ requirements:
     categories: [functional-suitability]
     revision: 0.1.0
 
+  # JBang distribution
+  - id: CLI_0006
+    title: JBang Zero-Install Distribution
+    significance: shall
+    description: >-
+      The repository shall provide a JBang catalog defining an atunko alias that runs the
+      released shadow JAR, so that users can execute atunko with jbang
+      atunko@atunko-dev/atunko <args> without cloning or building the project
+    categories: [compatibility]
+    revision: 0.1.0
+
   # Web UI workspace requirements
   - id: WEB_0002
     title: Web UI — Workspace Scan and Multi-Select

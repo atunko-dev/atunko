@@ -32,16 +32,36 @@ jobs:
           VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Copy shadow JAR to stable name for JBang
+        run: |
+          shopt -s nullglob
+          # build/libs also holds the thin atunko-cli-<version>.jar — keep only the shadow JAR
+          shadow=()
+          for jar in atunko-cli/build/libs/atunko-*.jar; do
+            [[ "$(basename "$jar")" == atunko-cli-* ]] && continue
+            shadow+=("$jar")
+          done
+          if [[ ${#shadow[@]} -ne 1 ]]; then
+            echo "Expected exactly one versioned shadow JAR, found ${#shadow[@]}: ${shadow[*]}"
+            exit 1
+          fi
+          cp "${shadow[0]}" atunko-cli/build/libs/atunko.jar
+
       - name: Delete previous snapshot release (if exists)
-        run: gh release delete "${{ steps.version.outputs.version }}" --yes --cleanup-tag || true
+        run: |
+          gh release delete snapshot --yes --cleanup-tag || true
+          gh release delete "${{ steps.version.outputs.version }}" --yes --cleanup-tag || true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create snapshot pre-release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.version }}
+          # Fixed tag so the JBang catalog URL (releases/download/snapshot/atunko.jar) never changes
+          tag_name: snapshot
           name: "Snapshot ${{ steps.version.outputs.version }}"
           prerelease: true
-          files: atunko-cli/build/libs/atunko-*.jar
+          files: |
+            atunko-cli/build/libs/atunko-*.jar
+            atunko-cli/build/libs/atunko.jar
           fail_on_unmatched_files: true

@@ -33,6 +33,21 @@ jobs:
       - name: Build
         run: ./gradlew build
 
+      - name: Create stable-named JAR for the JBang catalog alias
+        run: |
+          shopt -s nullglob
+          # build/libs also holds the thin atunko-cli-<version>.jar — keep only the shadow JAR
+          shadow=()
+          for jar in atunko-cli/build/libs/atunko-*.jar; do
+            [[ "$(basename "$jar")" == atunko-cli-* ]] && continue
+            shadow+=("$jar")
+          done
+          if [[ ${#shadow[@]} -ne 1 ]]; then
+            echo "Expected exactly one versioned shadow JAR, found ${#shadow[@]}: ${shadow[*]}"
+            exit 1
+          fi
+          cp "${shadow[0]}" atunko-cli/build/libs/atunko.jar
+
       - name: Generate changelog
         uses: orhun/git-cliff-action@v4
         id: changelog
@@ -44,5 +59,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body: ${{ steps.changelog.outputs.content }}
-          files: atunko-cli/build/libs/atunko-*.jar
+          files: |
+            atunko-cli/build/libs/atunko-*.jar
+            atunko-cli/build/libs/atunko.jar
           fail_on_unmatched_files: true
