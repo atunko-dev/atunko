@@ -4,7 +4,6 @@ import com.github.mvysny.vaadinboot.VaadinBoot;
 import io.github.atunkodev.core.AppServices;
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
-import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectScannerFactory;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
@@ -54,7 +53,14 @@ public class WebUiCommand implements Runnable {
     }
 
     @Override
-    @Requirements({"atunko:WEB_0001", "atunko:WEB_0001.3", "atunko:WEB_0001.7", "atunko:WEB_0002", "atunko:WEB_0002.4"})
+    @Requirements({
+        "atunko:WEB_0001",
+        "atunko:WEB_0001.3",
+        "atunko:WEB_0001.7",
+        "atunko:WEB_0002",
+        "atunko:WEB_0002.4",
+        "atunko:WEB_0004"
+    })
     public void run() {
         RecipeHolder.init(discoveryService.discoverAll());
         if (workspaceDir != null) {
@@ -62,8 +68,10 @@ public class WebUiCommand implements Runnable {
                     WorkspaceScanner.scan(workspaceDir.toAbsolutePath().normalize());
             SessionHolder.initWorkspace(workspace.root(), workspace.projects());
         } else {
-            ProjectInfo projectInfo = ProjectScannerFactory.detect(projectDir).scan(projectDir);
-            SessionHolder.init(projectDir, projectInfo);
+            // Detect fails fast on a directory without build files, but the scan itself is the
+            // expensive part and is deferred to the first recipe execution.
+            ProjectScannerFactory.detect(projectDir);
+            SessionHolder.initLazy(projectDir);
         }
         AppServices.init(engine, sourceParser, changeApplier);
         // Badges are shown before anything is parsed, so start from the project-type hint; the first run replaces

@@ -26,6 +26,13 @@ public final class ExecutionResultsView {
     private ExecutionResultsView() {}
 
     public static Element render(TuiController controller) {
+        Element error = controller
+                .executionError()
+                .map(msg -> renderError(controller, msg))
+                .orElse(null);
+        if (error != null) {
+            return error;
+        }
         WorkspaceExecutionResult wsResult = controller.lastWorkspaceResult();
         if (wsResult != null) {
             return renderWorkspaceResult(controller, wsResult);
@@ -35,6 +42,32 @@ public final class ExecutionResultsView {
                 .executionResult()
                 .map(result -> renderResult(controller, title, result))
                 .orElse(text("No results"));
+    }
+
+    /** Renders a run that could not complete — the session stays alive so the run can be retried. */
+    @Requirements({"atunko:TUI_0005.1"})
+    private static Element renderError(TuiController controller, String message) {
+        return column(dock().top(
+                                row(
+                                        text(" Execution Failed ").addClass("screen-title", "error-mode"),
+                                        spacer(),
+                                        text("0 file(s) changed ").addClass("coverage-indicator")),
+                                Constraint.length(1))
+                        .center(list(List.of(message)).title("Error").addClass("panel", "error-message"))
+                        .bottom(
+                                text(" Esc/q:back — fix the cause and run again")
+                                        .addClass("status-bar"),
+                                Constraint.length(1))
+                        .constraint(Constraint.fill()))
+                .id("execution-error")
+                .focusable()
+                .onKeyEvent(event -> {
+                    if (event.isChar('q') || event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
+                        controller.goBack();
+                        return EventResult.HANDLED;
+                    }
+                    return EventResult.UNHANDLED;
+                });
     }
 
     @Requirements({"atunko:TUI_0002.4"})
