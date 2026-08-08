@@ -40,15 +40,22 @@ public final class HelpOverlay {
                             new Entry("o", "Recipe options"),
                             new Entry("r", "Run dialog"),
                             new Entry("t", "Tag browser"),
-                            new Entry("s", "Sort order"),
+                            new Entry("s", "Sort order (name/tags/recent)"),
                             new Entry("u", "Recipe source (all/bundled/user)"),
+                            new Entry("f", "Toggle favorite"),
+                            new Entry("F", "Favorites filter (all/favorites)"),
                             new Entry("S", "Save run config"),
                             new Entry("L", "Load run config"),
                             new Entry("/", "Search"),
                             new Entry("n/N", "Next/prev match"),
                             new Entry("Esc", "Clear all"),
                             new Entry("q", "Quit"))),
-            new Section("Legend", List.of(new Entry("[x]", "Selected"), new Entry("[c]", "Covered by composite"))));
+            new Section(
+                    "Legend",
+                    List.of(
+                            new Entry("[x]", "Selected"),
+                            new Entry("[c]", "Covered by composite"),
+                            new Entry("*", "Favorite"))));
 
     public static final List<Section> RUN_DIALOG_HELP = List.of(
             new Section(

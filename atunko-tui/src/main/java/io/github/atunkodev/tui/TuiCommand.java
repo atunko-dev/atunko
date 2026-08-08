@@ -14,6 +14,7 @@ import io.github.atunkodev.core.project.WorkspaceScanner;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.reqstool.annotations.Requirements;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.List;
 import picocli.CommandLine.Command;
@@ -51,6 +52,12 @@ public class TuiCommand implements Runnable {
                     + "its recipes are classified as user recipes")
     private List<Path> recipeJars = List.of();
 
+    @Option(
+            names = "--recipes-file",
+            description = "User recipe YAML file added to the discovery and execution environment (repeatable); "
+                    + "its recipes are classified as user recipes")
+    private List<Path> recipeFiles = List.of();
+
     public TuiCommand(
             RecipeDiscoveryService discoveryService,
             RunConfigService runConfigService,
@@ -65,13 +72,23 @@ public class TuiCommand implements Runnable {
     }
 
     @Override
-    @Requirements({"atunko:TUI_0001", "atunko:TUI_0002", "atunko:TUI_0002.1", "atunko:TUI_0005", "atunko:TUI_0006"})
+    @Requirements({
+        "atunko:TUI_0001",
+        "atunko:TUI_0002",
+        "atunko:TUI_0002.1",
+        "atunko:TUI_0005",
+        "atunko:TUI_0006",
+        "atunko:CORE_0020.1"
+    })
     public void run() {
-        // One toolchain for the session: when user recipe jars were supplied, discovery AND execution share
-        // the same jar-aware environment — otherwise the catalog would list user recipes the engine cannot run.
-        RecipeToolchain.Resolved toolchain = RecipeToolchain.resolve(discoveryService, engine, recipeJars);
+        // One toolchain for the session: when user recipe sources (jars, YAML files, config-dir auto-discovery)
+        // are present, discovery AND execution share the same user-aware environment — otherwise the catalog
+        // would list user recipes the engine cannot run.
+        RecipeToolchain.Resolved toolchain = RecipeToolchain.resolve(discoveryService, engine, recipeJars, recipeFiles);
         RecipeExecutionEngine sessionEngine = toolchain.engine();
         List<RecipeInfo> recipes = toolchain.discoveryService().discoverAll();
+        // Reported before the alternate screen starts, so skipped recipe files stay visible in the scrollback.
+        toolchain.reportWarnings(new PrintWriter(System.err));
         // The one LST cache of this TUI session — shared by the controller and the workspace engine so a
         // project parsed by either is a cache hit for the other.
         ParsedSourcesCache sourceCache = sourceParser != null ? new ParsedSourcesCache(sourceParser) : null;

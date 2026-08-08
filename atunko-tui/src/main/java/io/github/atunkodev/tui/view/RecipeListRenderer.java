@@ -19,6 +19,9 @@ public final class RecipeListRenderer {
     /** Glyph prefixing the badge of a recipe that cannot act on the parsed source set. */
     public static final String INAPPLICABLE_GLYPH = "⊘";
 
+    /** Glyph marking a favorite recipe after its display name. */
+    public static final String FAVORITE_GLYPH = "*";
+
     public record RenderOptions(boolean showNumbering, boolean showTags, boolean dimUnselected) {
         public static final RenderOptions BROWSER = new RenderOptions(false, true, false);
         public static final RenderOptions RUN_DIALOG = new RenderOptions(true, false, true);
@@ -71,6 +74,33 @@ public final class RecipeListRenderer {
             RenderOptions options,
             Constraint constraint,
             ApplicabilityLookup applicability) {
+        return renderRecipeList(
+                displayRows,
+                selectedRecipes,
+                expandedRecipes,
+                coveredRecipes,
+                partialRecipes,
+                highlightedIndex,
+                title,
+                options,
+                constraint,
+                applicability,
+                Set.of());
+    }
+
+    @Requirements({"atunko:TUI_0001.16", "atunko:TUI_0001.17", "atunko:TUI_0004", "atunko:TUI_0007.1"})
+    public static Element renderRecipeList(
+            List<DisplayRow> displayRows,
+            Set<String> selectedRecipes,
+            Set<String> expandedRecipes,
+            Set<String> coveredRecipes,
+            Set<String> partialRecipes,
+            int highlightedIndex,
+            String title,
+            RenderOptions options,
+            Constraint constraint,
+            ApplicabilityLookup applicability,
+            Set<String> favoriteRecipes) {
         var recipeList = list().addClass("list-item");
 
         int parentIndex = 0;
@@ -103,6 +133,9 @@ public final class RecipeListRenderer {
                 if (coveredCount > 0) {
                     displayName += " [" + coveredCount + "/" + r.recipeList().size() + "]";
                 }
+            }
+            if (favoriteRecipes.contains(r.name())) {
+                displayName += " " + FAVORITE_GLYPH;
             }
             RecipeApplicability recipeApplicability = applicability.applicabilityOf(r);
             var nameEl = resolveNameStyle(displayName, selected, partial, covered, options, recipeApplicability);

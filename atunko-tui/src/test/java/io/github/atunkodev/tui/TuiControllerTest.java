@@ -12,6 +12,9 @@ import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.Workspace;
+import io.github.atunkodev.core.recipe.FavoritesFilter;
+import io.github.atunkodev.core.recipe.FavoritesService;
+import io.github.atunkodev.core.recipe.RecentRecipesService;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.RecipeSource;
 import io.github.atunkodev.core.recipe.RecipeSourceFilter;
@@ -374,6 +377,91 @@ class TuiControllerTest {
 
         assertThat(controller.sourceFilter()).isEqualTo(RecipeSourceFilter.ALL);
         assertThat(controller.recipes()).hasSize(3);
+    }
+
+    // --- Favorites ---
+
+    private static TuiController controllerWithConfig(List<RecipeInfo> recipes, Path configDir) {
+        return new TuiController(
+                recipes,
+                new FavoritesService(configDir.resolve("favorites.yml")),
+                new RecentRecipesService(configDir.resolve("recent.yml")));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0007"})
+    void toggleFavoriteMarksHighlightedRecipeAndPersists(@TempDir Path configDir) {
+        TuiController controller = controllerWithConfig(RECIPES, configDir);
+
+        controller.toggleFavorite();
+
+        assertThat(controller.isFavorite("org.test.Alpha")).isTrue();
+        assertThat(controller.favoriteRecipes()).containsExactly("org.test.Alpha");
+        // A fresh controller over the same config dir reads the persisted favorite.
+        assertThat(controllerWithConfig(RECIPES, configDir).isFavorite("org.test.Alpha"))
+                .isTrue();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0007"})
+    void toggleFavoriteAgainUnmarksTheRecipe(@TempDir Path configDir) {
+        TuiController controller = controllerWithConfig(RECIPES, configDir);
+        controller.toggleFavorite();
+
+        controller.toggleFavorite();
+
+        assertThat(controller.favoriteRecipes()).isEmpty();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0007"})
+    void favoritesFilterCyclesNarrowsAndResetsOnClearAll(@TempDir Path configDir) {
+        TuiController controller = controllerWithConfig(RECIPES, configDir);
+        controller.moveDown(); // highlight Beta
+        controller.toggleFavorite();
+
+        assertThat(controller.favoritesFilter()).isEqualTo(FavoritesFilter.ALL);
+        controller.cycleFavoritesFilter();
+        assertThat(controller.favoritesFilter()).isEqualTo(FavoritesFilter.FAVORITES);
+        assertThat(controller.recipes()).containsExactly(BETA);
+        assertThat(controller.highlightedIndex()).isZero();
+
+        controller.cycleFavoritesFilter();
+        assertThat(controller.favoritesFilter()).isEqualTo(FavoritesFilter.ALL);
+        assertThat(controller.recipes()).hasSize(3);
+
+        controller.cycleFavoritesFilter();
+        controller.clearAll();
+        assertThat(controller.favoritesFilter()).isEqualTo(FavoritesFilter.ALL);
+    }
+
+    // --- Recently used ---
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0008"})
+    void cycleSortOrderCyclesNameTagsRecent(@TempDir Path configDir) {
+        TuiController controller = controllerWithConfig(RECIPES, configDir);
+
+        assertThat(controller.sortOrder()).isEqualTo(SortOrder.NAME);
+        controller.cycleSortOrder();
+        assertThat(controller.sortOrder()).isEqualTo(SortOrder.TAGS);
+        controller.cycleSortOrder();
+        assertThat(controller.sortOrder()).isEqualTo(SortOrder.RECENT);
+        controller.cycleSortOrder();
+        assertThat(controller.sortOrder()).isEqualTo(SortOrder.NAME);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0008"})
+    void recentSortOrderListsRecentlyRecordedRecipesFirst(@TempDir Path configDir) throws Exception {
+        RecentRecipesService recentService = new RecentRecipesService(configDir.resolve("recent.yml"));
+        TuiController controller =
+                new TuiController(RECIPES, new FavoritesService(configDir.resolve("favorites.yml")), recentService);
+        recentService.record(List.of("org.test.Gamma"));
+
+        controller.setSortOrder(SortOrder.RECENT);
+
+        assertThat(controller.recipes()).containsExactly(GAMMA, ALPHA, BETA);
     }
 
     // --- Recipe Options ---
@@ -1743,6 +1831,40 @@ class TuiControllerTest {
 
         assertThat(controller.currentScreen()).isEqualTo(Screen.WORKSPACE_RESULTS);
         assertThat(controller.lastWorkspaceResult()).isSameAs(fakeResult);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0008"})
+    void runSelectedRecipesRecordsExecutedRecipesAsRecentlyUsed(
+            @TempDir Path workspaceDir, @TempDir Path projectA, @TempDir Path configDir) {
+        ProjectEntry entry = new ProjectEntry(projectA, new ProjectInfo(List.of(), List.of()));
+        WorkspaceExecutionEngine stubEngine = new WorkspaceExecutionEngine(null, null) {
+            @Override
+            public WorkspaceExecutionResult execute(List<String> recipeNames, Workspace workspace) {
+                return new WorkspaceExecutionResult(
+                        List.of(new ProjectExecutionResult(entry, new ExecutionResult(List.of()), null)));
+            }
+        };
+        RecentRecipesService recentService = new RecentRecipesService(configDir.resolve("recent.yml"));
+        TuiController controller = new TuiController(
+                RECIPES,
+                new RunConfigService(),
+                null,
+                null,
+                null,
+                stubEngine,
+                List.of(entry),
+                workspaceDir,
+                new FavoritesService(configDir.resolve("favorites.yml")),
+                recentService);
+        controller.toggleSelection(); // select Alpha
+        controller.openConfirmRun();
+
+        controller.runSelectedRecipes(true);
+
+        assertThat(recentService.recentNames()).containsExactly("org.test.Alpha");
+        assertThat(new RecentRecipesService(configDir.resolve("recent.yml")).recentNames())
+                .containsExactly("org.test.Alpha");
     }
 
     @Test
