@@ -3,10 +3,17 @@ package io.github.atunkodev.tui;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.tamboui.tui.event.KeyCode;
+import io.github.atunkodev.core.project.ParsedSources;
+import io.github.atunkodev.core.project.ProjectInfo;
+import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SourceCapability;
 import io.github.reqstool.annotations.SVCs;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * End-to-end verification that recipes which cannot act on the parsed source set are badged in the real rendered
@@ -38,6 +45,37 @@ class AtunkoTuiApplicabilityPilotTest {
 
             tui.controller().setSourceCapabilities(Set.of(SourceCapability.JAVA, SourceCapability.MAVEN));
             // force a re-render through the live pipeline
+            tui.pilot().press(KeyCode.DOWN);
+
+            assertThat(tui.screen()).doesNotContain("⊘ needs Maven");
+            assertThat(tui.screen()).contains("⊘ needs Gradle");
+        }
+    }
+
+    /**
+     * Stage 2 end-to-end: a real Maven project is parsed by the production parser, and the capabilities that parse
+     * reports are enough to un-badge Maven recipes in the rendered frame. The fixture pom has no parent and no
+     * dependencies, so it resolves without touching a repository.
+     */
+    @Test
+    @SVCs({"atunko:SVC_CORE_0016", "atunko:SVC_TUI_0004"})
+    void mavenBadgesDisappearAfterARealMavenProjectHasBeenParsed(@TempDir Path projectDir) throws Exception {
+        Files.writeString(projectDir.resolve("pom.xml"), """
+            <project xmlns="http://maven.apache.org/POM/4.0.0">
+                <modelVersion>4.0.0</modelVersion>
+                <groupId>io.github.atunko.test</groupId>
+                <artifactId>pilot-fixture</artifactId>
+                <version>1.0.0</version>
+            </project>
+            """);
+        ParsedSources parsed =
+                new ProjectSourceParser().parseWithCapabilities(new ProjectInfo(List.of(), List.of(projectDir)));
+        assertThat(parsed.capabilities()).contains(SourceCapability.MAVEN);
+
+        try (PilotTestSupport tui = PilotTestSupport.launch(PilotTestSupport.APPLICABILITY_RECIPES)) {
+            assertThat(tui.screen()).contains("⊘ needs Maven");
+
+            tui.controller().setSourceCapabilities(parsed.capabilities());
             tui.pilot().press(KeyCode.DOWN);
 
             assertThat(tui.screen()).doesNotContain("⊘ needs Maven");

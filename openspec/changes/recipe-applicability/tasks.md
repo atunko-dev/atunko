@@ -41,18 +41,18 @@
 
 ## 6. Core: Maven parsing (Stage 2)
 
-- [ ] 6.1 Add requirement CORE_0016 + SVCs SVC_CORE_0016..0016.2 to reqstool
-- [ ] 6.2 Tests first: fixture Maven project (single- and multi-module) —
+- [x] 6.1 Add requirement CORE_0016 + SVCs SVC_CORE_0016..0016.2 to reqstool
+- [x] 6.2 Tests first: fixture Maven project (single- and multi-module) —
       parsed `pom.xml` carries `MavenResolutionResult` marker; capability set
       contains MAVEN; a real `org.openrewrite.maven.*` recipe (e.g.
       ChangePropertyValue/UpgradeDependencyVersion) produces changes end-to-end
-- [ ] 6.3 `ProjectSourceParser`: route `pom.xml` files to `MavenParser` (all poms
+- [x] 6.3 `ProjectSourceParser`: route `pom.xml` files to `MavenParser` (all poms
       in one parse call); other XML unchanged; on Maven parse failure fall back
       to `XmlParser` and omit MAVEN capability
-- [ ] 6.4 Verify badges flip: Maven recipes un-badged on Maven fixture project
+- [x] 6.4 Verify badges flip: Maven recipes un-badged on Maven fixture project
       (unit + Pilot test)
 
 ## 7. Stage 2 wrap-up
 
-- [ ] 7.1 `./gradlew spotlessApply build` green; annotations in place
+- [x] 7.1 `./gradlew spotlessApply build` green; annotations in place
 - [ ] 7.2 PR for Stage 2

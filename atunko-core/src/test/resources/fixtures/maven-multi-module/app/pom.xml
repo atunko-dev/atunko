@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.atunko.test</groupId>
+        <artifactId>multi-module-fixture</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <!-- Deliberately non-canonical element order: <properties> before <artifactId>.
+         org.openrewrite.maven.OrderPomElements reorders this, which is what the
+         end-to-end test asserts. -->
+    <properties>
+        <app.name>fixture-app</app.name>
+    </properties>
+
+    <artifactId>fixture-app</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.atunko.test</groupId>
+            <artifactId>fixture-lib</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+    </dependencies>
+</project>

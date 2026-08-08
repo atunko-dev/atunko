@@ -100,7 +100,35 @@ Rollback = revert. Stage 1 ships badges with `MAVEN`/`GRADLE` absent (all Maven 
 Gradle recipes badged); Stage 2 flips `MAVEN` to present on successful Maven parse,
 which automatically un-badges Maven recipes.
 
+7. **Pom discovery (Stage 2 addition).** Decision 5 only covered routing, but a Maven
+   project's poms live *above* its source directories and `MavenProjectScanner` reported
+   only `src/main/java`, so `ProjectSourceParser` would never have seen a pom in real
+   usage. `ProjectInfo` therefore gains a `buildFiles` component (existing 2- and 5-arg
+   constructors preserved, so no call site changed); `MavenProjectScanner` fills it with
+   every `pom.xml` under the project root, skipping `target`/`build`/`.git`/`node_modules`.
+   *Alternative considered*: inferring the project root by walking up from the source
+   directories — rejected as guesswork; the scanner already knows.
+
+8. **Success criterion for Maven parsing.** `MavenParser` does not throw on an
+   unresolvable pom: it returns an `Xml.Document` carrying a `ParseExceptionResult`
+   marker and no `MavenResolutionResult`. Success is therefore judged per document by the
+   presence of `MavenResolutionResult`. Poms without it are re-parsed with `XmlParser` so
+   they are still present as clean XML with no failure markers, and `MAVEN` is reported
+   only when at least one pom resolved. Maven parsing runs on its own
+   `InMemoryExecutionContext` with a swallowing error handler so a broken pom cannot fail
+   the whole project parse.
+
 ## Open Questions
 
-- None blocking. Badge glyph/wording finalized during TUI implementation against
-  Pilot snapshots.
+- **Resolved — badges before the first run.** Capability sets are only refreshed when a
+  run happens, because that is when parsing occurs, so on a Maven project every Maven
+  recipe would be badged "needs Maven" until the user's first run. Implemented fix:
+  `SourceCapabilityHints.forProjectDir(dir)` returns `{MAVEN}` exactly when the project
+  root has a `pom.xml` — the same signal `ProjectScannerFactory` uses to pick the Maven
+  scanner — and the TUI (`TuiController` constructor) and Web (`WebUiCommand.run()`) seed
+  their capability set from it. The hint is replaced wholesale by the real capability set
+  on the first parse, so a pom that does not actually resolve corrects itself then.
+  `GRADLE` is never hinted: Gradle build files are not parsed at all, so no run could
+  ever make Gradle recipes applicable and hinting it would be a lie the parse never
+  corrects. Traced as CORE_0016.3 / SVC_CORE_0016.3.
+- Badge glyph/wording finalized during TUI implementation against Pilot snapshots.

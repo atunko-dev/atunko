@@ -1138,6 +1138,59 @@ requirements:
     categories: [performance-efficiency]
     revision: 0.1.0
 
+  - id: CORE_0016
+    title: Core — Maven Build Model Parsing
+    significance: shall
+    description: >-
+      The core module shall parse a project's pom.xml files with OpenRewrite's Maven
+      parser so that the resulting documents carry a MavenResolutionResult marker,
+      which is what every org.openrewrite.maven.* recipe requires in order to act;
+      XML files that are not poms shall keep being parsed by the generic XML parser
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0016.1
+    title: Core — Whole-Build Pom Parsing
+    significance: shall
+    description: >-
+      All poms of a project shall be discovered — including the poms of the modules of
+      a multi-module build, which live outside the source and resource directories —
+      and shall be parsed in a single parser invocation, so that parent/child and
+      inter-module relationships resolve against each other rather than against a
+      remote repository
+    references:
+      requirement_ids: ["CORE_0016"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0016.2
+    title: Core — Maven Parse Fallback
+    significance: shall
+    description: >-
+      When a pom cannot be resolved into a Maven build model (unresolvable parent or
+      dependency, offline or air-gapped run) it shall fall back to being parsed as
+      plain XML without parse-failure markers, and the MAVEN capability shall not be
+      reported for it, so that applicability badges stay honest instead of promising
+      an ability the source set does not have
+    references:
+      requirement_ids: ["CORE_0016"]
+    categories: [functional-suitability, reliability]
+    revision: 0.1.0
+
+  - id: CORE_0016.3
+    title: Core — Pre-Parse Capability Hint
+    significance: shall
+    description: >-
+      Before a project has been parsed, the capability set used for badging shall be
+      seeded from the detected project type — MAVEN when the project root has a
+      pom.xml — and shall be replaced by the capabilities the parse actually produced
+      as soon as the project is parsed; GRADLE shall never be hinted, because Gradle
+      build files are not parsed at all
+    references:
+      requirement_ids: ["CORE_0016"]
+    categories: [functional-suitability, usability]
+    revision: 0.1.0
+
   - id: TUI_0004
     title: TUI — Inapplicable Recipe Badging
     significance: shall

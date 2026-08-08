@@ -17,6 +17,7 @@ import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
 import io.github.atunkodev.core.project.SourceCapability;
+import io.github.atunkodev.core.project.SourceCapabilityHints;
 import io.github.atunkodev.core.project.Workspace;
 import io.github.atunkodev.core.recipe.RecipeApplicability;
 import io.github.atunkodev.core.recipe.RecipeApplicabilityService;
@@ -386,6 +387,9 @@ public class TuiController {
         this.workspaceEngine = workspaceEngine;
         this.workspaceProjects = workspaceProjects != null ? List.copyOf(workspaceProjects) : null;
         this.projectDir = projectDir;
+        // Badges are shown before anything is parsed, so start from the project-type hint; the first run replaces
+        // this with the capabilities the parse actually produced.
+        this.sourceCapabilities = SourceCapabilityHints.forProjectDir(projectDir);
         this.browserState = new RecipeListState(this::recipes, selectedRecipes);
     }
 
