@@ -64,6 +64,34 @@ file-existence check, independent of the scan.
    (audit call sites; today it is only the execution path and project-info
    display, which shows the directory path pre-scan).
 
+5. **`initLazy` has a two-argument overload taking an explicit `ProjectScanner`**
+   (implementation addition to decision 1's API sketch). `initLazy(Path)` detects the
+   scanner when the scan finally runs — that is the production path — while
+   `initLazy(Path, ProjectScanner)` lets the TUI Pilot and Karibu tests drive a
+   counting/failing scanner without invoking Gradle or Maven. Making it public rather
+   than package-private is what lets the UI-module tests use it at all.
+
+6. **Call-site audit outcome (task 5.1): no pre-scan fixes were needed.**
+   `TuiController.runSelectedRecipes` and `RecipeBrowserView.executeSingleProject`
+   already fall back to `new ProjectInfo(List.of(), List.of(projectDir))` when
+   `getProjectInfo()` is `null`, and both now call `ensureScanned()` first anyway.
+   `RecipeBrowserView`'s `workspaceMode = getProjectEntries().size() > 1` is `false`
+   for an empty entry list exactly as it was for a single-entry list, and
+   `buildWorkspacePanel()` only runs in workspace mode, which stays eager. The
+   `SourceCapabilityHints` seeding in `TuiController`/`WebUiCommand` reads the project
+   directory, not the scan. `getProjectDir()` was extended to return the pending
+   directory, so the save/export base directory in the Web UI is correct pre-scan
+   instead of falling back to `.`.
+
+7. **Scan failure surfacing.** TUI: `TuiController` gains an `executionError` state;
+   a failed scan puts the UI on the execution-results screen rendered as an
+   "Execution Failed" panel (new `.error-mode` / `.error-message` TCSS classes in both
+   themes) carrying the scanner message, and `Esc/q` returns to the browser. Web: the
+   scan failure is rethrown as `IllegalStateException("Project scan failed: …")` inside
+   the existing background `try`, so it reaches the existing `Notification` error path
+   and the run buttons are re-enabled. Both leave the session alive and retry on the
+   next run, because `ensureScanned()` does not memoize failures.
+
 ## Risks / Trade-offs
 
 - [First run gets slower — scan cost moves into it] → covered by existing progress
