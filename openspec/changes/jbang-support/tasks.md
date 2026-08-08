@@ -2,9 +2,9 @@
 
 ## 1. reqstool
 
-- [ ] 1.1 Add requirement CLI_0006 (JBang zero-install distribution) to
+- [x] 1.1 Add requirement CLI_0006 (JBang zero-install distribution) to
       `docs/reqstool/requirements.yml`
-- [ ] 1.2 Add SVCs SVC_CLI_0006 (catalog file valid: parses as JSON, `atunko`
+- [x] 1.2 Add SVCs SVC_CLI_0006 (catalog file valid: parses as JSON, `atunko`
       alias present, script-ref is the latest-release stable-asset URL) and
       SVC_CLI_0006.1 (manual smoke: `jbang atunko@atunko-dev/atunko --help`
       runs after a release exists) to
