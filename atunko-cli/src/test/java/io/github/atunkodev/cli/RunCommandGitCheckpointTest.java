@@ -2,6 +2,11 @@ package io.github.atunkodev.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.github.atunkodev.core.engine.ChangeApplier;
+import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.git.GitCheckpointService;
+import io.github.atunkodev.core.git.GitService;
+import io.github.atunkodev.core.project.JavaSourceParser;
 import io.github.atunkodev.testing.CommandLineFixture;
 import io.github.reqstool.annotations.SVCs;
 import java.io.IOException;
@@ -44,15 +49,7 @@ class RunCommandGitCheckpointTest {
     }
 
     private boolean gitAvailable() {
-        try {
-            Process process = new ProcessBuilder("git", "--version").start();
-            return process.waitFor() == 0;
-        } catch (IOException e) {
-            return false;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return false;
-        }
+        return new GitService().isGitAvailable();
     }
 
     @Test
@@ -92,7 +89,7 @@ class RunCommandGitCheckpointTest {
         assertThat(exitCode)
                 .as("stderr: %s, stdout: %s", cli.stderr(), cli.stdout())
                 .isZero();
-        assertThat(cli.stdout()).contains("Git checkpoint created: ").contains("Restore with: git stash apply ");
+        assertThat(cli.stdout()).contains("Git checkpoint created: ").contains("Restore with: git restore --source=");
 
         Process stashList = new ProcessBuilder("git", "stash", "list")
                 .directory(workDir.toFile())
@@ -101,5 +98,63 @@ class RunCommandGitCheckpointTest {
         String stashes = new String(stashList.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         assertThat(stashList.waitFor()).isZero();
         assertThat(stashes).contains("atunko: pre-recipe");
+    }
+
+    /** The injected service lets the error branch be exercised without a real git failure. */
+    @Test
+    @SVCs({"atunko:SVC_CORE_0006.3"})
+    void checkpointFailureIsReportedAsFailureAndRunContinues() throws IOException {
+        Path workDir = copyFixtureToTemp();
+        GitCheckpointService failing = new GitCheckpointService() {
+            @Override
+            public Outcome checkpoint(Path dir) {
+                return new Outcome(Status.FAILED, null, "You do not have the initial commit yet", false);
+            }
+        };
+        CommandLineFixture cli = CommandLineFixture.create(factoryWithCheckpointService(failing));
+
+        int exitCode = cli.execute("run", "-r", RECIPE, "--project-dir", workDir.toString(), "--git-checkpoint");
+
+        assertThat(exitCode)
+                .as("stderr: %s, stdout: %s", cli.stderr(), cli.stdout())
+                .isZero();
+        assertThat(cli.stdout())
+                .contains("Git checkpoint FAILED (You do not have the initial commit yet)")
+                .doesNotContain("Working tree clean");
+        assertThat(cli.stdout()).contains("Changed:");
+    }
+
+    /** Untracked-only changes stash nothing; the message must say so instead of claiming a clean tree. */
+    @Test
+    @SVCs({"atunko:SVC_CORE_0006.3"})
+    void untrackedOnlyTreeWarnsInsteadOfClaimingClean() throws IOException {
+        Path workDir = copyFixtureToTemp();
+        GitCheckpointService untrackedOnly = new GitCheckpointService() {
+            @Override
+            public Outcome checkpoint(Path dir) {
+                return new Outcome(Status.NOTHING_TO_STASH, null, null, true);
+            }
+        };
+        CommandLineFixture cli = CommandLineFixture.create(factoryWithCheckpointService(untrackedOnly));
+
+        int exitCode = cli.execute("run", "-r", RECIPE, "--project-dir", workDir.toString(), "--git-checkpoint");
+
+        assertThat(exitCode).isZero();
+        assertThat(cli.stdout()).contains("untracked files are NOT covered").doesNotContain("Working tree clean");
+    }
+
+    private static picocli.CommandLine.IFactory factoryWithCheckpointService(GitCheckpointService service) {
+        return new picocli.CommandLine.IFactory() {
+            private final picocli.CommandLine.IFactory defaults = picocli.CommandLine.defaultFactory();
+
+            @Override
+            public <K> K create(Class<K> cls) throws Exception {
+                if (cls == RunCommand.class) {
+                    return cls.cast(new RunCommand(
+                            new RecipeExecutionEngine(), new JavaSourceParser(), new ChangeApplier(), service));
+                }
+                return defaults.create(cls);
+            }
+        };
     }
 }

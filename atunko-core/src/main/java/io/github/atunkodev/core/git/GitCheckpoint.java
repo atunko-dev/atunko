@@ -8,8 +8,14 @@ package io.github.atunkodev.core.git;
  */
 public record GitCheckpoint(String stashSha, String message) {
 
-    /** The git command that restores the checkpointed working-tree state. */
+    /**
+     * The git command that restores the checkpointed working-tree state.
+     *
+     * <p>{@code git restore --source} overwrites the working tree with the snapshot's file contents. A plain
+     * {@code git stash apply} would not undo a recipe: it merges the pre-run <em>diff</em> onto the current tree,
+     * leaving the recipe's changes in place (or conflicting with them).
+     */
     public String restoreCommand() {
-        return "git stash apply " + stashSha;
+        return "git restore --source=" + stashSha + " -- .";
     }
 }

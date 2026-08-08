@@ -7,8 +7,7 @@ import io.github.atunkodev.core.engine.ProjectExecutionResult;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
-import io.github.atunkodev.core.git.GitCheckpoint;
-import io.github.atunkodev.core.git.GitService;
+import io.github.atunkodev.core.git.GitCheckpointService;
 import io.github.atunkodev.core.project.JavaSourceParser;
 import io.github.atunkodev.core.project.ParsedSourcesCache;
 import io.github.atunkodev.core.project.ProjectSourceParser;
@@ -17,10 +16,7 @@ import io.github.atunkodev.core.project.WorkspaceScanner;
 import io.github.reqstool.annotations.Requirements;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 import org.openrewrite.SourceFile;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
@@ -47,7 +43,8 @@ public class RunCommand implements Runnable {
 
     @Option(
             names = "--git-checkpoint",
-            description = "Create a git stash checkpoint before applying changes (undo with `git stash apply <sha>`)")
+            description = "Create a git stash checkpoint per project before applying changes"
+                    + " (restore with the printed `git restore --source=<sha> -- .` command)")
     private boolean gitCheckpoint;
 
     @Spec
@@ -56,16 +53,25 @@ public class RunCommand implements Runnable {
     private final RecipeExecutionEngine engine;
     private final JavaSourceParser sourceParser;
     private final ChangeApplier changeApplier;
-    private final GitService gitService = new GitService();
+    private final GitCheckpointService checkpointService;
 
     public RunCommand() {
         this(new RecipeExecutionEngine(), new JavaSourceParser(), new ChangeApplier());
     }
 
     public RunCommand(RecipeExecutionEngine engine, JavaSourceParser sourceParser, ChangeApplier changeApplier) {
+        this(engine, sourceParser, changeApplier, new GitCheckpointService());
+    }
+
+    public RunCommand(
+            RecipeExecutionEngine engine,
+            JavaSourceParser sourceParser,
+            ChangeApplier changeApplier,
+            GitCheckpointService checkpointService) {
         this.engine = engine;
         this.sourceParser = sourceParser;
         this.changeApplier = changeApplier;
+        this.checkpointService = checkpointService;
     }
 
     @Override
@@ -84,10 +90,12 @@ public class RunCommand implements Runnable {
     }
 
     /**
-     * Creates an optional git stash checkpoint before changes are applied.
+     * Creates an optional git stash checkpoint immediately before changes are applied to {@code dir}, so the
+     * snapshot reflects the files the recipe output is about to overwrite.
      *
-     * <p>Degrades gracefully: a missing git binary, a directory outside any git repository, or a clean working tree
-     * each print a clear message and the run continues without a checkpoint.
+     * <p>Degrades gracefully: a missing git binary, a directory outside any git repository, unmodified tracked
+     * files, or a git failure each print a clear message and the run continues without a checkpoint — but a
+     * failure is reported as a failure, never as a clean tree.
      */
     @Requirements({"atunko:CORE_0006.3"})
     private void maybeCreateGitCheckpoint(Path dir) {
@@ -95,27 +103,31 @@ public class RunCommand implements Runnable {
             return;
         }
         PrintWriter out = spec.commandLine().getOut();
-        if (!gitService.isGitAvailable()) {
-            out.println("git executable not found - continuing without checkpoint");
-            return;
-        }
-        if (!gitService.isGitRepository(dir)) {
-            out.println("Not a git repository: " + dir + " - continuing without checkpoint");
-            return;
-        }
-        String message = "atunko: pre-recipe " + Instant.now().truncatedTo(ChronoUnit.SECONDS);
-        Optional<GitCheckpoint> checkpoint = gitService.createCheckpoint(dir, message);
-        if (checkpoint.isPresent()) {
-            out.println("Git checkpoint created: " + checkpoint.orElseThrow().stashSha());
-            out.println("Restore with: " + checkpoint.orElseThrow().restoreCommand());
-        } else {
-            out.println("Working tree clean - no git checkpoint needed");
+        GitCheckpointService.Outcome outcome = checkpointService.checkpoint(dir);
+        switch (outcome.status()) {
+            case NO_GIT -> out.println("git executable not found - continuing without checkpoint");
+            case NOT_A_REPOSITORY -> out.println("Not a git repository: " + dir + " - continuing without checkpoint");
+            case NOTHING_TO_STASH ->
+                out.println(
+                        outcome.untrackedPresent()
+                                ? "No tracked changes to checkpoint - untracked files are NOT covered by the"
+                                        + " checkpoint"
+                                : "Working tree clean - no git checkpoint needed");
+            case FAILED ->
+                out.println("Git checkpoint FAILED (" + outcome.detail() + ") - continuing without checkpoint");
+            case CREATED -> {
+                out.println("Git checkpoint created: " + outcome.checkpoint().stashSha());
+                out.println("Restore with: " + outcome.checkpoint().restoreCommand());
+                if (outcome.untrackedPresent()) {
+                    out.println("Note: untracked files are NOT covered by the checkpoint");
+                }
+            }
+            default -> throw new IllegalStateException("Unexpected checkpoint status: " + outcome.status());
         }
     }
 
     private void runSingleProject() {
         PrintWriter out = spec.commandLine().getOut();
-        maybeCreateGitCheckpoint(projectDir);
         List<SourceFile> sources = sourceParser.parse(projectDir);
 
         if (sources.isEmpty()) {
@@ -129,6 +141,7 @@ public class RunCommand implements Runnable {
         if (result.changes().isEmpty()) {
             out.println("No changes produced by recipe: " + recipe);
         } else {
+            maybeCreateGitCheckpoint(projectDir);
             changeApplier.apply(projectDir, result.changes());
             for (FileChange change : result.changes()) {
                 out.println("Changed: " + change.path());
@@ -141,7 +154,6 @@ public class RunCommand implements Runnable {
     @Requirements({"atunko:CLI_0005", "atunko:CLI_0005.1", "atunko:CLI_0005.2"})
     private void runWorkspace() {
         PrintWriter out = spec.commandLine().getOut();
-        maybeCreateGitCheckpoint(workspaceDir);
         Workspace workspace = WorkspaceScanner.scan(workspaceDir);
 
         if (workspace.projects().isEmpty()) {
@@ -156,12 +168,26 @@ public class RunCommand implements Runnable {
                 new WorkspaceExecutionEngine(engine, new ParsedSourcesCache(new ProjectSourceParser(), false));
         WorkspaceExecutionResult result = workspaceEngine.execute(recipe, workspace);
 
+        applyWorkspaceChanges(result);
         printSummaryTable(out, result);
         out.flush();
 
         if (result.hasFailures()) {
             throw new picocli.CommandLine.ExecutionException(
                     spec.commandLine(), result.failureCount() + " project(s) failed");
+        }
+    }
+
+    /**
+     * Applies each successful project's changes, checkpointing per project directory: workspace projects are
+     * frequently independent git repositories, so one checkpoint at the workspace root could cover none of them.
+     */
+    private void applyWorkspaceChanges(WorkspaceExecutionResult result) {
+        for (ProjectExecutionResult pr : result.results()) {
+            if (pr.succeeded() && !pr.result().changes().isEmpty()) {
+                maybeCreateGitCheckpoint(pr.entry().projectDir());
+                changeApplier.apply(pr.entry().projectDir(), pr.result().changes());
+            }
         }
     }
 
@@ -173,9 +199,6 @@ public class RunCommand implements Runnable {
             String name = pr.entry().projectDir().getFileName().toString();
             if (pr.succeeded()) {
                 int changes = pr.result().changes().size();
-                if (changes > 0) {
-                    changeApplier.apply(pr.entry().projectDir(), pr.result().changes());
-                }
                 out.printf("%-50s %8d  PASS%n", name, changes);
             } else {
                 out.printf(
