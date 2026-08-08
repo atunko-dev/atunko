@@ -1452,9 +1452,9 @@ requirements:
     title: CLI — User Recipe Jars via --recipe-jar
     significance: shall
     description: >-
-      The list and search subcommands shall accept a repeatable --recipe-jar <path>
-      option that adds user recipe jars to the discovery environment, so that the
-      recipes they contribute appear in the catalog classified as user recipes
+      The list, search, and tui subcommands shall accept a repeatable --recipe-jar
+      <path> option that adds user recipe jars to the discovery environment, so that
+      the recipes they contribute appear in the catalog classified as user recipes
     references:
       requirement_ids: ["CLI_0008"]
     categories: [functional-suitability]
