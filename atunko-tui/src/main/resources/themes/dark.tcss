@@ -12,6 +12,8 @@ $bg-highlight: blue;
 $bg-title-search: light-yellow;
 $bg-title-success: light-green;
 $bg-title-dryrun: light-yellow;
+$bg-title-error: light-red;
+$fg-error: light-red;
 
 /* Root */
 .app {
@@ -39,6 +41,17 @@ $bg-title-dryrun: light-yellow;
 .screen-title.dryrun-mode {
     color: black;
     background: $bg-title-dryrun;
+}
+
+.screen-title.error-mode {
+    color: black;
+    background: $bg-title-error;
+}
+
+/* Message of a run that could not complete, e.g. a failed project scan */
+.error-message {
+    color: $fg-error;
+    text-style: bold;
 }
 
 /* Status bar / footer */

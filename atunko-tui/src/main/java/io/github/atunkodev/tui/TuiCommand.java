@@ -57,7 +57,7 @@ public class TuiCommand implements Runnable {
     }
 
     @Override
-    @Requirements({"atunko:TUI_0001", "atunko:TUI_0002", "atunko:TUI_0002.1"})
+    @Requirements({"atunko:TUI_0001", "atunko:TUI_0002", "atunko:TUI_0002.1", "atunko:TUI_0005"})
     public void run() {
         List<RecipeInfo> recipes = discoveryService.discoverAll();
         TuiController controller;
@@ -69,7 +69,10 @@ public class TuiCommand implements Runnable {
                     recipes, runConfigService, engine, sourceParser, changeApplier, workspaceEngine, workspaceDir);
         } else {
             Path dir = projectDir != null ? projectDir : Path.of(".");
-            SessionHolder.init(dir, ProjectScannerFactory.detect(dir).scan(dir));
+            // Detect fails fast on a directory without build files, but the scan itself is the
+            // expensive part and is deferred to the first recipe execution.
+            ProjectScannerFactory.detect(dir);
+            SessionHolder.initLazy(dir);
             controller = new TuiController(recipes, runConfigService, engine, sourceParser, changeApplier, dir);
         }
         ThemeConfig themeConfig = ThemeConfig.resolve(theme, cssFile);

@@ -87,7 +87,10 @@ final class PilotTestSupport implements AutoCloseable {
     }
 
     static PilotTestSupport launch(List<RecipeInfo> recipes) throws Exception {
-        TuiController controller = new TuiController(recipes);
+        return launch(new TuiController(recipes));
+    }
+
+    static PilotTestSupport launch(TuiController controller) throws Exception {
         AtunkoTui app = new AtunkoTui(controller);
 
         TestBackend backend = new TestBackend(WIDTH, HEIGHT);
