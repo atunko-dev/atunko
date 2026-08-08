@@ -55,5 +55,5 @@
 
 - [x] 5.1 `./gradlew spotlessApply` then `./gradlew build` green;
       `openspec validate --all --strict` passes
-- [ ] 5.2 PR `feat: recipe source toggling — bundled vs user recipes (#19)`,
+- [x] 5.2 PR `feat: recipe source toggling — bundled vs user recipes (#19)`,
       refs #19
