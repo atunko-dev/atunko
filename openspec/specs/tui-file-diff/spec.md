@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+View per-file diffs of recipe execution results in the TUI.
+
+## Requirements
 
 ### Requirement: TUI_0001.19
 The system SHALL implement TUI_0001.19.
