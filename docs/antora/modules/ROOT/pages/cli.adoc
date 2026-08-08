@@ -237,6 +237,29 @@ atunko run -r org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0 --project-
 | Show help for the run command
 |===
 
+== Performance — LST caching
+
+Long-lived sessions (the TUI and the Web UI) keep the parsed sources (OpenRewrite LSTs)
+of each project in an in-memory cache. Parsing dominates recipe-execution cost, so
+repeated executions against the same project reuse the parsed sources instead of
+re-parsing from scratch.
+
+The cache invalidates itself automatically: before each execution the project's source
+and resource directories plus its build files are fingerprinted (file size and
+modification time). Any difference — a modified, added, or removed file, or a project
+re-scan that changes the classpath or source directories — discards the cached entry
+and re-parses the whole project.
+
+The cache is per-session and in-memory only; nothing is written to disk, and one-shot
+CLI runs are unaffected.
+
+To disable caching entirely, set the system property `atunko.lst.cache.disabled=true`:
+
+[source,bash]
+----
+java -Datunko.lst.cache.disabled=true -jar atunko.jar tui
+----
+
 == Running via Gradle
 
 During development, commands can be run via Gradle:
