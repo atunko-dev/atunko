@@ -7,6 +7,8 @@ import io.github.atunkodev.core.engine.ProjectExecutionResult;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
+import io.github.atunkodev.core.git.GitCheckpoint;
+import io.github.atunkodev.core.git.GitService;
 import io.github.atunkodev.core.project.JavaSourceParser;
 import io.github.atunkodev.core.project.ParsedSourcesCache;
 import io.github.atunkodev.core.project.ProjectSourceParser;
@@ -15,7 +17,10 @@ import io.github.atunkodev.core.project.WorkspaceScanner;
 import io.github.reqstool.annotations.Requirements;
 import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import org.openrewrite.SourceFile;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
@@ -40,12 +45,18 @@ public class RunCommand implements Runnable {
     @Option(names = "--workspace", description = "Path to a workspace root — scans for all projects underneath")
     private Path workspaceDir;
 
+    @Option(
+            names = "--git-checkpoint",
+            description = "Create a git stash checkpoint before applying changes (undo with `git stash apply <sha>`)")
+    private boolean gitCheckpoint;
+
     @Spec
     private CommandSpec spec;
 
     private final RecipeExecutionEngine engine;
     private final JavaSourceParser sourceParser;
     private final ChangeApplier changeApplier;
+    private final GitService gitService = new GitService();
 
     public RunCommand() {
         this(new RecipeExecutionEngine(), new JavaSourceParser(), new ChangeApplier());
@@ -72,8 +83,39 @@ public class RunCommand implements Runnable {
         }
     }
 
+    /**
+     * Creates an optional git stash checkpoint before changes are applied.
+     *
+     * <p>Degrades gracefully: a missing git binary, a directory outside any git repository, or a clean working tree
+     * each print a clear message and the run continues without a checkpoint.
+     */
+    @Requirements({"atunko:CORE_0006.3"})
+    private void maybeCreateGitCheckpoint(Path dir) {
+        if (!gitCheckpoint) {
+            return;
+        }
+        PrintWriter out = spec.commandLine().getOut();
+        if (!gitService.isGitAvailable()) {
+            out.println("git executable not found - continuing without checkpoint");
+            return;
+        }
+        if (!gitService.isGitRepository(dir)) {
+            out.println("Not a git repository: " + dir + " - continuing without checkpoint");
+            return;
+        }
+        String message = "atunko: pre-recipe " + Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        Optional<GitCheckpoint> checkpoint = gitService.createCheckpoint(dir, message);
+        if (checkpoint.isPresent()) {
+            out.println("Git checkpoint created: " + checkpoint.orElseThrow().stashSha());
+            out.println("Restore with: " + checkpoint.orElseThrow().restoreCommand());
+        } else {
+            out.println("Working tree clean - no git checkpoint needed");
+        }
+    }
+
     private void runSingleProject() {
         PrintWriter out = spec.commandLine().getOut();
+        maybeCreateGitCheckpoint(projectDir);
         List<SourceFile> sources = sourceParser.parse(projectDir);
 
         if (sources.isEmpty()) {
@@ -99,6 +141,7 @@ public class RunCommand implements Runnable {
     @Requirements({"atunko:CLI_0005", "atunko:CLI_0005.1", "atunko:CLI_0005.2"})
     private void runWorkspace() {
         PrintWriter out = spec.commandLine().getOut();
+        maybeCreateGitCheckpoint(workspaceDir);
         Workspace workspace = WorkspaceScanner.scan(workspaceDir);
 
         if (workspace.projects().isEmpty()) {
