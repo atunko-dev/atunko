@@ -244,3 +244,17 @@ openspec/.openspecui-dashboard-git-refresh.stamp
 # Vaadin dev-mode generated frontend resources
 **/src/main/frontend/generated/
 **/src/main/frontend/index.html
+
+# Eclipse / VS Code IDE cruft
+**/bin/
+**/.settings/
+**/.factorypath
+.vscode/
+
+# Local scratch / runtime output
+workspace/
+atunko-cli/atunko/
+.claude/worktrees/
+
+# Vaadin production/dev bundles (generated)
+atunko-web/src/main/bundles/
