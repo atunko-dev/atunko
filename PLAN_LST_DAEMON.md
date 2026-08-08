@@ -1,6 +1,6 @@
 # LST Caching — Daemon Approach
 
-Follows from [#11 feat: LST caching](https://github.com/atunko/atunko/issues/11) and
+Follows from [#11 feat: LST caching](https://github.com/atunko-dev/atunko/issues/11) and
 supersedes the serialization-based design in `PLAN_LST.md`.
 
 ## Why the original design failed
@@ -71,15 +71,40 @@ permanently. This is the same pattern as today; the daemon just makes re-scans r
 ## Key insight: TUI and Web already benefit
 
 `TuiController` and `WebUiCommand` are long-lived processes that stay running between
-recipe executions. They already get in-process caching for free if `List<SourceFile>` is
+recipe executions. They already get in-process caching for free if the parsed sources are
 stored across runs within the same session. The daemon is only strictly needed for the
 CLI (`atunko run`) which exits between invocations.
 
 This suggests a phased approach:
-1. **Phase 1 (in-process):** cache `List<SourceFile>` within `TuiController` and
+1. **Phase 1 (in-process):** cache parsed sources within `TuiController` and
    `WebUiCommand` sessions. Zero new infrastructure. Delivers the benefit for TUI/Web
    users immediately.
 2. **Phase 2 (daemon):** add the daemon for CLI use cases.
+
+## Phase 1 implementation (this PR)
+
+Since this plan was written, main gained the pieces Phase 1 slots into:
+`ProjectSourceParser.parseWithCapabilities()` returns a `ParsedSources` record
+(sources + `SourceCapability` set), sessions are a list of `ProjectEntry`
+(projectDir + `ProjectInfo`) held by `SessionHolder`, and the TUI, Web UI, and
+`WorkspaceExecutionEngine` each call the parser directly per execution.
+
+Phase 1 adds a `ParsedSourcesCache` in `atunko-core` in front of those call sites:
+
+- **Keyed per project directory** — each `ProjectEntry` of a workspace caches and
+  invalidates independently (`CORE_0018.2`).
+- **Invalidation by fingerprint, not WatchService.** On each lookup the cache walks the
+  project's source/resource dirs and build files and fingerprints (relative path, size,
+  mtime) tuples. Any difference → re-parse (`CORE_0018.1`). A walk is orders of
+  magnitude cheaper than a parse and avoids WatchService lifecycle/portability issues;
+  the WatchService approach remains the daemon's (Phase 2) concern.
+- **Whole-project granularity.** A change re-parses the whole project — the safe answer
+  to the partial re-parse accuracy question below, and the parse being cached at all is
+  the win Phase 1 is after.
+- **Disable switch** (`CORE_0018.3`) for tests and troubleshooting.
+
+Requirements: `CORE_0018`–`CORE_0018.3` in `docs/reqstool/requirements.yml`
+(renumbered from the draft's `CORE_0010`, which main assigned to workspace scanning).
 
 ## Open questions
 

@@ -12,6 +12,7 @@ import com.vaadin.flow.component.button.Button;
 import io.github.atunkodev.core.AppServices;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.project.ParsedSources;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectScanner;
 import io.github.atunkodev.core.project.ProjectSourceParser;
@@ -74,8 +75,8 @@ class RecipeBrowserViewLazyScanTest {
                 },
                 new ProjectSourceParser() {
                     @Override
-                    public List<SourceFile> parse(ProjectInfo info) {
-                        return List.of();
+                    public ParsedSources parseWithCapabilities(ProjectInfo info) {
+                        return ParsedSources.empty();
                     }
                 },
                 null);

@@ -12,6 +12,7 @@ import io.github.atunkodev.core.engine.RecipeExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
 import io.github.atunkodev.core.project.ParsedSources;
+import io.github.atunkodev.core.project.ParsedSourcesCache;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
@@ -308,7 +309,7 @@ public class TuiController {
     private final List<RecipeInfo> allRecipes;
     private final RunConfigService runConfigService;
     private final RecipeExecutionEngine engine;
-    private final ProjectSourceParser sourceParser;
+    private final ParsedSourcesCache sourceCache;
     private final ChangeApplier changeApplier;
     private final WorkspaceExecutionEngine workspaceEngine;
     private final Path projectDir;
@@ -383,7 +384,7 @@ public class TuiController {
         this.allRecipes = List.copyOf(allRecipes);
         this.runConfigService = runConfigService;
         this.engine = engine;
-        this.sourceParser = sourceParser;
+        this.sourceCache = sourceParser != null ? new ParsedSourcesCache(sourceParser) : null;
         this.changeApplier = changeApplier;
         this.workspaceEngine = workspaceEngine;
         this.workspaceProjects = workspaceProjects != null ? List.copyOf(workspaceProjects) : null;
@@ -1009,7 +1010,7 @@ public class TuiController {
             return;
         }
 
-        if (engine == null || sourceParser == null) {
+        if (engine == null || sourceCache == null) {
             return;
         }
 
@@ -1023,8 +1024,8 @@ public class TuiController {
         }
 
         ProjectInfo projectInfo = SessionHolder.getProjectInfo();
-        ParsedSources parsed = sourceParser.parseWithCapabilities(
-                projectInfo != null ? projectInfo : new ProjectInfo(List.of(), List.of(projectDir)));
+        ParsedSources parsed = sourceCache.get(
+                projectDir, projectInfo != null ? projectInfo : new ProjectInfo(List.of(), List.of(projectDir)));
         setSourceCapabilities(parsed.capabilities());
         List<SourceFile> sources = parsed.sources();
 

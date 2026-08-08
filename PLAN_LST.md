@@ -1,6 +1,13 @@
-# LST Caching — Design Plan
+# LST Caching — Design Plan (superseded)
 
 Tracks: [#11 feat: LST caching](https://github.com/atunko-dev/atunko/issues/11)
+
+> **Status: superseded by [`PLAN_LST_DAEMON.md`](PLAN_LST_DAEMON.md).** Implementation
+> proved that Jackson-based LST round-trip fails for every supported `SourceFile`
+> subtype, so the on-disk serialization cache designed here is not feasible with
+> open-source OpenRewrite APIs. The document is kept as the record of that
+> investigation; the requirements it introduced were rewritten for the in-process
+> cache (`CORE_0018`).
 
 ## 1. Goal
 

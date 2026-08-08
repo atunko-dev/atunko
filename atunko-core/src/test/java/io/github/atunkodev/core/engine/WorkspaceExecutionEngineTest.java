@@ -2,6 +2,7 @@ package io.github.atunkodev.core.engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.github.atunkodev.core.project.ParsedSources;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
@@ -25,8 +26,8 @@ class WorkspaceExecutionEngineTest {
     private static ProjectSourceParser emptyParser() {
         return new ProjectSourceParser() {
             @Override
-            public List<SourceFile> parse(ProjectInfo info) {
-                return List.of();
+            public ParsedSources parseWithCapabilities(ProjectInfo info) {
+                return ParsedSources.empty();
             }
         };
     }
@@ -35,11 +36,11 @@ class WorkspaceExecutionEngineTest {
     private static ProjectSourceParser failingParser(ProjectInfo failOn) {
         return new ProjectSourceParser() {
             @Override
-            public List<SourceFile> parse(ProjectInfo info) {
+            public ParsedSources parseWithCapabilities(ProjectInfo info) {
                 if (info == failOn) {
                     throw new RuntimeException("boom");
                 }
-                return List.of();
+                return ParsedSources.empty();
             }
         };
     }

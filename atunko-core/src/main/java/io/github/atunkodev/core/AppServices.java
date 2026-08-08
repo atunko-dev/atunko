@@ -2,6 +2,7 @@ package io.github.atunkodev.core;
 
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.project.ParsedSourcesCache;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SourceCapability;
 import io.github.atunkodev.core.recipe.RecipeApplicabilityService;
@@ -16,6 +17,7 @@ public final class AppServices {
 
     private static volatile RecipeExecutionEngine engine;
     private static volatile ProjectSourceParser sourceParser;
+    private static volatile ParsedSourcesCache sourceCache;
     private static volatile ChangeApplier changeApplier;
     private static final RecipeApplicabilityService APPLICABILITY_SERVICE = new RecipeApplicabilityService();
     private static volatile Set<SourceCapability> sourceCapabilities = Set.of();
@@ -27,6 +29,7 @@ public final class AppServices {
             RecipeExecutionEngine engine, ProjectSourceParser sourceParser, ChangeApplier changeApplier) {
         AppServices.engine = engine;
         AppServices.sourceParser = sourceParser;
+        AppServices.sourceCache = sourceParser != null ? new ParsedSourcesCache(sourceParser) : null;
         AppServices.changeApplier = changeApplier;
     }
 
@@ -36,6 +39,12 @@ public final class AppServices {
 
     public static ProjectSourceParser getSourceParser() {
         return sourceParser;
+    }
+
+    /** Session-lifetime LST cache in front of {@link #getSourceParser()}; parse through this, not the parser. */
+    @Requirements({"atunko:CORE_0018"})
+    public static ParsedSourcesCache getSourceCache() {
+        return sourceCache;
     }
 
     public static ChangeApplier getChangeApplier() {

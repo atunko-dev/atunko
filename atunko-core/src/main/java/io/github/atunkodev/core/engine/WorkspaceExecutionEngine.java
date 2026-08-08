@@ -1,5 +1,6 @@
 package io.github.atunkodev.core.engine;
 
+import io.github.atunkodev.core.project.ParsedSourcesCache;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.Workspace;
@@ -12,11 +13,15 @@ import org.openrewrite.SourceFile;
 public class WorkspaceExecutionEngine {
 
     private final RecipeExecutionEngine engine;
-    private final ProjectSourceParser sourceParser;
+    private final ParsedSourcesCache sourceCache;
 
     public WorkspaceExecutionEngine(RecipeExecutionEngine engine, ProjectSourceParser sourceParser) {
+        this(engine, new ParsedSourcesCache(sourceParser));
+    }
+
+    public WorkspaceExecutionEngine(RecipeExecutionEngine engine, ParsedSourcesCache sourceCache) {
         this.engine = engine;
-        this.sourceParser = sourceParser;
+        this.sourceCache = sourceCache;
     }
 
     @Requirements({"atunko:CORE_0011", "atunko:CORE_0011.1"})
@@ -36,7 +41,7 @@ public class WorkspaceExecutionEngine {
     @Requirements({"atunko:CORE_0011.1"})
     private ProjectExecutionResult executeOne(List<String> recipeNames, ProjectEntry entry) {
         try {
-            List<SourceFile> sources = sourceParser.parse(entry.info());
+            List<SourceFile> sources = sourceCache.get(entry).sources();
             List<FileChange> allChanges = new ArrayList<>();
             for (String recipeName : recipeNames) {
                 ExecutionResult r = engine.execute(recipeName, sources);
