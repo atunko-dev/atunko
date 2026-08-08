@@ -430,6 +430,7 @@ public class RecipeBrowserView extends AppLayout {
         }
     }
 
+    @Requirements({"atunko:WEB_0004"})
     private void executeSingleProject(List<RecipeInfo> recipes, boolean dryRun) {
         Dialog progressDialog = new Dialog();
         progressDialog.setCloseOnEsc(false);
@@ -447,6 +448,14 @@ public class RecipeBrowserView extends AppLayout {
 
         executor.submit(() -> {
             try {
+                // The project scan is deferred to the first run, so it happens here — inside the
+                // progress dialog — rather than at startup; a failure lands in the catch below,
+                // which leaves the view usable and lets the next run retry the scan.
+                try {
+                    SessionHolder.ensureScanned();
+                } catch (RuntimeException scanEx) {
+                    throw new IllegalStateException("Project scan failed: " + describe(scanEx), scanEx);
+                }
                 ProjectInfo projectInfo = SessionHolder.getProjectInfo();
                 Path projectDir = SessionHolder.getProjectDir();
                 ParsedSources parsed = AppServices.getSourceParser()
@@ -492,6 +501,10 @@ public class RecipeBrowserView extends AppLayout {
                 });
             }
         });
+    }
+
+    private static String describe(Throwable e) {
+        return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
     }
 
     @Requirements({"atunko:WEB_0002.1", "atunko:WEB_0002.2"})
