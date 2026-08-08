@@ -37,9 +37,11 @@ import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.ProjectExecutionResult;
 import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
+import io.github.atunkodev.core.project.ParsedSources;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.SessionHolder;
+import io.github.atunkodev.core.recipe.RecipeApplicability;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.web.RecipeHolder;
@@ -209,18 +211,7 @@ public class RecipeBrowserView extends AppLayout {
         treeGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         treeGrid.setSelectionMode(TreeGrid.SelectionMode.MULTI);
 
-        treeGrid.addComponentHierarchyColumn(node -> {
-                    Span name = new Span(node.recipe().displayName());
-                    if (coveredRecipes.contains(node.recipe())) {
-                        Span badge = new Span("covered");
-                        badge.getElement().getThemeList().addAll(List.of("badge", "contrast", "small"));
-                        HorizontalLayout row = new HorizontalLayout(name, badge);
-                        row.setAlignItems(HorizontalLayout.Alignment.CENTER);
-                        row.setSpacing(true);
-                        return row;
-                    }
-                    return name;
-                })
+        treeGrid.addComponentHierarchyColumn(this::renderRecipeName)
                 .setHeader("Name")
                 .setSortable(true);
 
@@ -265,6 +256,48 @@ public class RecipeBrowserView extends AppLayout {
                 selectForDetail(all.iterator().next().recipe());
             }
         });
+    }
+
+    /**
+     * Renders the tree's name cell: the display name, plus a "covered" badge when the recipe is transitively selected
+     * and an applicability badge when the recipe cannot act on the parsed source set. Inapplicable recipes are muted
+     * and carry the reason as a tooltip; they stay selectable, since running them is still allowed.
+     */
+    @Requirements({"atunko:WEB_0003"})
+    Component renderRecipeName(TreeNode node) {
+        RecipeInfo recipe = node.recipe();
+        RecipeApplicability applicability = applicability(recipe);
+        Span name = new Span(recipe.displayName());
+        List<Component> badges = new ArrayList<>();
+        if (coveredRecipes.contains(recipe)) {
+            Span covered = new Span("covered");
+            covered.getElement().getThemeList().addAll(List.of("badge", "contrast", "small"));
+            badges.add(covered);
+        }
+        if (!applicability.applicable()) {
+            name.getStyle().set("color", "var(--lumo-disabled-text-color)");
+            Span badge = new Span(applicability.badgeLabel());
+            badge.getElement().getThemeList().addAll(List.of("badge", "contrast", "small"));
+            badge.setTitle(applicability.reason());
+            badges.add(badge);
+        }
+        if (badges.isEmpty()) {
+            return name;
+        }
+        HorizontalLayout row = new HorizontalLayout(name);
+        badges.forEach(row::add);
+        row.setAlignItems(HorizontalLayout.Alignment.CENTER);
+        row.setSpacing(true);
+        if (!applicability.applicable()) {
+            row.getElement().setAttribute("title", applicability.reason());
+        }
+        return row;
+    }
+
+    /** Applicability of {@code recipe} against the capabilities of the session's parsed source set. */
+    @Requirements({"atunko:WEB_0003"})
+    RecipeApplicability applicability(RecipeInfo recipe) {
+        return AppServices.getRecipeApplicabilityService().applicability(recipe, AppServices.getSourceCapabilities());
     }
 
     private void buildDetailPanel() {
@@ -397,6 +430,7 @@ public class RecipeBrowserView extends AppLayout {
         }
     }
 
+    @Requirements({"atunko:WEB_0004"})
     private void executeSingleProject(List<RecipeInfo> recipes, boolean dryRun) {
         Dialog progressDialog = new Dialog();
         progressDialog.setCloseOnEsc(false);
@@ -414,14 +448,21 @@ public class RecipeBrowserView extends AppLayout {
 
         executor.submit(() -> {
             try {
+                // The project scan is deferred to the first run, so it happens here — inside the
+                // progress dialog — rather than at startup; a failure lands in the catch below,
+                // which leaves the view usable and lets the next run retry the scan.
+                try {
+                    SessionHolder.ensureScanned();
+                } catch (RuntimeException scanEx) {
+                    throw new IllegalStateException("Project scan failed: " + describe(scanEx), scanEx);
+                }
                 ProjectInfo projectInfo = SessionHolder.getProjectInfo();
                 Path projectDir = SessionHolder.getProjectDir();
-                List<SourceFile> sources;
-                if (projectInfo != null) {
-                    sources = AppServices.getSourceParser().parse(projectInfo);
-                } else {
-                    sources = AppServices.getSourceParser().parse(new ProjectInfo(List.of(), List.of(projectDir)));
-                }
+                ParsedSources parsed = AppServices.getSourceParser()
+                        .parseWithCapabilities(
+                                projectInfo != null ? projectInfo : new ProjectInfo(List.of(), List.of(projectDir)));
+                AppServices.setSourceCapabilities(parsed.capabilities());
+                List<SourceFile> sources = parsed.sources();
 
                 List<FileChange> allChanges = new ArrayList<>();
                 List<String> failedRecipes = new ArrayList<>();
@@ -460,6 +501,10 @@ public class RecipeBrowserView extends AppLayout {
                 });
             }
         });
+    }
+
+    private static String describe(Throwable e) {
+        return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
     }
 
     @Requirements({"atunko:WEB_0002.1", "atunko:WEB_0002.2"})
@@ -567,6 +612,12 @@ public class RecipeBrowserView extends AppLayout {
         detailPanel.add(new Paragraph(recipe.description()));
         Span tags = new Span("Tags: " + String.join(", ", recipe.tags()));
         detailPanel.add(tags);
+        RecipeApplicability recipeApplicability = applicability(recipe);
+        if (!recipeApplicability.applicable()) {
+            Span reason = new Span("Applicability: " + recipeApplicability.reason());
+            reason.getStyle().set("color", "var(--lumo-error-text-color)");
+            detailPanel.add(reason);
+        }
         if (recipe.isComposite()) {
             detailPanel.add(new Span("Recipe List:"));
             recipe.recipeList().forEach(child -> detailPanel.add(new Span("• " + child.displayName())));

@@ -11,11 +11,16 @@ import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
+import io.github.atunkodev.core.project.ParsedSources;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
+import io.github.atunkodev.core.project.SourceCapability;
+import io.github.atunkodev.core.project.SourceCapabilityHints;
 import io.github.atunkodev.core.project.Workspace;
+import io.github.atunkodev.core.recipe.RecipeApplicability;
+import io.github.atunkodev.core.recipe.RecipeApplicabilityService;
 import io.github.atunkodev.core.recipe.RecipeCoverageUtils;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
@@ -317,8 +322,11 @@ public class TuiController {
     private boolean showHelp;
     private ExecutionResult executionResult;
     private WorkspaceExecutionResult workspaceResult;
+    private String executionError;
     private boolean lastRunWasDryRun;
     private int selectedFileIndex = 0;
+    private final RecipeApplicabilityService applicabilityService = new RecipeApplicabilityService();
+    private Set<SourceCapability> sourceCapabilities = Set.of();
 
     private final RecipeListState browserState;
 
@@ -380,6 +388,9 @@ public class TuiController {
         this.workspaceEngine = workspaceEngine;
         this.workspaceProjects = workspaceProjects != null ? List.copyOf(workspaceProjects) : null;
         this.projectDir = projectDir;
+        // Badges are shown before anything is parsed, so start from the project-type hint; the first run replaces
+        // this with the capabilities the parse actually produced.
+        this.sourceCapabilities = SourceCapabilityHints.forProjectDir(projectDir);
         this.browserState = new RecipeListState(this::recipes, selectedRecipes);
     }
 
@@ -477,6 +488,24 @@ public class TuiController {
         return RecipeCoverageUtils.computeCovered(selectedInfos).stream()
                 .map(RecipeInfo::name)
                 .collect(Collectors.toUnmodifiableSet());
+    }
+
+    /**
+     * Capabilities of the source set this session operates on. Empty until a parse has reported them, which is the
+     * honest answer: nothing has been parsed, so no build model exists.
+     */
+    public Set<SourceCapability> sourceCapabilities() {
+        return sourceCapabilities;
+    }
+
+    public void setSourceCapabilities(Set<SourceCapability> capabilities) {
+        this.sourceCapabilities = capabilities == null ? Set.of() : Set.copyOf(capabilities);
+    }
+
+    /** Whether {@code recipe} can act on the parsed source set, with a reason when it cannot. */
+    @Requirements({"atunko:TUI_0004"})
+    public RecipeApplicability applicability(RecipeInfo recipe) {
+        return applicabilityService.applicability(recipe, sourceCapabilities);
     }
 
     @Requirements({"atunko:TUI_0001.16"})
@@ -863,6 +892,12 @@ public class TuiController {
         return Optional.ofNullable(executionResult);
     }
 
+    /** The message of the last run that could not produce a result, e.g. a failed project scan. */
+    @Requirements({"atunko:TUI_0005.1"})
+    public Optional<String> executionError() {
+        return Optional.ofNullable(executionError);
+    }
+
     @Requirements({"atunko:TUI_0002.4"})
     public WorkspaceExecutionResult lastWorkspaceResult() {
         return workspaceResult;
@@ -917,8 +952,21 @@ public class TuiController {
         return projectDir.resolve("atunko/runs");
     }
 
+    /**
+     * Shows a failed run — the session stays alive so the user can fix the cause and run again.
+     */
+    @Requirements({"atunko:TUI_0005.1"})
+    public void showExecutionError(String message) {
+        this.executionError = message;
+        this.executionResult = null;
+        this.workspaceResult = null;
+        this.selectedFileIndex = 0;
+        this.currentScreen = Screen.EXECUTION_RESULTS;
+    }
+
     @Requirements({"atunko:TUI_0001.8"})
     public void showDryRunResult(ExecutionResult result) {
+        this.executionError = null;
         this.executionResult = result;
         this.lastRunWasDryRun = true;
         this.selectedFileIndex = 0;
@@ -927,6 +975,7 @@ public class TuiController {
 
     @Requirements({"atunko:TUI_0001.9"})
     public void showExecutionResult(ExecutionResult result) {
+        this.executionError = null;
         this.executionResult = result;
         this.lastRunWasDryRun = false;
         this.selectedFileIndex = 0;
@@ -937,10 +986,11 @@ public class TuiController {
         return projectDir;
     }
 
-    @Requirements({"atunko:TUI_0001.8", "atunko:TUI_0001.9", "atunko:TUI_0002.3"})
+    @Requirements({"atunko:TUI_0001.8", "atunko:TUI_0001.9", "atunko:TUI_0002.3", "atunko:TUI_0005"})
     public void runSelectedRecipes(boolean dryRun) {
         LOG.fine(() -> "Running " + (dryRun ? "dry-run" : "execution") + " for " + runOrder.size() + " recipes");
 
+        this.executionError = null;
         List<String> recipesToRun =
                 runOrder.stream().filter(selectedRecipes::contains).toList();
 
@@ -963,13 +1013,20 @@ public class TuiController {
             return;
         }
 
-        List<SourceFile> sources;
-        ProjectInfo projectInfo = SessionHolder.getProjectInfo();
-        if (projectInfo != null) {
-            sources = sourceParser.parse(projectInfo);
-        } else {
-            sources = sourceParser.parse(new ProjectInfo(List.of(), List.of(projectDir)));
+        // The project scan is deferred to the first run, so it happens here rather than at startup.
+        try {
+            SessionHolder.ensureScanned();
+        } catch (RuntimeException e) {
+            LOG.warning(() -> "Project scan failed: " + e);
+            showExecutionError("Project scan failed: " + describe(e));
+            return;
         }
+
+        ProjectInfo projectInfo = SessionHolder.getProjectInfo();
+        ParsedSources parsed = sourceParser.parseWithCapabilities(
+                projectInfo != null ? projectInfo : new ProjectInfo(List.of(), List.of(projectDir)));
+        setSourceCapabilities(parsed.capabilities());
+        List<SourceFile> sources = parsed.sources();
 
         List<FileChange> allChanges = new ArrayList<>();
         for (String recipeName : recipesToRun) {
@@ -985,6 +1042,10 @@ public class TuiController {
         } else {
             showExecutionResult(combined);
         }
+    }
+
+    private static String describe(Throwable e) {
+        return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
     }
 
     @Requirements({"atunko:TUI_0001.10"})

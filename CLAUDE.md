@@ -99,5 +99,24 @@ Three layers of automated quality checks run on every build:
 Requirements and SVCs are tracked via the official reqstool-ai plugin (config: `.reqstool-ai.yaml`).
 Use `/reqstool:add-req`, `/reqstool:add-svc`, `/reqstool:status` for traceability work.
 
-Always create an OpenSpec change (via `/openspec-propose` or manually) **before** making any
-source code changes. Archive it after the PR is merged.
+## OpenSpec workflow
+
+Always create an OpenSpec change **before** making any source code changes, and use the
+opsx skills for the full cycle:
+
+- `/opsx:propose` — create the change with all artifacts (proposal, design, specs, tasks).
+  **Stop after proposing** and wait for user review/approval before implementing.
+- `/opsx:apply` — implement the tasks. All implementation (including work delegated to
+  subagents) goes through the apply skill's task loop so `tasks.md` progress is tracked.
+- `/openspec-archive-change` — archive after the PR is merged.
+
+When writing any `spec.md` that references reqstool IDs, load the
+`reqstool-openspec:reqstool-openspec` skill first and follow its conventions:
+
+- Specs reference requirement/SVC IDs only (`### Requirement: CORE_0001` /
+  `#### Scenario: SVC_CORE_0001`) — never duplicate descriptions; reqstool is SSOT.
+- `tasks.md` must include explicit `@Requirements`/`@SVCs` annotation tasks alongside
+  the implementation/test tasks they belong to.
+- Main specs in `openspec/specs/` use the `## Purpose` + `## Requirements` layout —
+  never sync a raw delta copy (`## ADDED Requirements`) into main specs.
+- Run `openspec validate --all --strict` after creating or modifying specs; it must pass.

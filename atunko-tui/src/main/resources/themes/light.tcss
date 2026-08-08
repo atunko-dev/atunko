@@ -12,6 +12,8 @@ $bg-highlight: rgb(0, 100, 180);
 $bg-title-search: rgb(255, 220, 100);
 $bg-title-success: rgb(0, 160, 0);
 $bg-title-dryrun: rgb(255, 220, 100);
+$bg-title-error: rgb(220, 80, 80);
+$fg-error: rgb(180, 0, 0);
 
 /* Root */
 .app {
@@ -39,6 +41,17 @@ $bg-title-dryrun: rgb(255, 220, 100);
 .screen-title.dryrun-mode {
     color: black;
     background: $bg-title-dryrun;
+}
+
+.screen-title.error-mode {
+    color: white;
+    background: $bg-title-error;
+}
+
+/* Message of a run that could not complete, e.g. a failed project scan */
+.error-message {
+    color: $fg-error;
+    text-style: bold;
 }
 
 /* Status bar / footer */
@@ -72,6 +85,12 @@ $bg-title-dryrun: rgb(255, 220, 100);
 
 /* Recipe list unselected / dim */
 .unselected {
+    text-style: dim;
+}
+
+/* Recipe that cannot act on the parsed source set — dimmed name + badge */
+.inapplicable {
+    color: $fg-warning;
     text-style: dim;
 }
 

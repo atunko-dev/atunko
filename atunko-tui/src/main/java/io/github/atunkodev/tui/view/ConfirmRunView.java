@@ -132,7 +132,8 @@ public final class ConfirmRunView {
                 controller.runHighlightIndex(),
                 "Execution Order",
                 RecipeListRenderer.RenderOptions.RUN_DIALOG,
-                null);
+                null,
+                controller::applicability);
     }
 
     private static EventResult handleKeyEvent(

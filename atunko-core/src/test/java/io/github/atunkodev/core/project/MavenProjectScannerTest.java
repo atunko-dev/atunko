@@ -32,6 +32,18 @@ class MavenProjectScannerTest {
     }
 
     @Test
+    @SVCs({"atunko:SVC_CORE_0016.1"})
+    void scanReportsThePomsOfTheBuildAsBuildFiles() {
+        // Poms live above the source directories, so they have to be reported separately for the parser to see them.
+        ProjectInfo info = scanner.scan(MAVEN_PROJECT_DIR);
+
+        assertThat(info.buildFiles()).isNotEmpty();
+        assertThat(info.buildFiles())
+                .allMatch(path -> path.getFileName().toString().equals("pom.xml"));
+        assertThat(info.buildFiles()).anyMatch(path -> path.endsWith("maven-project/pom.xml"));
+    }
+
+    @Test
     @SVCs({"atunko:SVC_CORE_MAVEN_0001"})
     void scanNonExistentDirectoryThrows() {
         assertThatThrownBy(() -> scanner.scan(Path.of("/nonexistent/maven/project")))

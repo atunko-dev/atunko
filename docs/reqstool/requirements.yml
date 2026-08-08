@@ -1096,3 +1096,222 @@ requirements:
       automated tests without a real terminal
     categories: [functional-suitability]
     revision: 0.1.0
+
+  # Recipe applicability requirements
+  - id: CORE_0015
+    title: Core — Recipe Applicability Detection
+    significance: shall
+    description: >-
+      The core module shall determine, for each recipe and a given set of source
+      capabilities produced by parsing a project, whether the recipe is able to act
+      on that source set, and shall provide a human-readable reason when it is not,
+      so that a genuinely clean project can be told apart from a recipe that never
+      had a chance to act
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0015.1
+    title: Core — Parsed Source Capability Reporting
+    significance: shall
+    description: >-
+      ProjectSourceParser shall report the set of SourceCapability values that the
+      parsed source set actually provides (JAVA, XML, YAML, JSON, PROPERTIES per the
+      file types successfully parsed); MAVEN and GRADLE shall only be reported when
+      a Maven or Gradle build model was genuinely produced, never merely because
+      build files exist on disk
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0015.2
+    title: Core — Applicability by Recipe Name Prefix and Composition
+    significance: shall
+    description: >-
+      Recipes named org.openrewrite.maven.* shall require the MAVEN capability and
+      recipes named org.openrewrite.gradle.* shall require the GRADLE capability;
+      all other recipes shall be treated as applicable; a composite recipe shall be
+      applicable if and only if at least one of its transitive sub-recipes is
+      applicable, with traversal guarded against cycles
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0015.3
+    title: Core — Applicability Caching
+    significance: shall
+    description: >-
+      Applicability results shall be cached per capability set and recipe name so
+      that browsing thousands of recipes does not recompute composite traversals
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [performance-efficiency]
+    revision: 0.1.0
+
+  - id: CORE_0016
+    title: Core — Maven Build Model Parsing
+    significance: shall
+    description: >-
+      The core module shall parse a project's pom.xml files with OpenRewrite's Maven
+      parser so that the resulting documents carry a MavenResolutionResult marker,
+      which is what every org.openrewrite.maven.* recipe requires in order to act;
+      XML files that are not poms shall keep being parsed by the generic XML parser
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0016.1
+    title: Core — Whole-Build Pom Parsing
+    significance: shall
+    description: >-
+      All poms of a project shall be discovered — including the poms of the modules of
+      a multi-module build, which live outside the source and resource directories —
+      and shall be parsed in a single parser invocation, so that parent/child and
+      inter-module relationships resolve against each other rather than against a
+      remote repository
+    references:
+      requirement_ids: ["CORE_0016"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0016.2
+    title: Core — Maven Parse Fallback
+    significance: shall
+    description: >-
+      When a pom cannot be resolved into a Maven build model (unresolvable parent or
+      dependency, offline or air-gapped run) it shall fall back to being parsed as
+      plain XML without parse-failure markers, and the MAVEN capability shall not be
+      reported for it, so that applicability badges stay honest instead of promising
+      an ability the source set does not have
+    references:
+      requirement_ids: ["CORE_0016"]
+    categories: [functional-suitability, reliability]
+    revision: 0.1.0
+
+  - id: CORE_0016.3
+    title: Core — Pre-Parse Capability Hint
+    significance: shall
+    description: >-
+      Before a project has been parsed, the capability set used for badging shall be
+      seeded from the detected project type — MAVEN when the project root has a
+      pom.xml — and shall be replaced by the capabilities the parse actually produced
+      as soon as the project is parsed; GRADLE shall never be hinted, because Gradle
+      build files are not parsed at all
+    references:
+      requirement_ids: ["CORE_0016"]
+    categories: [functional-suitability, usability]
+    revision: 0.1.0
+
+  - id: CORE_0017
+    title: Core — Lazy Session Initialisation
+    significance: shall
+    description: >-
+      A single-project session shall be initialisable lazily: startup shall record the
+      project directory only, and the build-system scan — the expensive Gradle Tooling
+      API connection or Maven invocation — shall be deferred until the project model is
+      first needed, so that the TUI and the Web UI launch without waiting for it
+    categories: [performance-efficiency]
+    revision: 0.1.0
+
+  - id: CORE_0017.1
+    title: Core — Memoized Thread-Safe Scan
+    significance: shall
+    description: >-
+      The deferred scan shall run at most once per session and shall be safe to trigger
+      from concurrent threads: callers that arrive while a scan is in progress shall
+      block and then reuse its result rather than starting a second scan
+    references:
+      requirement_ids: ["CORE_0017"]
+    categories: [performance-efficiency, reliability]
+    revision: 0.1.0
+
+  - id: CORE_0017.2
+    title: Core — Scan Failure Is Retryable
+    significance: shall
+    description: >-
+      A failing deferred scan shall propagate its exception to the caller and shall not
+      be memoized, so that the session survives the failure and the next attempt runs
+      the scan again; workspace sessions shall keep scanning eagerly at startup
+    references:
+      requirement_ids: ["CORE_0017"]
+    categories: [reliability]
+    revision: 0.1.0
+
+  - id: TUI_0004
+    title: TUI — Inapplicable Recipe Badging
+    significance: shall
+    description: >-
+      The TUI recipe browser shall dim recipes that cannot act on the parsed source
+      set and append a short badge naming the missing capability (for example
+      "needs Maven" or "needs Gradle"); the detail view shall show the full reason;
+      badging shall be purely informational and shall not change selection or
+      execution behaviour
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0004.1
+    title: TUI — Detail View Applicability Reason
+    significance: shall
+    description: >-
+      When the highlighted recipe cannot act on the parsed source set the TUI detail
+      view shall display an "Applicability:" line carrying the reason returned by
+      the core applicability service
+    references:
+      requirement_ids: ["TUI_0004"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0005
+    title: TUI — Deferred Project Scan
+    significance: shall
+    description: >-
+      The TUI shall launch a single-project session without scanning the project —
+      validating only that build files exist — and shall trigger the scan on the first
+      recipe execution, so that the interface is usable for browsing and configuring
+      recipes while no project model has been built yet
+    references:
+      requirement_ids: ["CORE_0017"]
+    categories: [performance-efficiency, interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0005.1
+    title: TUI — Execution-Time Scan Failure
+    significance: shall
+    description: >-
+      When the deferred scan fails on a run, the TUI shall report the failure as an
+      execution error inside the interface and shall keep the session alive so that the
+      user can correct the project and run again, instead of terminating at startup
+      with a stack trace
+    references:
+      requirement_ids: ["TUI_0005"]
+    categories: [interaction-capability, reliability]
+    revision: 0.1.0
+
+  - id: WEB_0003
+    title: Web UI — Inapplicable Recipe Badging
+    significance: shall
+    description: >-
+      The Web UI recipe tree shall render recipes that cannot act on the parsed
+      source set with a muted style and a badge naming the missing capability, with
+      the full reason available as a tooltip, and shall show the reason in the recipe
+      detail panel
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0004
+    title: Web UI — Deferred Project Scan
+    significance: shall
+    description: >-
+      The Web UI shall start serving a single-project session without scanning the
+      project — validating only that build files exist — and shall trigger the scan in
+      the existing background execution thread inside the progress dialog; a scan
+      failure shall surface through the existing error notification and shall leave the
+      view usable
+    references:
+      requirement_ids: ["CORE_0017"]
+    categories: [performance-efficiency, interaction-capability]
+    revision: 0.1.0

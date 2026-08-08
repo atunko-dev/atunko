@@ -7,11 +7,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 public class MavenProjectScanner implements ProjectScanner {
 
     private static final int TIMEOUT_MINUTES = 5;
+
+    /** Directory names never searched for module poms — build output and VCS/tooling metadata. */
+    private static final Set<String> IGNORED_DIRECTORY_NAMES = Set.of("target", "build", ".git", "node_modules");
 
     @Requirements({"atunko:CORE_MAVEN_0001"})
     public ProjectInfo scan(Path projectDir) {
@@ -24,8 +29,38 @@ public class MavenProjectScanner implements ProjectScanner {
 
         List<Path> classpath = resolveClasspath(absoluteDir);
         List<Path> sourceDirs = resolveSourceDirs(absoluteDir);
+        List<Path> poms = resolvePomFiles(absoluteDir);
 
-        return new ProjectInfo(classpath, sourceDirs);
+        return new ProjectInfo(classpath, sourceDirs, List.of(), List.of(), List.of(), poms);
+    }
+
+    /**
+     * Every {@code pom.xml} of the build — the root one plus any module poms. They live above the source directories,
+     * so they are reported separately; {@link ProjectSourceParser} parses them all in one {@code MavenParser} call so
+     * that parent/child relationships resolve.
+     */
+    @Requirements({"atunko:CORE_0016.1"})
+    private List<Path> resolvePomFiles(Path projectDir) {
+        try (Stream<Path> walk = Files.walk(projectDir)) {
+            return walk.filter(p -> "pom.xml".equals(p.getFileName().toString()))
+                    .filter(Files::isRegularFile)
+                    .filter(p -> !isInIgnoredDirectory(projectDir, p))
+                    .sorted()
+                    .toList();
+        } catch (IOException e) {
+            // A pom that cannot be listed simply is not parsed as Maven; scanning must not fail because of it.
+            return List.of(projectDir.resolve("pom.xml"));
+        }
+    }
+
+    private boolean isInIgnoredDirectory(Path projectDir, Path pom) {
+        Path relative = projectDir.relativize(pom);
+        for (Path segment : relative) {
+            if (IGNORED_DIRECTORY_NAMES.contains(segment.toString())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private List<Path> resolveClasspath(Path projectDir) {

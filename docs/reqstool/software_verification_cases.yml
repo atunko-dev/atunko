@@ -1470,3 +1470,195 @@ cases:
       WHEN '?' is pressed and the terminal is resized
       THEN the help overlay renders and dismisses, and the TUI stays responsive after the resize
     revision: "0.1.0"
+
+  - id: SVC_CORE_0015
+    requirement_ids: ["CORE_0015"]
+    title: Applicability service reports maven and gradle recipes as inapplicable with a reason
+    verification: automated-test
+    description: |
+      GIVEN a capability set without MAVEN and without GRADLE
+      WHEN applicability is queried for an org.openrewrite.maven.* and an org.openrewrite.gradle.* recipe
+      THEN both are reported inapplicable with the missing capability and a human-readable reason
+      AND the same maven recipe is reported applicable once MAVEN is present in the capability set
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0015.1
+    requirement_ids: ["CORE_0015.1"]
+    title: ProjectSourceParser reports the capabilities it actually produced
+    verification: automated-test
+    description: |
+      GIVEN a fixture project with Java, XML, YAML, JSON and properties sources
+      WHEN parseWithCapabilities is called
+      THEN the reported capability set contains exactly the capabilities for the file types parsed
+      AND GRADLE is never reported, not even for a project containing Gradle build files
+      AND recipes outside the maven/gradle namespaces are always applicable
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0015.2
+    requirement_ids: ["CORE_0015.2"]
+    title: Composite applicability follows transitive sub-recipes and terminates on cycles
+    verification: automated-test
+    description: |
+      GIVEN a composite recipe whose sub-recipe graph mixes maven, gradle and plain recipes
+      WHEN applicability is queried for the composite
+      THEN it is applicable if and only if at least one transitive sub-recipe is applicable
+      AND a composite whose sub-recipes all require the same missing capability reports that capability
+      AND a cyclic sub-recipe graph terminates instead of recursing forever
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0015.3
+    requirement_ids: ["CORE_0015.3"]
+    title: Applicability results are cached per capability set
+    verification: automated-test
+    description: |
+      GIVEN applicability has been computed for a recipe and a capability set
+      WHEN it is queried again for the same recipe with an equal capability set in any iteration order
+      THEN the cached result instance is returned and a different capability set is computed separately
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0016
+    requirement_ids: ["CORE_0016"]
+    title: Poms are parsed into a Maven build model that Maven recipes can act on
+    verification: automated-test
+    description: |
+      GIVEN a Maven fixture project whose poms have no external parent and no external dependencies
+      WHEN the project is parsed by ProjectSourceParser
+      THEN each pom.xml is an Xml.Document carrying a MavenResolutionResult marker
+      AND the reported capability set contains MAVEN
+      AND a real org.openrewrite.maven.* recipe run through RecipeExecutionEngine produces changes on those sources
+      AND XML files that are not poms are still produced by the generic XML parser
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0016.1
+    requirement_ids: ["CORE_0016.1"]
+    title: All poms of a multi-module build are discovered and parsed together
+    verification: automated-test
+    description: |
+      GIVEN a multi-module Maven fixture with a parent pom and two module poms
+      WHEN the project is parsed
+      THEN all three poms are parsed in one call and each carries a resolution marker
+      AND a module pom's resolution result resolves to the fixture's own parent and inherits its properties
+      AND poms declared as ProjectInfo build files are parsed even when they sit outside the source directories
+      AND MavenProjectScanner reports the poms of the build as build files
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0016.2
+    requirement_ids: ["CORE_0016.2"]
+    title: An unresolvable pom falls back to plain XML without claiming MAVEN
+    verification: automated-test
+    description: |
+      GIVEN a fixture pom whose parent cannot be resolved
+      WHEN the project is parsed
+      THEN the pom is still present as a plain Xml.Document with no parse-failure marker
+      AND the reported capability set contains XML but not MAVEN
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0016.3
+    requirement_ids: ["CORE_0016.3"]
+    title: Capabilities are hinted from the project type before the first parse
+    verification: automated-test
+    description: |
+      GIVEN a project directory that has not been parsed yet
+      WHEN the pre-parse capability hint is computed
+      THEN MAVEN is hinted exactly when the project root has a pom.xml
+      AND GRADLE is never hinted, not even for a Gradle build
+      AND a null or pom-less directory hints nothing
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0017
+    requirement_ids: ["CORE_0017"]
+    title: A lazily initialised session records the directory and defers the scan
+    verification: automated-test
+    description: |
+      GIVEN a session initialised lazily with a project directory
+      WHEN the session is queried before any scan has been triggered
+      THEN the project directory is returned and no project entries and no project info exist
+      AND triggering the scan populates the project info from the detected scanner
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0017.1
+    requirement_ids: ["CORE_0017.1"]
+    title: The deferred scan runs exactly once even under concurrent callers
+    verification: automated-test
+    description: |
+      GIVEN a lazily initialised session whose scanner counts its invocations
+      WHEN the scan is triggered repeatedly and from several threads at once
+      THEN the scanner runs exactly once and every caller observes the same project info
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0017.2
+    requirement_ids: ["CORE_0017.2"]
+    title: A failing deferred scan is rethrown, not cached, and retried on the next call
+    verification: automated-test
+    description: |
+      GIVEN a lazily initialised session whose scan fails on its first attempt
+      WHEN the scan is triggered
+      THEN the exception is propagated to the caller and the session keeps its project directory
+      AND a subsequent trigger runs the scan again and succeeds
+      AND eager initialisation of a single project and of a workspace is unchanged
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0004
+    requirement_ids: ["TUI_0004"]
+    title: TUI recipe list badges inapplicable recipes
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly with a source set that provides no Maven or Gradle capability
+      WHEN the browser view renders a catalog containing a maven recipe and a plain java recipe
+      THEN the maven recipe row carries the "needs Maven" badge and the java recipe row carries no badge
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0004.1
+    requirement_ids: ["TUI_0004.1"]
+    title: TUI detail view shows the applicability reason
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly and an inapplicable recipe is highlighted
+      WHEN the detail screen is opened
+      THEN an "Applicability:" line with the reason is rendered, and it is absent for an applicable recipe
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0005
+    requirement_ids: ["TUI_0005"]
+    title: The TUI launches and browses recipes before the project has been scanned
+    verification: automated-test
+    description: |
+      GIVEN the TUI is started headlessly against a project directory whose scan has not run
+      WHEN the recipe browser is rendered and navigated
+      THEN the browser is usable and the session still reports no project info
+      AND running a recipe triggers the scan and produces an execution result
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0005.1
+    requirement_ids: ["TUI_0005.1"]
+    title: A failing deferred scan is shown as an execution error and the TUI survives
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly against a lazily initialised session whose scan fails
+      WHEN a recipe run is triggered
+      THEN an error naming the scan failure is rendered in the interface
+      AND the TUI keeps running so that the run can be retried
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0003
+    requirement_ids: ["WEB_0003"]
+    title: Web UI recipe tree badges inapplicable recipes
+    verification: automated-test
+    description: |
+      GIVEN the Web UI is loaded with a catalog containing a maven recipe and the session provides no MAVEN capability
+      WHEN the recipe tree renders the name column for that recipe
+      THEN the rendered component carries a "needs Maven" badge with the reason as its tooltip and a muted style
+      AND the detail panel for that recipe shows the applicability reason
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0004
+    requirement_ids: ["WEB_0004"]
+    title: The Web UI opens on an unscanned session and reports a failing scan as a notification
+    verification: automated-test
+    description: |
+      GIVEN the Web UI recipe browser is opened against a lazily initialised session whose scan has not run
+      WHEN the view is rendered
+      THEN it is usable and no scan has been triggered
+      AND when a run is executed against a session whose scan fails, an error notification is shown
+      AND the view stays usable with its action buttons re-enabled
+    revision: "0.1.0"
