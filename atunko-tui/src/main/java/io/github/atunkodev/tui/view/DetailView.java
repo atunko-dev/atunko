@@ -11,12 +11,13 @@ import static dev.tamboui.toolkit.markdown.MarkdownElement.markdown;
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.event.EventResult;
+import io.github.atunkodev.core.recipe.RecipeApplicability;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 
-@Requirements({"atunko:TUI_0001.4", "atunko:TUI_0001.7", "atunko:TUI_0001.20"})
+@Requirements({"atunko:TUI_0001.4", "atunko:TUI_0001.7", "atunko:TUI_0001.20", "atunko:TUI_0004.1"})
 public final class DetailView {
 
     private DetailView() {}
@@ -29,11 +30,20 @@ public final class DetailView {
     }
 
     // Name(1) + DisplayName(1) + blank(1) + Tags(1) = 4 base rows
-    // composite: blank(1) + "Recipe List:"(1) + N sub-recipes
-    // parents:   blank(1) + "Included in:"(1)
+    // composite:     blank(1) + "Recipe List:"(1) + N sub-recipes
+    // parents:       blank(1) + "Included in:"(1)
+    // applicability: "Applicability:"(1)
     // +1 buffer so a wrapping name/tag line doesn't push the description off-screen
     static int metadataLineCount(RecipeInfo recipe, int parentCount) {
-        return 4 + (recipe.isComposite() ? 2 + recipe.recipeList().size() : 0) + (parentCount > 0 ? 2 : 0) + 1;
+        return metadataLineCount(recipe, parentCount, false);
+    }
+
+    static int metadataLineCount(RecipeInfo recipe, int parentCount, boolean hasApplicabilityLine) {
+        return 4
+                + (recipe.isComposite() ? 2 + recipe.recipeList().size() : 0)
+                + (parentCount > 0 ? 2 : 0)
+                + (hasApplicabilityLine ? 1 : 0)
+                + 1;
     }
 
     private static Element renderRecipeDetail(TuiController controller, RecipeInfo recipe) {
@@ -52,6 +62,13 @@ public final class DetailView {
                         text("Tags: ").addClass("detail-label"),
                         text(recipe.tags().isEmpty() ? "(none)" : String.join(", ", recipe.tags()))
                                 .addClass("detail-value")));
+
+        RecipeApplicability applicability = controller.applicability(recipe);
+        if (!applicability.applicable()) {
+            metadataContent.add(row(
+                    text("Applicability: ").addClass("detail-label"),
+                    text(applicability.reason()).addClass("inapplicable")));
+        }
 
         if (recipe.isComposite()) {
             metadataContent.add(text(""));
@@ -82,7 +99,10 @@ public final class DetailView {
         } else {
             centerContent = panel(
                             "Recipe Detail",
-                            dock().top(metadataContent, Constraint.length(metadataLineCount(recipe, parents.size())))
+                            dock().top(
+                                            metadataContent,
+                                            Constraint.length(metadataLineCount(
+                                                    recipe, parents.size(), !applicability.applicable())))
                                     .center(markdown(description))
                                     .constraint(Constraint.fill()))
                     .addClass("panel");

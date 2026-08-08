@@ -6,6 +6,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,18 @@ public class ProjectSourceParser {
 
     @Requirements({"atunko:CORE_0003", "atunko:CORE_0003.1"})
     public List<SourceFile> parse(ProjectInfo projectInfo) {
+        return parseWithCapabilities(projectInfo).sources();
+    }
+
+    /**
+     * Parses the project and additionally reports which {@link SourceCapability} the parsed source set provides.
+     *
+     * <p>A capability is reported only when the corresponding parser actually produced at least one source file.
+     * {@link SourceCapability#MAVEN} and {@link SourceCapability#GRADLE} are never reported: {@code pom.xml} is parsed
+     * as plain XML (no {@code MavenResolutionResult} marker) and Gradle build files are not parsed at all.
+     */
+    @Requirements({"atunko:CORE_0003", "atunko:CORE_0003.1", "atunko:CORE_0015.1"})
+    public ParsedSources parseWithCapabilities(ProjectInfo projectInfo) {
         List<Path> rawDirs = projectInfo.allSourceAndResourceDirs();
         if (rawDirs.isEmpty()) {
             rawDirs = projectInfo.sourceDirs();
@@ -42,15 +55,42 @@ public class ProjectSourceParser {
         ExecutionContext ctx = new InMemoryExecutionContext();
         Path relativeTo = findRelativeTo(allDirs);
         List<SourceFile> allSources = new ArrayList<>();
+        Set<SourceCapability> capabilities = EnumSet.noneOf(SourceCapability.class);
 
-        parseJavaFiles(filesByExtension, projectInfo.classpath(), relativeTo, ctx, allSources);
-        parseWithBuilder(filesByExtension, XML_EXTENSIONS, XmlParser.builder(), relativeTo, ctx, allSources);
-        parseWithBuilder(filesByExtension, YAML_EXTENSIONS, YamlParser.builder(), relativeTo, ctx, allSources);
-        parseWithBuilder(filesByExtension, JSON_EXTENSIONS, JsonParser.builder(), relativeTo, ctx, allSources);
-        parseWithBuilder(
-                filesByExtension, PROPERTIES_EXTENSIONS, PropertiesParser.builder(), relativeTo, ctx, allSources);
+        if (parseJavaFiles(filesByExtension, projectInfo.classpath(), relativeTo, ctx, allSources)) {
+            capabilities.add(SourceCapability.JAVA);
+        }
+        addCapabilityIfParsed(
+                capabilities,
+                SourceCapability.XML,
+                parseWithBuilder(filesByExtension, XML_EXTENSIONS, XmlParser.builder(), relativeTo, ctx, allSources));
+        addCapabilityIfParsed(
+                capabilities,
+                SourceCapability.YAML,
+                parseWithBuilder(filesByExtension, YAML_EXTENSIONS, YamlParser.builder(), relativeTo, ctx, allSources));
+        addCapabilityIfParsed(
+                capabilities,
+                SourceCapability.JSON,
+                parseWithBuilder(filesByExtension, JSON_EXTENSIONS, JsonParser.builder(), relativeTo, ctx, allSources));
+        addCapabilityIfParsed(
+                capabilities,
+                SourceCapability.PROPERTIES,
+                parseWithBuilder(
+                        filesByExtension,
+                        PROPERTIES_EXTENSIONS,
+                        PropertiesParser.builder(),
+                        relativeTo,
+                        ctx,
+                        allSources));
 
-        return List.copyOf(allSources);
+        return new ParsedSources(allSources, capabilities);
+    }
+
+    private static void addCapabilityIfParsed(
+            Set<SourceCapability> capabilities, SourceCapability capability, boolean parsed) {
+        if (parsed) {
+            capabilities.add(capability);
+        }
     }
 
     private Map<String, List<Path>> collectFilesByExtension(List<Path> dirs) {
@@ -75,23 +115,29 @@ public class ProjectSourceParser {
         return filesByExtension;
     }
 
-    private void parseJavaFiles(
+    /** @return {@code true} when at least one source file was produced */
+    private boolean parseJavaFiles(
             Map<String, List<Path>> filesByExtension,
             List<Path> classpath,
             Path relativeTo,
             ExecutionContext ctx,
             List<SourceFile> allSources) {
         List<Path> javaFiles = collectFiles(filesByExtension, JAVA_EXTENSIONS);
-        if (!javaFiles.isEmpty()) {
-            JavaParser.Builder<?, ?> builder = JavaParser.fromJavaVersion();
-            if (classpath != null && !classpath.isEmpty()) {
-                builder.classpath(classpath);
-            }
-            allSources.addAll(builder.build().parse(javaFiles, relativeTo, ctx).toList());
+        if (javaFiles.isEmpty()) {
+            return false;
         }
+        JavaParser.Builder<?, ?> builder = JavaParser.fromJavaVersion();
+        if (classpath != null && !classpath.isEmpty()) {
+            builder.classpath(classpath);
+        }
+        List<SourceFile> parsed =
+                builder.build().parse(javaFiles, relativeTo, ctx).toList();
+        allSources.addAll(parsed);
+        return !parsed.isEmpty();
     }
 
-    private void parseWithBuilder(
+    /** @return {@code true} when at least one source file was produced */
+    private boolean parseWithBuilder(
             Map<String, List<Path>> filesByExtension,
             Set<String> extensions,
             Parser.Builder builder,
@@ -99,9 +145,12 @@ public class ProjectSourceParser {
             ExecutionContext ctx,
             List<SourceFile> allSources) {
         List<Path> files = collectFiles(filesByExtension, extensions);
-        if (!files.isEmpty()) {
-            allSources.addAll(builder.build().parse(files, relativeTo, ctx).toList());
+        if (files.isEmpty()) {
+            return false;
         }
+        List<SourceFile> parsed = builder.build().parse(files, relativeTo, ctx).toList();
+        allSources.addAll(parsed);
+        return !parsed.isEmpty();
     }
 
     private List<Path> collectFiles(Map<String, List<Path>> filesByExtension, Set<String> extensions) {

@@ -11,11 +11,15 @@ import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
+import io.github.atunkodev.core.project.ParsedSources;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
+import io.github.atunkodev.core.project.SourceCapability;
 import io.github.atunkodev.core.project.Workspace;
+import io.github.atunkodev.core.recipe.RecipeApplicability;
+import io.github.atunkodev.core.recipe.RecipeApplicabilityService;
 import io.github.atunkodev.core.recipe.RecipeCoverageUtils;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
@@ -319,6 +323,8 @@ public class TuiController {
     private WorkspaceExecutionResult workspaceResult;
     private boolean lastRunWasDryRun;
     private int selectedFileIndex = 0;
+    private final RecipeApplicabilityService applicabilityService = new RecipeApplicabilityService();
+    private Set<SourceCapability> sourceCapabilities = Set.of();
 
     private final RecipeListState browserState;
 
@@ -477,6 +483,24 @@ public class TuiController {
         return RecipeCoverageUtils.computeCovered(selectedInfos).stream()
                 .map(RecipeInfo::name)
                 .collect(Collectors.toUnmodifiableSet());
+    }
+
+    /**
+     * Capabilities of the source set this session operates on. Empty until a parse has reported them, which is the
+     * honest answer: nothing has been parsed, so no build model exists.
+     */
+    public Set<SourceCapability> sourceCapabilities() {
+        return sourceCapabilities;
+    }
+
+    public void setSourceCapabilities(Set<SourceCapability> capabilities) {
+        this.sourceCapabilities = capabilities == null ? Set.of() : Set.copyOf(capabilities);
+    }
+
+    /** Whether {@code recipe} can act on the parsed source set, with a reason when it cannot. */
+    @Requirements({"atunko:TUI_0004"})
+    public RecipeApplicability applicability(RecipeInfo recipe) {
+        return applicabilityService.applicability(recipe, sourceCapabilities);
     }
 
     @Requirements({"atunko:TUI_0001.16"})
@@ -963,13 +987,11 @@ public class TuiController {
             return;
         }
 
-        List<SourceFile> sources;
         ProjectInfo projectInfo = SessionHolder.getProjectInfo();
-        if (projectInfo != null) {
-            sources = sourceParser.parse(projectInfo);
-        } else {
-            sources = sourceParser.parse(new ProjectInfo(List.of(), List.of(projectDir)));
-        }
+        ParsedSources parsed = sourceParser.parseWithCapabilities(
+                projectInfo != null ? projectInfo : new ProjectInfo(List.of(), List.of(projectDir)));
+        setSourceCapabilities(parsed.capabilities());
+        List<SourceFile> sources = parsed.sources();
 
         List<FileChange> allChanges = new ArrayList<>();
         for (String recipeName : recipesToRun) {

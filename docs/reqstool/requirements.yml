@@ -1085,3 +1085,94 @@ requirements:
       automated tests without a real terminal
     categories: [functional-suitability]
     revision: 0.1.0
+
+  # Recipe applicability requirements
+  - id: CORE_0015
+    title: Core — Recipe Applicability Detection
+    significance: shall
+    description: >-
+      The core module shall determine, for each recipe and a given set of source
+      capabilities produced by parsing a project, whether the recipe is able to act
+      on that source set, and shall provide a human-readable reason when it is not,
+      so that a genuinely clean project can be told apart from a recipe that never
+      had a chance to act
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0015.1
+    title: Core — Parsed Source Capability Reporting
+    significance: shall
+    description: >-
+      ProjectSourceParser shall report the set of SourceCapability values that the
+      parsed source set actually provides (JAVA, XML, YAML, JSON, PROPERTIES per the
+      file types successfully parsed); MAVEN and GRADLE shall only be reported when
+      a Maven or Gradle build model was genuinely produced, never merely because
+      build files exist on disk
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0015.2
+    title: Core — Applicability by Recipe Name Prefix and Composition
+    significance: shall
+    description: >-
+      Recipes named org.openrewrite.maven.* shall require the MAVEN capability and
+      recipes named org.openrewrite.gradle.* shall require the GRADLE capability;
+      all other recipes shall be treated as applicable; a composite recipe shall be
+      applicable if and only if at least one of its transitive sub-recipes is
+      applicable, with traversal guarded against cycles
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0015.3
+    title: Core — Applicability Caching
+    significance: shall
+    description: >-
+      Applicability results shall be cached per capability set and recipe name so
+      that browsing thousands of recipes does not recompute composite traversals
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [performance-efficiency]
+    revision: 0.1.0
+
+  - id: TUI_0004
+    title: TUI — Inapplicable Recipe Badging
+    significance: shall
+    description: >-
+      The TUI recipe browser shall dim recipes that cannot act on the parsed source
+      set and append a short badge naming the missing capability (for example
+      "needs Maven" or "needs Gradle"); the detail view shall show the full reason;
+      badging shall be purely informational and shall not change selection or
+      execution behaviour
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0004.1
+    title: TUI — Detail View Applicability Reason
+    significance: shall
+    description: >-
+      When the highlighted recipe cannot act on the parsed source set the TUI detail
+      view shall display an "Applicability:" line carrying the reason returned by
+      the core applicability service
+    references:
+      requirement_ids: ["TUI_0004"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: WEB_0003
+    title: Web UI — Inapplicable Recipe Badging
+    significance: shall
+    description: >-
+      The Web UI recipe tree shall render recipes that cannot act on the parsed
+      source set with a muted style and a badge naming the missing capability, with
+      the full reason available as a tooltip, and shall show the reason in the recipe
+      detail panel
+    references:
+      requirement_ids: ["CORE_0015"]
+    categories: [interaction-capability]
+    revision: 0.1.0

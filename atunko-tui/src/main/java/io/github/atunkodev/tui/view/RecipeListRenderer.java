@@ -7,6 +7,7 @@ import static dev.tamboui.toolkit.Toolkit.text;
 
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
+import io.github.atunkodev.core.recipe.RecipeApplicability;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.Requirements;
@@ -15,10 +16,22 @@ import java.util.Set;
 
 public final class RecipeListRenderer {
 
+    /** Glyph prefixing the badge of a recipe that cannot act on the parsed source set. */
+    public static final String INAPPLICABLE_GLYPH = "⊘";
+
     public record RenderOptions(boolean showNumbering, boolean showTags, boolean dimUnselected) {
         public static final RenderOptions BROWSER = new RenderOptions(false, true, false);
         public static final RenderOptions RUN_DIALOG = new RenderOptions(true, false, true);
     }
+
+    /** Supplies the applicability of a recipe against the current source set. */
+    @FunctionalInterface
+    public interface ApplicabilityLookup {
+        RecipeApplicability applicabilityOf(RecipeInfo recipe);
+    }
+
+    /** Lookup for callers that do not care about applicability — every recipe renders unbadged. */
+    public static final ApplicabilityLookup ALL_APPLICABLE = recipe -> RecipeApplicability.APPLICABLE;
 
     private RecipeListRenderer() {}
 
@@ -33,6 +46,31 @@ public final class RecipeListRenderer {
             String title,
             RenderOptions options,
             Constraint constraint) {
+        return renderRecipeList(
+                displayRows,
+                selectedRecipes,
+                expandedRecipes,
+                coveredRecipes,
+                partialRecipes,
+                highlightedIndex,
+                title,
+                options,
+                constraint,
+                ALL_APPLICABLE);
+    }
+
+    @Requirements({"atunko:TUI_0001.16", "atunko:TUI_0001.17", "atunko:TUI_0004"})
+    public static Element renderRecipeList(
+            List<DisplayRow> displayRows,
+            Set<String> selectedRecipes,
+            Set<String> expandedRecipes,
+            Set<String> coveredRecipes,
+            Set<String> partialRecipes,
+            int highlightedIndex,
+            String title,
+            RenderOptions options,
+            Constraint constraint,
+            ApplicabilityLookup applicability) {
         var recipeList = list().addClass("list-item");
 
         int parentIndex = 0;
@@ -66,13 +104,24 @@ public final class RecipeListRenderer {
                     displayName += " [" + coveredCount + "/" + r.recipeList().size() + "]";
                 }
             }
-            var nameEl = resolveNameStyle(displayName, selected, partial, covered, options);
+            RecipeApplicability recipeApplicability = applicability.applicabilityOf(r);
+            var nameEl = resolveNameStyle(displayName, selected, partial, covered, options, recipeApplicability);
 
-            if (options.showTags() && !r.tags().isEmpty() && !displayRow.isSubRecipe()) {
-                var tags = text("  " + String.join(", ", r.tags())).addClass("tag");
-                recipeList.add(row(prefixEl, nameEl, spacer(), tags));
+            boolean withTags = options.showTags() && !r.tags().isEmpty() && !displayRow.isSubRecipe();
+            if (recipeApplicability.applicable()) {
+                if (withTags) {
+                    recipeList.add(row(prefixEl, nameEl, spacer(), tagsElement(r)));
+                } else {
+                    recipeList.add(row(prefixEl, nameEl));
+                }
             } else {
-                recipeList.add(row(prefixEl, nameEl));
+                var badge = text("  " + INAPPLICABLE_GLYPH + " " + recipeApplicability.badgeLabel())
+                        .addClass("inapplicable");
+                if (withTags) {
+                    recipeList.add(row(prefixEl, nameEl, badge, spacer(), tagsElement(r)));
+                } else {
+                    recipeList.add(row(prefixEl, nameEl, badge));
+                }
             }
         }
 
@@ -108,8 +157,20 @@ public final class RecipeListRenderer {
         return text(prefix).addClass("unselected");
     }
 
+    private static Element tagsElement(RecipeInfo recipe) {
+        return text("  " + String.join(", ", recipe.tags())).addClass("tag");
+    }
+
     private static Element resolveNameStyle(
-            String displayName, boolean selected, boolean partial, boolean covered, RenderOptions options) {
+            String displayName,
+            boolean selected,
+            boolean partial,
+            boolean covered,
+            RenderOptions options,
+            RecipeApplicability applicability) {
+        if (!applicability.applicable()) {
+            return text(displayName).addClass("inapplicable");
+        }
         if (options.dimUnselected() && !selected && !covered) {
             return text(displayName).addClass("unselected");
         }

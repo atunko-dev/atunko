@@ -36,6 +36,29 @@ final class PilotTestSupport implements AutoCloseable {
     static final RecipeInfo GAMMA = new RecipeInfo("org.test.Gamma", "Gamma Recipe", "Third recipe", Set.of("java"));
     static final List<RecipeInfo> RECIPES = List.of(ALPHA, BETA, GAMMA);
 
+    /** Requires a Maven build model, which a plain-Java source set never provides. */
+    static final RecipeInfo MAVEN_RECIPE = new RecipeInfo(
+            "org.openrewrite.maven.ChangePropertyValue",
+            "Change Maven property value",
+            "Changes the value of a property in the Maven pom",
+            Set.of("maven"));
+
+    /** Requires a Gradle build model, which is never parsed. */
+    static final RecipeInfo GRADLE_RECIPE = new RecipeInfo(
+            "org.openrewrite.gradle.UpgradeDependencyVersion",
+            "Upgrade Gradle dependency version",
+            "Upgrades a dependency version in a Gradle build file",
+            Set.of("gradle"));
+
+    /** Acts on Java sources, so it is applicable everywhere. */
+    static final RecipeInfo JAVA_RECIPE = new RecipeInfo(
+            "org.openrewrite.java.RemoveUnusedImports",
+            "Remove unused imports",
+            "Removes imports that are not referenced",
+            Set.of("java"));
+
+    static final List<RecipeInfo> APPLICABILITY_RECIPES = List.of(JAVA_RECIPE, MAVEN_RECIPE, GRADLE_RECIPE);
+
     // 80x24 truncates recipe names in the browser table; 120x40 keeps screen() assertions reliable
     private static final int WIDTH = 120;
     private static final int HEIGHT = 40;

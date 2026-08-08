@@ -99,4 +99,67 @@ class ProjectSourceParserTest {
 
         assertThat(sources).isEmpty();
     }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0015.1"})
+    void parseWithCapabilitiesReportsCapabilitiesOfWhatWasParsed() {
+        ProjectInfo info = new ProjectInfo(
+                List.of(),
+                List.of(FIXTURE_DIR.resolve("src/main/java")),
+                List.of(FIXTURE_DIR.resolve("src/main/resources")),
+                List.of(),
+                List.of());
+
+        ParsedSources parsed = parser.parseWithCapabilities(info);
+
+        assertThat(parsed.sources())
+                .extracting(SourceFile::getSourcePath)
+                .containsExactlyElementsOf(parser.parse(info).stream()
+                        .map(SourceFile::getSourcePath)
+                        .toList());
+        assertThat(parsed.capabilities())
+                .contains(
+                        SourceCapability.JAVA,
+                        SourceCapability.XML,
+                        SourceCapability.YAML,
+                        SourceCapability.JSON,
+                        SourceCapability.PROPERTIES);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0015.1"})
+    void parseWithCapabilitiesOmitsCapabilitiesForFileTypesNotPresent() {
+        ProjectInfo info = new ProjectInfo(
+                List.of(), List.of(FIXTURE_DIR.resolve("src/main/java")), List.of(), List.of(), List.of());
+
+        ParsedSources parsed = parser.parseWithCapabilities(info);
+
+        assertThat(parsed.capabilities()).containsExactly(SourceCapability.JAVA);
+        assertThat(parsed.has(SourceCapability.JAVA)).isTrue();
+        assertThat(parsed.has(SourceCapability.YAML)).isFalse();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0015.1"})
+    void parseWithCapabilitiesNeverReportsMavenOrGradleForAMavenProject() {
+        // Stage 1: pom.xml is parsed as plain XML and Gradle build files are not parsed at all,
+        // so neither build-model capability may be claimed.
+        Path mavenFixture = Path.of("src/test/resources/fixtures/maven-project");
+        ProjectInfo info = new ProjectInfo(List.of(), List.of(mavenFixture), List.of(), List.of(), List.of());
+
+        ParsedSources parsed = parser.parseWithCapabilities(info);
+
+        assertThat(parsed.capabilities()).doesNotContain(SourceCapability.MAVEN, SourceCapability.GRADLE);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0015.1"})
+    void parseWithCapabilitiesOfEmptyProjectHasNoCapabilities() {
+        ProjectInfo info = new ProjectInfo(List.of(), List.of(), List.of(), List.of(), List.of());
+
+        ParsedSources parsed = parser.parseWithCapabilities(info);
+
+        assertThat(parsed.sources()).isEmpty();
+        assertThat(parsed.capabilities()).isEmpty();
+    }
 }

@@ -1447,3 +1447,79 @@ cases:
       WHEN '?' is pressed and the terminal is resized
       THEN the help overlay renders and dismisses, and the TUI stays responsive after the resize
     revision: "0.1.0"
+
+  - id: SVC_CORE_0015
+    requirement_ids: ["CORE_0015"]
+    title: Applicability service reports maven and gradle recipes as inapplicable with a reason
+    verification: automated-test
+    description: |
+      GIVEN a capability set without MAVEN and without GRADLE
+      WHEN applicability is queried for an org.openrewrite.maven.* and an org.openrewrite.gradle.* recipe
+      THEN both are reported inapplicable with the missing capability and a human-readable reason
+      AND the same maven recipe is reported applicable once MAVEN is present in the capability set
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0015.1
+    requirement_ids: ["CORE_0015.1"]
+    title: ProjectSourceParser reports the capabilities it actually produced
+    verification: automated-test
+    description: |
+      GIVEN a fixture project with Java, XML, YAML, JSON and properties sources
+      WHEN parseWithCapabilities is called
+      THEN the reported capability set contains exactly the capabilities for the file types parsed
+      AND MAVEN and GRADLE are never reported, even for a project containing a pom.xml
+      AND recipes outside the maven/gradle namespaces are always applicable
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0015.2
+    requirement_ids: ["CORE_0015.2"]
+    title: Composite applicability follows transitive sub-recipes and terminates on cycles
+    verification: automated-test
+    description: |
+      GIVEN a composite recipe whose sub-recipe graph mixes maven, gradle and plain recipes
+      WHEN applicability is queried for the composite
+      THEN it is applicable if and only if at least one transitive sub-recipe is applicable
+      AND a composite whose sub-recipes all require the same missing capability reports that capability
+      AND a cyclic sub-recipe graph terminates instead of recursing forever
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0015.3
+    requirement_ids: ["CORE_0015.3"]
+    title: Applicability results are cached per capability set
+    verification: automated-test
+    description: |
+      GIVEN applicability has been computed for a recipe and a capability set
+      WHEN it is queried again for the same recipe with an equal capability set in any iteration order
+      THEN the cached result instance is returned and a different capability set is computed separately
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0004
+    requirement_ids: ["TUI_0004"]
+    title: TUI recipe list badges inapplicable recipes
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly with a source set that provides no Maven or Gradle capability
+      WHEN the browser view renders a catalog containing a maven recipe and a plain java recipe
+      THEN the maven recipe row carries the "needs Maven" badge and the java recipe row carries no badge
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0004.1
+    requirement_ids: ["TUI_0004.1"]
+    title: TUI detail view shows the applicability reason
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly and an inapplicable recipe is highlighted
+      WHEN the detail screen is opened
+      THEN an "Applicability:" line with the reason is rendered, and it is absent for an applicable recipe
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0003
+    requirement_ids: ["WEB_0003"]
+    title: Web UI recipe tree badges inapplicable recipes
+    verification: automated-test
+    description: |
+      GIVEN the Web UI is loaded with a catalog containing a maven recipe and the session provides no MAVEN capability
+      WHEN the recipe tree renders the name column for that recipe
+      THEN the rendered component carries a "needs Maven" badge with the reason as its tooltip and a muted style
+      AND the detail panel for that recipe shows the applicability reason
+    revision: "0.1.0"
