@@ -1838,7 +1838,7 @@ class TuiControllerTest {
     void runSelectedRecipesRecordsExecutedRecipesAsRecentlyUsed(
             @TempDir Path workspaceDir, @TempDir Path projectA, @TempDir Path configDir) {
         ProjectEntry entry = new ProjectEntry(projectA, new ProjectInfo(List.of(), List.of()));
-        WorkspaceExecutionEngine stubEngine = new WorkspaceExecutionEngine(null, null) {
+        WorkspaceExecutionEngine stubEngine = new WorkspaceExecutionEngine(null, (ProjectSourceParser) null) {
             @Override
             public WorkspaceExecutionResult execute(List<String> recipeNames, Workspace workspace) {
                 return new WorkspaceExecutionResult(

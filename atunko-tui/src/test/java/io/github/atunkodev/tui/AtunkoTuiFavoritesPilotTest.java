@@ -8,6 +8,7 @@ import io.github.atunkodev.core.recipe.FavoritesService;
 import io.github.atunkodev.core.recipe.RecentRecipesService;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -35,16 +36,20 @@ class AtunkoTuiFavoritesPilotTest {
 
             pilot.press('f');
             assertThat(tui.controller().isFavorite("org.test.Alpha")).isTrue();
-            assertThat(tui.screen()).contains("Alpha Recipe *");
+            // The favorite toggle persists to disk inside the handler, so the redraw can land after
+            // Pilot's fixed post-press pause — await the frame instead of trusting a single pause.
+            awaitScreen(tui, "Alpha Recipe *");
 
             pilot.press('F');
             assertThat(tui.controller().favoritesFilter()).isEqualTo(FavoritesFilter.FAVORITES);
-            assertThat(tui.screen()).contains("fav:only").contains("1 recipes");
+            awaitScreen(tui, "fav:only");
+            assertThat(tui.screen()).contains("1 recipes");
             assertThat(tui.screen()).doesNotContain("Beta Recipe");
 
             pilot.press('F');
             assertThat(tui.controller().favoritesFilter()).isEqualTo(FavoritesFilter.ALL);
-            assertThat(tui.screen()).contains("fav:all").contains("3 recipes");
+            awaitScreen(tui, "fav:all");
+            assertThat(tui.screen()).contains("3 recipes");
         }
     }
 
@@ -54,7 +59,22 @@ class AtunkoTuiFavoritesPilotTest {
         try (PilotTestSupport tui = PilotTestSupport.launch(controller(configDir))) {
             tui.pilot().press('?');
             assertThat(tui.controller().isShowHelp()).isTrue();
-            assertThat(tui.screen()).contains("Toggle favorite").contains("Favorites filter");
+            awaitScreen(tui, "Toggle favorite");
+            assertThat(tui.screen()).contains("Favorites filter");
         }
+    }
+
+    /** Rendering is asynchronous to the test thread — poll the captured frame until it shows the expected text. */
+    private static void awaitScreen(PilotTestSupport tui, String expected) {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (System.nanoTime() < deadline && !tui.screen().contains(expected)) {
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        assertThat(tui.screen()).contains(expected);
     }
 }
