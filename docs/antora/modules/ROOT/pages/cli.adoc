@@ -40,6 +40,10 @@ resolve source dirs, resource dirs, test dirs, and compile classpath for each mo
 | `--recipe-jar <path>`
 | Add a user recipe jar to the discovery environment (repeatable). Its recipes join the
 catalog classified as user recipes. See <<recipe-sources>>.
+
+| `--recipes-file <path>`
+| Add a user recipe YAML file to the discovery environment (repeatable). Its recipes
+join the catalog classified as user recipes. See <<user-recipe-yaml>>.
 |===
 
 ==== Theming
@@ -93,11 +97,19 @@ atunko tui --css-file ~/.config/atunko/mytheme.tcss
 | Collapse composite recipe
 
 | `s`
-| Toggle sort order (name / tags)
+| Cycle sort order (name → tags → recent). See <<favorites-and-recent>>.
 
 | `u`
 | Cycle recipe source filter (all → bundled → user). The active filter is shown as
 `src:` in the status bar. See <<recipe-sources>>.
+
+| `f`
+| Toggle favorite for the highlighted recipe (marked with `*`). See
+<<favorites-and-recent>>.
+
+| `F`
+| Cycle favorites filter (all → favorites only). The active filter is shown as `fav:`
+in the status bar. See <<favorites-and-recent>>.
 
 | `Esc`
 | Clear search, tag, and recipe source filters (reset to full list)
@@ -170,8 +182,9 @@ atunko list --sort tags --format table
 |===
 | Option | Description
 
-| `--sort <name\|tags>`
-| Sort order: by recipe name (default) or by tags
+| `--sort <name\|tags\|recent>`
+| Sort order: by recipe name (default) or by tags (`recent` is accepted for parity
+with the TUI, see <<favorites-and-recent>>)
 
 | `--format <text\|table>`
 | Output format: plain text (default) or table
@@ -183,6 +196,10 @@ See <<recipe-sources>>.
 | `--recipe-jar <path>`
 | Add a user recipe jar to the discovery environment (repeatable). Its recipes are
 classified as user recipes. See <<recipe-sources>>.
+
+| `--recipes-file <path>`
+| Add a user recipe YAML file to the discovery environment (repeatable). Its recipes
+are classified as user recipes. See <<user-recipe-yaml>>.
 
 | `--help`
 | Show help for the list command
@@ -214,8 +231,9 @@ atunko search "spring" --field name --format table
 | `--field <name\|description\|tags\|all>`
 | Restrict search to a specific field (default: all)
 
-| `--sort <name\|tags>`
-| Sort order: by recipe name (default) or by tags
+| `--sort <name\|tags\|recent>`
+| Sort order: by recipe name (default) or by tags (`recent` is accepted for parity
+with the TUI, see <<favorites-and-recent>>)
 
 | `--format <text\|table>`
 | Output format: plain text (default) or table
@@ -227,6 +245,10 @@ See <<recipe-sources>>.
 | `--recipe-jar <path>`
 | Add a user recipe jar to the discovery environment (repeatable). Its recipes are
 classified as user recipes. See <<recipe-sources>>.
+
+| `--recipes-file <path>`
+| Add a user recipe YAML file to the discovery environment (repeatable). Its recipes
+are classified as user recipes. See <<user-recipe-yaml>>.
 
 | `--help`
 | Show help for the search command
@@ -316,8 +338,9 @@ continues without a checkpoint:
 Every recipe in the catalog is classified by source:
 
 * *Bundled* — recipes shipped with atunko's built-in OpenRewrite recipe modules.
-* *User* — recipes you add yourself, e.g. via `--recipe-jar <path>` (repeatable) on
-  `list`, `search`, `tui`, and `run`.
+* *User* — recipes you add yourself: via `--recipe-jar <path>` or
+  `--recipes-file <path>` (both repeatable) on `list`, `search`, `tui`, and `run`, or
+  via auto-discovered recipe YAML files (see <<user-recipe-yaml>>).
 
 The `list` and `search` commands filter by source with `--source <all|bundled|user>`
 (default: `all`). In the TUI, the `u` key cycles the same filter
@@ -344,6 +367,61 @@ atunko tui --recipe-jar ~/recipes/my-recipes.jar
 # Execute a user recipe from the command line
 atunko run -r io.example.MyTeamRecipe --recipe-jar ~/recipes/my-recipes.jar --project-dir .
 ----
+
+[#user-recipe-yaml]
+=== User recipe YAML files
+
+Declarative OpenRewrite recipe YAML files can be added to the catalog in two ways:
+
+* Explicitly, with `--recipes-file <path>` (repeatable) on `list`, `search`, and `tui`.
+* Automatically: every `*.yml`/`*.yaml` file in the `recipes` directory of the atunko
+  config dir (`~/.config/atunko/recipes/`, or `$XDG_CONFIG_HOME/atunko/recipes/` when
+  set) is loaded on startup, in filename order.
+
+Recipes from these files are classified as user recipes and behave like any other
+recipe — they can be browsed, searched, selected, and executed.
+
+[source,bash]
+----
+mkdir -p ~/.config/atunko/recipes
+cp my-recipes.yml ~/.config/atunko/recipes/   # auto-discovered from now on
+
+atunko list --source user                     # verify they were picked up
+atunko search "cleanup" --recipes-file ./team-recipes.yml
+----
+
+A file that cannot be loaded (malformed YAML, invalid recipe definition) is skipped
+with a warning on stderr — it never blocks startup or hides the rest of the catalog.
+
+[#favorites-and-recent]
+== Favorites and recently used
+
+The TUI remembers which recipes you care about and which you ran last, across sessions.
+Both are stored as plain YAML files in the atunko config dir (`~/.config/atunko/`, or
+`$XDG_CONFIG_HOME/atunko/` when set).
+
+=== Favorites
+
+In the browser, press `f` to toggle the highlighted recipe as a favorite — favorites
+are marked with `*` after their name. Press `F` to cycle the favorites filter
+(all → favorites only); the active filter is shown as `fav:` in the status bar.
+
+Favorites persist in `favorites.yml` (a plain list of recipe names) and every toggle is
+saved immediately. A missing or malformed file simply reads as "no favorites" — it
+never blocks startup.
+
+=== Recently used
+
+Every recipe execution from the TUI is recorded in `recent.yml`, newest first, with an
+ISO-8601 timestamp. Re-running a recipe moves it to the front; the list is capped at
+20 entries.
+
+The `s` key cycles the sort order name → tags → recent. With the `recent` sort order,
+recently executed recipes appear first (newest first) and everything else follows in
+name order.
+
+NOTE: `list` and `search` also accept `--sort recent` for parity, but without a TUI
+session's recent context it currently falls back to name order.
 
 == Performance — LST caching
 
