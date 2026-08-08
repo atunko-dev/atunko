@@ -1542,6 +1542,39 @@ cases:
       AND a null or pom-less directory hints nothing
     revision: "0.1.0"
 
+  - id: SVC_CORE_0017
+    requirement_ids: ["CORE_0017"]
+    title: A lazily initialised session records the directory and defers the scan
+    verification: automated-test
+    description: |
+      GIVEN a session initialised lazily with a project directory
+      WHEN the session is queried before any scan has been triggered
+      THEN the project directory is returned and no project entries and no project info exist
+      AND triggering the scan populates the project info from the detected scanner
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0017.1
+    requirement_ids: ["CORE_0017.1"]
+    title: The deferred scan runs exactly once even under concurrent callers
+    verification: automated-test
+    description: |
+      GIVEN a lazily initialised session whose scanner counts its invocations
+      WHEN the scan is triggered repeatedly and from several threads at once
+      THEN the scanner runs exactly once and every caller observes the same project info
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0017.2
+    requirement_ids: ["CORE_0017.2"]
+    title: A failing deferred scan is rethrown, not cached, and retried on the next call
+    verification: automated-test
+    description: |
+      GIVEN a lazily initialised session whose scan fails on its first attempt
+      WHEN the scan is triggered
+      THEN the exception is propagated to the caller and the session keeps its project directory
+      AND a subsequent trigger runs the scan again and succeeds
+      AND eager initialisation of a single project and of a workspace is unchanged
+    revision: "0.1.0"
+
   - id: SVC_TUI_0004
     requirement_ids: ["TUI_0004"]
     title: TUI recipe list badges inapplicable recipes
@@ -1562,6 +1595,28 @@ cases:
       THEN an "Applicability:" line with the reason is rendered, and it is absent for an applicable recipe
     revision: "0.1.0"
 
+  - id: SVC_TUI_0005
+    requirement_ids: ["TUI_0005"]
+    title: The TUI launches and browses recipes before the project has been scanned
+    verification: automated-test
+    description: |
+      GIVEN the TUI is started headlessly against a project directory whose scan has not run
+      WHEN the recipe browser is rendered and navigated
+      THEN the browser is usable and the session still reports no project info
+      AND running a recipe triggers the scan and produces an execution result
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0005.1
+    requirement_ids: ["TUI_0005.1"]
+    title: A failing deferred scan is shown as an execution error and the TUI survives
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly against a lazily initialised session whose scan fails
+      WHEN a recipe run is triggered
+      THEN an error naming the scan failure is rendered in the interface
+      AND the TUI keeps running so that the run can be retried
+    revision: "0.1.0"
+
   - id: SVC_WEB_0003
     requirement_ids: ["WEB_0003"]
     title: Web UI recipe tree badges inapplicable recipes
@@ -1571,4 +1626,16 @@ cases:
       WHEN the recipe tree renders the name column for that recipe
       THEN the rendered component carries a "needs Maven" badge with the reason as its tooltip and a muted style
       AND the detail panel for that recipe shows the applicability reason
+    revision: "0.1.0"
+
+  - id: SVC_WEB_0004
+    requirement_ids: ["WEB_0004"]
+    title: The Web UI opens on an unscanned session and reports a failing scan as a notification
+    verification: automated-test
+    description: |
+      GIVEN the Web UI recipe browser is opened against a lazily initialised session whose scan has not run
+      WHEN the view is rendered
+      THEN it is usable and no scan has been triggered
+      AND when a run is executed against a session whose scan fails, an error notification is shown
+      AND the view stays usable with its action buttons re-enabled
     revision: "0.1.0"
