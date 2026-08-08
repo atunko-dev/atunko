@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+Export the current run configuration as a Maven/Gradle plugin snippet from the Web UI.
+
+## Requirements
 
 ### Requirement: WEB_0001.17
 The system SHALL implement WEB_0001.17.
