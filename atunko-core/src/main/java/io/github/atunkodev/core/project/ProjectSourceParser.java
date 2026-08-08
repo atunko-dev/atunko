@@ -51,12 +51,7 @@ public class ProjectSourceParser {
      */
     @Requirements({"atunko:CORE_0003", "atunko:CORE_0003.1", "atunko:CORE_0015.1", "atunko:CORE_0016"})
     public ParsedSources parseWithCapabilities(ProjectInfo projectInfo) {
-        List<Path> rawDirs = projectInfo.allSourceAndResourceDirs();
-        if (rawDirs.isEmpty()) {
-            rawDirs = projectInfo.sourceDirs();
-        }
-        List<Path> allDirs =
-                rawDirs.stream().map(d -> d.toAbsolutePath().normalize()).toList();
+        List<Path> allDirs = projectInfo.parseRoots();
 
         Map<String, List<Path>> filesByExtension = collectFilesByExtension(allDirs);
         List<Path> pomFiles = collectPomFiles(filesByExtension, projectInfo.buildFiles());

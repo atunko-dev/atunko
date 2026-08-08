@@ -6,8 +6,14 @@ import io.github.reqstool.annotations.SVCs;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -143,5 +149,62 @@ class ParsedSourcesCacheTest {
         disabled.get(projectDir, info());
 
         assertThat(parser.parses).hasValue(2);
+    }
+
+    /** An mtime-preserving restore (cp -p, tar, touch -r) with an equal file size must still invalidate. */
+    @Test
+    @SVCs({"atunko:SVC_CORE_0018.1"})
+    void sameSizeChangeWithPreservedMtimeTriggersReparse() throws IOException {
+        Path file = srcDir.resolve("A.java");
+        FileTime originalMtime = Files.getLastModifiedTime(file);
+        long originalSize = Files.size(file);
+        cache.get(projectDir, info());
+
+        Files.writeString(file, "class B {}"); // same length as "class A {}"
+        Files.setLastModifiedTime(file, originalMtime);
+        assertThat(Files.size(file)).isEqualTo(originalSize);
+
+        cache.get(projectDir, info());
+
+        assertThat(parser.parses).hasValue(2);
+    }
+
+    /** A rebuilt dependency jar changes type attribution, so it must invalidate like a source change. */
+    @Test
+    @SVCs({"atunko:SVC_CORE_0018.1"})
+    void modifiedClasspathEntryTriggersReparse() throws IOException {
+        Path jar = Files.writeString(projectDir.resolve("dep.jar"), "v1");
+        ProjectInfo withClasspath =
+                new ProjectInfo(List.of(jar), List.of(srcDir), List.of(), List.of(), List.of(), List.of(buildFile));
+        cache.get(projectDir, withClasspath);
+
+        Files.writeString(jar, "v2-longer");
+
+        cache.get(projectDir, withClasspath);
+
+        assertThat(parser.parses).hasValue(2);
+    }
+
+    /** Concurrent callers for the same cold project must share one parse, not race into two. */
+    @Test
+    @SVCs({"atunko:SVC_CORE_0018"})
+    void concurrentGetsShareASingleParse() throws Exception {
+        int threads = 4;
+        try (ExecutorService pool = Executors.newFixedThreadPool(threads)) {
+            CountDownLatch start = new CountDownLatch(1);
+            List<Future<ParsedSources>> futures = new ArrayList<>();
+            for (int i = 0; i < threads; i++) {
+                futures.add(pool.submit(() -> {
+                    start.await();
+                    return cache.get(projectDir, info());
+                }));
+            }
+            start.countDown();
+            for (Future<ParsedSources> future : futures) {
+                assertThat(future.get()).isNotNull();
+            }
+        }
+
+        assertThat(parser.parses).hasValue(1);
     }
 }

@@ -484,8 +484,8 @@ class RecipeBrowserViewTest {
         };
         ProjectSourceParser noOpParser = new ProjectSourceParser() {
             @Override
-            public List<org.openrewrite.SourceFile> parse(io.github.atunkodev.core.project.ProjectInfo info) {
-                return List.of();
+            public ParsedSources parseWithCapabilities(io.github.atunkodev.core.project.ProjectInfo info) {
+                return ParsedSources.empty();
             }
         };
         AppServices.init(noOpEngine, noOpParser, trackingApplier);

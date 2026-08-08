@@ -10,6 +10,7 @@ import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.project.ParsedSources;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
@@ -107,8 +108,8 @@ abstract class PlaywrightTestBase {
     private static ProjectSourceParser stubParser() {
         return new ProjectSourceParser() {
             @Override
-            public List<org.openrewrite.SourceFile> parse(ProjectInfo projectInfo) {
-                return List.of();
+            public ParsedSources parseWithCapabilities(ProjectInfo projectInfo) {
+                return ParsedSources.empty();
             }
         };
     }

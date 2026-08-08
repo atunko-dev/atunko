@@ -2,7 +2,6 @@ package io.github.atunkodev.core.engine;
 
 import io.github.atunkodev.core.project.ParsedSourcesCache;
 import io.github.atunkodev.core.project.ProjectEntry;
-import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.Workspace;
 import io.github.reqstool.annotations.Requirements;
 import java.util.ArrayList;
@@ -14,10 +13,6 @@ public class WorkspaceExecutionEngine {
 
     private final RecipeExecutionEngine engine;
     private final ParsedSourcesCache sourceCache;
-
-    public WorkspaceExecutionEngine(RecipeExecutionEngine engine, ProjectSourceParser sourceParser) {
-        this(engine, new ParsedSourcesCache(sourceParser));
-    }
 
     public WorkspaceExecutionEngine(RecipeExecutionEngine engine, ParsedSourcesCache sourceCache) {
         this.engine = engine;

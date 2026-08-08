@@ -245,13 +245,14 @@ repeated executions against the same project reuse the parsed sources instead of
 re-parsing from scratch.
 
 The cache invalidates itself automatically: before each execution the project's source
-and resource directories plus its build files are fingerprinted (file size and
-modification time). Any difference — a modified, added, or removed file, or a project
-re-scan that changes the classpath or source directories — discards the cached entry
-and re-parses the whole project.
+and resource directories plus its build files are fingerprinted (file size, modification
+time, and a content checksum), and classpath entries such as dependency jars are
+fingerprinted by size and modification time. Any difference — a modified, added, or
+removed file, a rebuilt dependency, or a project re-scan that changes the classpath or
+source directories — discards the cached entry and re-parses the whole project.
 
-The cache is per-session and in-memory only; nothing is written to disk, and one-shot
-CLI runs are unaffected.
+The cache is per-session and in-memory only; nothing is written to disk, cached entries
+are released automatically under memory pressure, and one-shot CLI runs are unaffected.
 
 To disable caching entirely, set the system property `atunko.lst.cache.disabled=true`:
 

@@ -6,6 +6,7 @@ import dev.tamboui.tui.event.KeyCode;
 import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.project.ParsedSourcesCache;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectScanner;
 import io.github.atunkodev.core.project.ProjectSourceParser;
@@ -86,7 +87,12 @@ class AtunkoTuiLazyScanPilotTest {
 
     private static TuiController controllerFor(Path projectDir) {
         return new TuiController(
-                List.of(RECIPE), new RunConfigService(), new NoopEngine(), new ProjectSourceParser(), null, projectDir);
+                List.of(RECIPE),
+                new RunConfigService(),
+                new NoopEngine(),
+                new ParsedSourcesCache(new ProjectSourceParser()),
+                null,
+                projectDir);
     }
 
     @Test

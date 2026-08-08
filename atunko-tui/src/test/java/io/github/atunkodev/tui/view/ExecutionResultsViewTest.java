@@ -10,7 +10,6 @@ import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
-import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.Workspace;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.Screen;
@@ -38,7 +37,7 @@ class ExecutionResultsViewTest {
         WorkspaceExecutionResult fakeResult = new WorkspaceExecutionResult(List.of(new ProjectExecutionResult(
                 entryA, new ExecutionResult(List.of(new FileChange(Path.of("Foo.java"), "a", "b"))), null)));
 
-        WorkspaceExecutionEngine stubEngine = new WorkspaceExecutionEngine(null, (ProjectSourceParser) null) {
+        WorkspaceExecutionEngine stubEngine = new WorkspaceExecutionEngine(null, null) {
             @Override
             public WorkspaceExecutionResult execute(List<String> recipeNames, Workspace workspace) {
                 return fakeResult;
@@ -71,7 +70,7 @@ class ExecutionResultsViewTest {
         WorkspaceExecutionResult fakeResult = new WorkspaceExecutionResult(
                 List.of(new ProjectExecutionResult(entryA, null, new RuntimeException("build failure"))));
 
-        WorkspaceExecutionEngine stubEngine = new WorkspaceExecutionEngine(null, (ProjectSourceParser) null) {
+        WorkspaceExecutionEngine stubEngine = new WorkspaceExecutionEngine(null, null) {
             @Override
             public WorkspaceExecutionResult execute(List<String> recipeNames, Workspace workspace) {
                 return fakeResult;

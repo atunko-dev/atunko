@@ -3,6 +3,7 @@ package io.github.atunkodev.core.engine;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.atunkodev.core.project.ParsedSources;
+import io.github.atunkodev.core.project.ParsedSourcesCache;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
@@ -61,8 +62,9 @@ class WorkspaceExecutionEngineTest {
         Workspace workspace =
                 new Workspace(Path.of("/projects"), List.of(entry("alpha"), entry("beta"), entry("gamma")));
 
-        WorkspaceExecutionResult result =
-                new WorkspaceExecutionEngine(stubEngine(List.of()), emptyParser()).execute(RECIPE, workspace);
+        WorkspaceExecutionResult result = new WorkspaceExecutionEngine(
+                        stubEngine(List.of()), new ParsedSourcesCache(emptyParser()))
+                .execute(RECIPE, workspace);
 
         assertThat(result.results()).hasSize(3);
         assertThat(result.results()).allMatch(ProjectExecutionResult::succeeded);
@@ -74,8 +76,8 @@ class WorkspaceExecutionEngineTest {
         ProjectEntry failing = entry("failing");
         ProjectEntry ok = entry("ok");
 
-        WorkspaceExecutionEngine engine =
-                new WorkspaceExecutionEngine(stubEngine(List.of()), failingParser(failing.info()));
+        WorkspaceExecutionEngine engine = new WorkspaceExecutionEngine(
+                stubEngine(List.of()), new ParsedSourcesCache(failingParser(failing.info())));
 
         Workspace workspace = new Workspace(Path.of("/projects"), List.of(failing, ok));
         WorkspaceExecutionResult result = engine.execute(RECIPE, workspace);
@@ -105,7 +107,7 @@ class WorkspaceExecutionEngineTest {
 
         Workspace workspace = new Workspace(Path.of("/projects"), List.of(entry("a"), entry("b")));
         WorkspaceExecutionResult result =
-                new WorkspaceExecutionEngine(engine, emptyParser()).execute(RECIPE, workspace);
+                new WorkspaceExecutionEngine(engine, new ParsedSourcesCache(emptyParser())).execute(RECIPE, workspace);
 
         assertThat(result.totalChanges()).isEqualTo(3);
     }

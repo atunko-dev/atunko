@@ -15,7 +15,6 @@ import io.github.atunkodev.core.project.ParsedSources;
 import io.github.atunkodev.core.project.ParsedSourcesCache;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
-import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
 import io.github.atunkodev.core.project.SourceCapability;
 import io.github.atunkodev.core.project.SourceCapabilityHints;
@@ -347,17 +346,17 @@ public class TuiController {
             List<RecipeInfo> allRecipes,
             RunConfigService runConfigService,
             RecipeExecutionEngine engine,
-            ProjectSourceParser sourceParser,
+            ParsedSourcesCache sourceCache,
             ChangeApplier changeApplier,
             Path projectDir) {
-        this(allRecipes, runConfigService, engine, sourceParser, changeApplier, null, null, projectDir);
+        this(allRecipes, runConfigService, engine, sourceCache, changeApplier, null, null, projectDir);
     }
 
     public TuiController(
             List<RecipeInfo> allRecipes,
             RunConfigService runConfigService,
             RecipeExecutionEngine engine,
-            ProjectSourceParser sourceParser,
+            ParsedSourcesCache sourceCache,
             ChangeApplier changeApplier,
             WorkspaceExecutionEngine workspaceEngine,
             Path projectDir) {
@@ -365,7 +364,7 @@ public class TuiController {
                 allRecipes,
                 runConfigService,
                 engine,
-                sourceParser,
+                sourceCache,
                 changeApplier,
                 workspaceEngine,
                 workspaceEngine != null ? SessionHolder.getProjectEntries() : null,
@@ -376,7 +375,7 @@ public class TuiController {
             List<RecipeInfo> allRecipes,
             RunConfigService runConfigService,
             RecipeExecutionEngine engine,
-            ProjectSourceParser sourceParser,
+            ParsedSourcesCache sourceCache,
             ChangeApplier changeApplier,
             WorkspaceExecutionEngine workspaceEngine,
             List<ProjectEntry> workspaceProjects,
@@ -384,7 +383,7 @@ public class TuiController {
         this.allRecipes = List.copyOf(allRecipes);
         this.runConfigService = runConfigService;
         this.engine = engine;
-        this.sourceCache = sourceParser != null ? new ParsedSourcesCache(sourceParser) : null;
+        this.sourceCache = sourceCache;
         this.changeApplier = changeApplier;
         this.workspaceEngine = workspaceEngine;
         this.workspaceProjects = workspaceProjects != null ? List.copyOf(workspaceProjects) : null;
@@ -1024,19 +1023,28 @@ public class TuiController {
         }
 
         ProjectInfo projectInfo = SessionHolder.getProjectInfo();
-        ParsedSources parsed = sourceCache.get(
-                projectDir, projectInfo != null ? projectInfo : new ProjectInfo(List.of(), List.of(projectDir)));
-        setSourceCapabilities(parsed.capabilities());
-        List<SourceFile> sources = parsed.sources();
+        ExecutionResult combined;
+        // Parse (or fingerprint-check) and execute inside a guard: a file vanishing mid-walk or a parse
+        // failure must land on the error screen like a scan failure does, not escape into the event loop.
+        try {
+            ParsedSources parsed = sourceCache.get(
+                    projectDir, projectInfo != null ? projectInfo : new ProjectInfo(List.of(), List.of(projectDir)));
+            setSourceCapabilities(parsed.capabilities());
+            List<SourceFile> sources = parsed.sources();
 
-        List<FileChange> allChanges = new ArrayList<>();
-        for (String recipeName : recipesToRun) {
-            ExecutionResult result = engine.execute(recipeName, sources);
-            allChanges.addAll(result.changes());
-        }
-        ExecutionResult combined = new ExecutionResult(allChanges);
-        if (!dryRun && changeApplier != null) {
-            changeApplier.apply(projectDir, combined.changes());
+            List<FileChange> allChanges = new ArrayList<>();
+            for (String recipeName : recipesToRun) {
+                ExecutionResult result = engine.execute(recipeName, sources);
+                allChanges.addAll(result.changes());
+            }
+            combined = new ExecutionResult(allChanges);
+            if (!dryRun && changeApplier != null) {
+                changeApplier.apply(projectDir, combined.changes());
+            }
+        } catch (RuntimeException e) {
+            LOG.warning(() -> "Recipe execution failed: " + e);
+            showExecutionError("Execution failed: " + describe(e));
+            return;
         }
         if (dryRun) {
             showDryRunResult(combined);

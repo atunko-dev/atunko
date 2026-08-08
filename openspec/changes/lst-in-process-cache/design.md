@@ -16,16 +16,24 @@ memory for the lifetime of the session.
 `ParsedSourcesCache` wraps a `ProjectSourceParser` and exposes
 `ParsedSources get(ProjectEntry entry)`. Callers swap
 `sourceParser.parseWithCapabilities(info)` for `cache.get(entry)`. The cache lives in
-`io.github.atunkodev.core.project` next to `ParsedSources`. A single shared instance is
-wired through `AppServices` so TUI and Web reuse it without new plumbing.
+`io.github.atunkodev.core.project` next to `ParsedSources`. Each composition root wires
+exactly one instance: `AppServices.init` creates the Web UI's JVM-wide cache, and
+`TuiCommand` creates the TUI session's cache and injects it into both `TuiController`
+and `WorkspaceExecutionEngine`, so a project parsed by either is a hit for the other.
+One-shot CLI runs construct a disabled cache — every project is visited once, so caching
+could never hit and would only pin LSTs until process exit.
 
 ### 2. Fingerprint invalidation, not WatchService
 
-On every `get`, walk the project's source/resource dirs (`allSourceAndResourceDirs()`,
-falling back to `sourceDirs()` — the same roots the parser reads) plus
+On every `get`, walk `ProjectInfo.parseRoots()` — the single method both the parser and
+the cache derive their file sets from, so they cannot drift — plus
 `ProjectInfo.buildFiles()`, and build a fingerprint map of
-`absolute path → (size, mtimeMillis)`. Equal map → cache hit; anything else (including
-added/removed files) → full re-parse and store.
+`absolute path → (size, mtimeMillis, contentCrc)`. The CRC catches same-size edits whose
+mtime is preserved or truncated away (mtime-preserving restores, coarse filesystem
+timestamps). Classpath entries (dependency jars or class directories) are fingerprinted
+too, by `(size, mtimeMillis)` only — a rebuilt jar changes type attribution like a source
+edit does, but its bytes are not worth hashing. Equal map → cache hit; anything else
+(including added/removed files) → full re-parse and store.
 
 Why not `WatchService`: lifecycle (threads, overflow events, per-dir registration on
 every subtree) and platform quirks for a benefit the fingerprint walk already provides —
@@ -52,10 +60,11 @@ parser on every call — no fingerprinting, no stored entries (CORE_0018.3).
 
 ### 6. Thread safety
 
-`ConcurrentHashMap` for the entry map; parse-and-store is not globally locked — two
-concurrent misses on the same project may both parse and the last write wins, which is
-correct (both results are equivalent) and matches the low-concurrency reality (one
-execution at a time per UI session).
+`ConcurrentHashMap.compute` gives per-key mutual exclusion: concurrent callers for the
+same cold project share one parse instead of racing check-then-put into duplicates
+(relevant for the Web UI, where the cache is JVM-wide across browser sessions). Entries
+hold their `ParsedSources` via `SoftReference`, so under heap pressure the GC reclaims
+cached LSTs and the next `get` re-parses instead of the JVM going out of memory.
 
 ## Non-goals
 
@@ -64,5 +73,6 @@ execution at a time per UI session).
 - Re-scanning `ProjectInfo` on build-file change — build-file edits invalidate the
   parse (they are fingerprinted), but the session's `ProjectInfo` (classpath, source
   dirs) still refreshes only per the existing scan lifecycle.
-- Cache size limits: one `ParsedSources` per project of the current session is the
-  natural bound; sessions hold a handful of projects at most.
+- Hard cache size limits: one `ParsedSources` per project of the current session is the
+  natural bound, and the `SoftReference` entries make the GC the backstop for
+  pathological sessions.
