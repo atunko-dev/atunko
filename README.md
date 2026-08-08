@@ -14,6 +14,26 @@ browsing, configuration, execution, and saveable run configurations — all from
 
 ## Installation
 
+### Run with JBang (zero install)
+
+With [JBang](https://www.jbang.dev) installed, no download or build is needed — JBang fetches
+the JAR and provisions a matching JDK:
+
+```bash
+# Launch the interactive recipe browser
+jbang atunko@atunko-dev/atunko tui
+
+# Search for recipes
+jbang atunko@atunko-dev/atunko search "spring"
+
+# Run a recipe against the current project
+jbang atunko@atunko-dev/atunko run -r org.openrewrite.java.RemoveUnusedImports
+```
+
+The alias resolves the JAR attached to the latest GitHub release (the first release is still
+pending, so the alias will not resolve until then). Once the `atunko-dev/jbang-catalog` repository
+exists, the shorter `jbang atunko@atunko-dev …` form works as well.
+
 ### Download the fat JAR
 
 Download `atunko.jar` from the [releases page](https://github.com/jimisola/atunko/releases), then:

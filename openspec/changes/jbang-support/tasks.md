@@ -24,7 +24,7 @@
 
 ## 3. Docs
 
-- [ ] 3.1 README: "Run with JBang (zero install)" section with the issue's three
+- [x] 3.1 README: "Run with JBang (zero install)" section with the issue's three
       examples and a note that it resolves from the latest GitHub release
 
 ## 4. Wrap-up

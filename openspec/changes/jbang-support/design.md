@@ -46,8 +46,11 @@ repo's default branch; the shorter `alias@org` form reads it from an
    so JBang provisions a matching JDK.
 
 3. **README quick-start** mirrors the issue's examples (`tui`,
-   `discover --search "spring"`, `run -r …`) and states the JAR-URL nature (no
+   recipe search, `run -r …`) and states the JAR-URL nature (no
    version pinning until Maven Central publication).
+   *Correction during implementation*: the issue's `discover --search "spring"`
+   example is not a real command — the CLI subcommands are `tui`, `list`,
+   `search`, `run`, `config`. The README uses `search "spring"` instead.
 
 4. **Verification**: a unit-style test is impossible for an external `jbang`
    binary; SVC verification is (a) JSON validity of `jbang-catalog.json` asserted
