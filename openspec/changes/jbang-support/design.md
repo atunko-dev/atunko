@@ -56,6 +56,13 @@ repo's default branch; the shorter `alias@org` form reads it from an
    `release.yml` gains `fail_on_unmatched_files` coverage for the new stable asset
    (already enabled — the glob just must match).
 
+5. **Stable-asset copy step must disambiguate the shadow JAR** (found during
+   implementation): `atunko-cli/build/libs/` contains both the shadow JAR
+   (`atunko-<version>.jar`) and the thin module JAR (`atunko-cli-<version>.jar`),
+   and the existing release glob `atunko-*.jar` matches both. The copy step
+   therefore filters out `atunko-cli-*` before asserting a single match, and
+   `files:` lists `atunko.jar` explicitly since it does not match `atunko-*.jar`.
+
 ## Risks / Trade-offs
 
 - [No release exists yet → alias 404s until the first release] → acceptable and

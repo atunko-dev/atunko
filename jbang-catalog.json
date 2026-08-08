@@ -1,0 +1,9 @@
+{
+  "aliases": {
+    "atunko": {
+      "script-ref": "https://github.com/atunko-dev/atunko/releases/latest/download/atunko.jar",
+      "description": "atunko — TUI + CLI for OpenRewrite: browse, search, configure and run recipes",
+      "java": "25+"
+    }
+  }
+}

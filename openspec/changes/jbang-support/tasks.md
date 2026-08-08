@@ -12,13 +12,13 @@
 
 ## 2. Catalog + release asset
 
-- [ ] 2.1 Test first: `JbangCatalogTest` in atunko-cli — reads
+- [x] 2.1 Test first: `JbangCatalogTest` in atunko-cli — reads
       `jbang-catalog.json` from repo root, asserts JSON validity, `atunko` alias,
       well-formed `releases/latest/download/atunko.jar` script-ref, and a java
       version attribute; add `@SVCs({"SVC_CLI_0006"})`
-- [ ] 2.2 Add `jbang-catalog.json` at repo root (alias `atunko`, description,
+- [x] 2.2 Add `jbang-catalog.json` at repo root (alias `atunko`, description,
       script-ref per design decision 1, `"java": "25+"`)
-- [ ] 2.3 `.github/workflows/release.yml`: also upload a stable-named
+- [x] 2.3 `.github/workflows/release.yml`: also upload a stable-named
       `atunko.jar` copy of the shadow JAR (keep versioned asset;
       `fail_on_unmatched_files` still on)
 
