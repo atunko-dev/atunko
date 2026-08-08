@@ -36,6 +36,10 @@ resolve source dirs, resource dirs, test dirs, and compile classpath for each mo
 
 | `--log-file <path>`
 | Write TUI debug output to a file (useful for troubleshooting)
+
+| `--recipe-jar <path>`
+| Add a user recipe jar to the discovery environment (repeatable). Its recipes join the
+catalog classified as user recipes. See <<recipe-sources>>.
 |===
 
 ==== Theming
@@ -90,6 +94,10 @@ atunko tui --css-file ~/.config/atunko/mytheme.tcss
 
 | `s`
 | Toggle sort order (name / tags)
+
+| `u`
+| Cycle recipe source filter (all → bundled → user). The active filter is shown as
+`src:` in the status bar. See <<recipe-sources>>.
 
 | `Esc`
 | Clear search and tag filters (reset to full list)
@@ -168,6 +176,14 @@ atunko list --sort tags --format table
 | `--format <text\|table>`
 | Output format: plain text (default) or table
 
+| `--source <all\|bundled\|user>`
+| Filter by recipe source: bundled recipes, user recipes, or both (default: `all`).
+See <<recipe-sources>>.
+
+| `--recipe-jar <path>`
+| Add a user recipe jar to the discovery environment (repeatable). Its recipes are
+classified as user recipes. See <<recipe-sources>>.
+
 | `--help`
 | Show help for the list command
 |===
@@ -203,6 +219,14 @@ atunko search "spring" --field name --format table
 
 | `--format <text\|table>`
 | Output format: plain text (default) or table
+
+| `--source <all\|bundled\|user>`
+| Filter by recipe source: bundled recipes, user recipes, or both (default: `all`).
+See <<recipe-sources>>.
+
+| `--recipe-jar <path>`
+| Add a user recipe jar to the discovery environment (repeatable). Its recipes are
+classified as user recipes. See <<recipe-sources>>.
 
 | `--help`
 | Show help for the search command
@@ -281,6 +305,31 @@ continues without a checkpoint:
 * tracked files are unmodified (nothing a stash could snapshot)
 * git itself fails (for example a repository without an initial commit) — reported as
   `Git checkpoint FAILED (<reason>)`, never as a clean tree
+
+[#recipe-sources]
+== Recipe sources
+
+Every recipe in the catalog is classified by source:
+
+* *Bundled* — recipes shipped with atunko's built-in OpenRewrite recipe modules.
+* *User* — recipes you add yourself, e.g. via `--recipe-jar <path>` (repeatable) on
+  `list`, `search`, and `tui`.
+
+The `list` and `search` commands filter by source with `--source <all|bundled|user>`
+(default: `all`). In the TUI, the `u` key cycles the same filter
+(all → bundled → user → all) and the status bar shows the active filter as `src:`.
+
+[source,bash]
+----
+# Only your own recipes, from a custom recipe jar
+atunko list --recipe-jar ~/recipes/my-recipes.jar --source user
+
+# Search bundled recipes only
+atunko search "logging" --source bundled
+
+# Browse bundled + user recipes in the TUI
+atunko tui --recipe-jar ~/recipes/my-recipes.jar
+----
 
 == Performance — LST caching
 
