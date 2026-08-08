@@ -58,6 +58,11 @@ repo's default branch; the shorter `alias@org` form reads it from an
    and (b) manual `jbang --verbose run` smoke test documented in the SVC. CI-side,
    `release.yml` gains `fail_on_unmatched_files` coverage for the new stable asset
    (already enabled — the glob just must match).
+   *Note*: `reqstool status` will report CLI_0006 as "not implemented · manual
+   result missing" — the deliverables are `jbang-catalog.json` and the workflow,
+   so there is no main-source symbol to carry a `@Requirements` annotation, and
+   the manual result for SVC_CLI_0006.1 can only be recorded after the first
+   release.
 
 5. **Stable-asset copy step must disambiguate the shadow JAR** (found during
    implementation): `atunko-cli/build/libs/` contains both the shadow JAR

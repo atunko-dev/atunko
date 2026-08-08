@@ -29,7 +29,7 @@
 
 ## 4. Wrap-up
 
-- [ ] 4.1 `./gradlew spotlessApply build` green;
+- [x] 4.1 `./gradlew spotlessApply build` green;
       `openspec validate --all --strict` passes
 - [ ] 4.2 PR to main, closes #18; note follow-up: create
       `atunko-dev/jbang-catalog` org repo with the same catalog for the short
