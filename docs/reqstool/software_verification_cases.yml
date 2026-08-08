@@ -1824,3 +1824,123 @@ cases:
       THEN the status bar names the active filter
       AND the help overlay lists the source toggle key
     revision: "0.1.0"
+
+  - id: SVC_CORE_0020
+    requirement_ids: ["CORE_0020"]
+    title: User recipe YAML files load into the discovery environment classified USER
+    verification: automated-test
+    description: |
+      GIVEN a user-authored declarative recipe YAML file referencing a bundled recipe
+      WHEN the discovery environment is built with that file as a user recipe file
+      THEN the file's recipe appears in the catalog classified USER
+      AND every other recipe remains classified BUNDLED
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0020.1
+    requirement_ids: ["CORE_0020.1"]
+    title: A --recipes-file contributes user recipes to list and search
+    verification: automated-test
+    description: |
+      GIVEN a declarative recipe YAML file
+      WHEN the user runs `atunko list --recipes-file <file> --source user`
+      THEN only the file's recipe is listed
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0020.2
+    requirement_ids: ["CORE_0020.2"]
+    title: Recipe YAML files in the config dir are auto-discovered
+    verification: automated-test
+    description: |
+      GIVEN the atunko config dir location is overridden to a directory whose recipes folder contains recipe YAML files
+      WHEN the user recipe files are discovered
+      THEN exactly the .yml and .yaml files in that folder are found in filename order
+      AND a missing recipes folder yields no files
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0020.3
+    requirement_ids: ["CORE_0020.3"]
+    title: A malformed recipe YAML file is skipped with a warning
+    verification: automated-test
+    description: |
+      GIVEN a malformed recipe YAML file supplied next to a valid one
+      WHEN the discovery environment is built
+      THEN building succeeds and the valid file's recipe is discovered
+      AND a load warning names the malformed file
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0021
+    requirement_ids: ["CORE_0021"]
+    title: Favorites toggle and persist across service instances
+    verification: automated-test
+    description: |
+      GIVEN a favorites service backed by a file in a temporary config location
+      WHEN a recipe is toggled as favorite
+      THEN the recipe reads as favorite and a new service instance on the same file reads it too
+      AND toggling again unmarks it, and a missing or malformed favorites file reads as no favorites
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0021.1
+    requirement_ids: ["CORE_0021.1"]
+    title: The favorites filter matches and cycles
+    verification: automated-test
+    description: |
+      GIVEN the favorites filter values all and favorites
+      WHEN a recipe's favorite state is matched against each value
+      THEN all matches every recipe and favorites matches only favorite recipes
+      AND the filter cycles All to Favorites and back to All
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0022
+    requirement_ids: ["CORE_0022"]
+    title: Executed recipes are recorded newest-first, deduplicated, capped, and persisted
+    verification: automated-test
+    description: |
+      GIVEN a recently-used service backed by a file in a temporary config location
+      WHEN recipe names are recorded across multiple executions
+      THEN entries carry timestamps and list newest-first, a re-recorded recipe moves to the front
+      AND the list is capped at 20 entries, persists across service instances, and a malformed file reads as empty
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0022.1
+    requirement_ids: ["CORE_0022.1"]
+    title: The recent sort order puts recently used recipes first
+    verification: automated-test
+    description: |
+      GIVEN a catalog of recipes of which some are recorded as recently used
+      WHEN the recipes are sorted with the recent sort order and the recent names
+      THEN the recently used recipes come first in recency order followed by the rest in name order
+      AND sorting without recent context degrades to name order
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0007
+    requirement_ids: ["TUI_0007"]
+    title: The TUI favorite keys toggle favorites and filter the list
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly with a catalog of recipes and a temporary favorites file
+      WHEN the user presses the favorite toggle key on a highlighted recipe and then the favorites filter key
+      THEN the recipe is persisted as favorite and the list narrows to favorites only
+      AND cycling the filter again shows all recipes, and clear-all resets the filter
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0007.1
+    requirement_ids: ["TUI_0007.1"]
+    title: The TUI marks favorites and documents the favorite keys
+    verification: automated-test
+    description: |
+      GIVEN the TUI recipe browser is rendered with a favorite recipe
+      WHEN the recipe list and status bar are drawn
+      THEN the favorite recipe carries a star marker and the status bar names the active favorites filter
+      AND the help overlay lists the favorite keys
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0008
+    requirement_ids: ["TUI_0008"]
+    title: The TUI records executed recipes and offers a recent sort order
+    verification: automated-test
+    description: |
+      GIVEN the TUI with a temporary recently-used file and recipes selected for a run
+      WHEN a run is triggered and the sort order is cycled to recent
+      THEN the executed recipe names are recorded newest-first
+      AND the browser lists recently used recipes first
+    revision: "0.1.0"
