@@ -31,7 +31,7 @@
 
 - [x] 4.1 Mark `PLAN_LST.md` superseded; extend `PLAN_LST_DAEMON.md` with the
       Phase 1 implementation section
-- [ ] 4.2 Update PR #53 title/description (docs → feat)
+- [x] 4.2 Update PR #53 title/description (docs → feat)
 
 ## 5. Verify
 
