@@ -79,5 +79,5 @@
 
 - [x] 6.1 `./gradlew spotlessApply` then `./gradlew build` green;
       `openspec validate --all --strict` passes
-- [ ] 6.2 Stacked PR `feat: recipe management — custom recipe YAML, favorites,
+- [x] 6.2 Stacked PR `feat: recipe management — custom recipe YAML, favorites,
       recently used (#10)` with base `feat/recipe-source-toggle-19`, refs #10
