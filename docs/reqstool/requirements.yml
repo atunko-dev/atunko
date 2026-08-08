@@ -1452,9 +1452,9 @@ requirements:
     title: CLI — User Recipe Jars via --recipe-jar
     significance: shall
     description: >-
-      The list, search, and tui subcommands shall accept a repeatable --recipe-jar
-      <path> option that adds user recipe jars to the discovery environment, so that
-      the recipes they contribute appear in the catalog classified as user recipes
+      The list and search subcommands shall accept a repeatable --recipe-jar <path>
+      option that adds user recipe jars to the discovery environment, so that the
+      recipes they contribute appear in the catalog classified as user recipes
     references:
       requirement_ids: ["CLI_0008"]
     categories: [functional-suitability]
@@ -1466,7 +1466,9 @@ requirements:
     description: >-
       The TUI recipe browser shall provide a source toggle key that cycles the recipe
       list filter through All, Bundled, and User, composing with the existing search
-      and tag filters and resetting the highlight when cycled
+      and tag filters and resetting the highlight when cycled; the tui subcommand
+      shall accept the same repeatable --recipe-jar option as list and search so that
+      user recipes are available to the toggle
     references:
       requirement_ids: ["CORE_0019"]
     categories: [interaction-capability]

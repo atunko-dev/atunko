@@ -23,6 +23,7 @@ import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -241,6 +242,10 @@ public final class BrowserView {
             controller.setSortOrder(controller.sortOrder() == SortOrder.NAME ? SortOrder.TAGS : SortOrder.NAME);
             return EventResult.HANDLED;
         }
+        if (event.isChar('u')) {
+            controller.cycleSourceFilter();
+            return EventResult.HANDLED;
+        }
         if (event.isChar('?')) {
             controller.toggleHelp();
             return EventResult.HANDLED;
@@ -343,10 +348,13 @@ public final class BrowserView {
         return "Composite: " + coveredCount + "/" + total + " covered";
     }
 
+    @Requirements({"atunko:TUI_0006.1"})
     private static Element renderStatusBar(TuiController controller, List<DisplayRow> displayRows) {
         int selected = controller.selectedRecipes().size();
         long parentCount = displayRows.stream().filter(r -> !r.isSubRecipe()).count();
-        String status = parentCount + " recipes | " + selected + " selected | o:options  ?:help  q:quit";
+        String source = controller.sourceFilter().name().toLowerCase(Locale.ROOT);
+        String status =
+                parentCount + " recipes | " + selected + " selected | src:" + source + " | o:options  ?:help  q:quit";
         return text(" " + status).addClass("status-bar");
     }
 }

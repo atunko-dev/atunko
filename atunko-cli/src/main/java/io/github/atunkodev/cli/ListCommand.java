@@ -1,8 +1,10 @@
 package io.github.atunkodev.cli;
 
 import io.github.atunkodev.core.project.WorkspaceScanner;
+import io.github.atunkodev.core.recipe.EnvironmentProvider;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.atunkodev.core.recipe.RecipeInfo;
+import io.github.atunkodev.core.recipe.RecipeSourceFilter;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.reqstool.annotations.Requirements;
 import java.io.PrintWriter;
@@ -27,6 +29,18 @@ public class ListCommand implements Runnable {
             description = "Sort order: ${COMPLETION-CANDIDATES} (default: ${DEFAULT-VALUE})",
             defaultValue = "NAME")
     private SortOrder sort;
+
+    @Option(
+            names = "--source",
+            description = "Recipe source filter: ${COMPLETION-CANDIDATES} (default: ${DEFAULT-VALUE})",
+            defaultValue = "ALL")
+    private RecipeSourceFilter source;
+
+    @Option(
+            names = "--recipe-jar",
+            description = "User recipe jar added to the discovery environment (repeatable); "
+                    + "its recipes are classified as user recipes")
+    private List<Path> recipeJars = List.of();
 
     @Option(
             names = "--workspace",
@@ -56,13 +70,20 @@ public class ListCommand implements Runnable {
         }
     }
 
-    @Requirements({"atunko:CLI_0002"})
+    @Requirements({"atunko:CLI_0002", "atunko:CLI_0008"})
     private void listRecipes() {
         PrintWriter out = spec.commandLine().getOut();
-        List<RecipeInfo> recipes =
-                service.discoverAll().stream().sorted(sort.comparator()).toList();
+        List<RecipeInfo> recipes = discoveryService().discoverAll(source).stream()
+                .sorted(sort.comparator())
+                .toList();
         format.render(out, recipes);
         out.flush();
+    }
+
+    /** The shared discovery service, or a dedicated one when user recipe jars were supplied. */
+    @Requirements({"atunko:CLI_0008.1"})
+    private RecipeDiscoveryService discoveryService() {
+        return recipeJars.isEmpty() ? service : new RecipeDiscoveryService(new EnvironmentProvider(recipeJars));
     }
 
     @Requirements({"atunko:CLI_0005"})

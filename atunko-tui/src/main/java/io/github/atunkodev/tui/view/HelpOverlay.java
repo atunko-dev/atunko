@@ -41,6 +41,7 @@ public final class HelpOverlay {
                             new Entry("r", "Run dialog"),
                             new Entry("t", "Tag browser"),
                             new Entry("s", "Sort order"),
+                            new Entry("u", "Recipe source (all/bundled/user)"),
                             new Entry("S", "Save run config"),
                             new Entry("L", "Load run config"),
                             new Entry("/", "Search"),

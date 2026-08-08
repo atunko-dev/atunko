@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.github.reqstool.annotations.SVCs;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class RecipeDiscoveryServiceTest {
@@ -117,6 +118,36 @@ class RecipeDiscoveryServiceTest {
         assertThat(nonComposites).isNotEmpty();
         assertThat(nonComposites)
                 .allSatisfy(recipe -> assertThat(recipe.recipeList()).isEmpty());
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0019"})
+    void discoverAllClassifiesClasspathRecipesAsBundled() {
+        assertThat(service.discoverAll())
+                .isNotEmpty()
+                .allSatisfy(recipe -> assertThat(recipe.source()).isEqualTo(RecipeSource.BUNDLED));
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0019"})
+    void recipeInfoConstructorsDefaultToBundledSource() {
+        RecipeInfo fourArg = new RecipeInfo("n", "dn", "d", Set.of());
+        RecipeInfo fiveArg = new RecipeInfo("n", "dn", "d", Set.of(), List.of());
+        RecipeInfo sixArg = new RecipeInfo("n", "dn", "d", Set.of(), List.of(), List.of());
+
+        assertThat(fourArg.source()).isEqualTo(RecipeSource.BUNDLED);
+        assertThat(fiveArg.source()).isEqualTo(RecipeSource.BUNDLED);
+        assertThat(sixArg.source()).isEqualTo(RecipeSource.BUNDLED);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0019.2"})
+    void discoverAllWithFilterOnBundledOnlyCatalog() {
+        List<RecipeInfo> all = service.discoverAll();
+
+        assertThat(service.discoverAll(RecipeSourceFilter.ALL)).isEqualTo(all);
+        assertThat(service.discoverAll(RecipeSourceFilter.BUNDLED)).isEqualTo(all);
+        assertThat(service.discoverAll(RecipeSourceFilter.USER)).isEmpty();
     }
 
     @Test

@@ -10,6 +10,7 @@ import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
 import io.github.atunkodev.core.project.Workspace;
 import io.github.atunkodev.core.project.WorkspaceScanner;
+import io.github.atunkodev.core.recipe.EnvironmentProvider;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.reqstool.annotations.Requirements;
@@ -44,6 +45,12 @@ public class TuiCommand implements Runnable {
     @Option(names = "--css-file", description = "Path to a custom CSS theme file (replaces bundled theme)")
     private Path cssFile;
 
+    @Option(
+            names = "--recipe-jar",
+            description = "User recipe jar added to the discovery environment (repeatable); "
+                    + "its recipes are classified as user recipes")
+    private List<Path> recipeJars = List.of();
+
     public TuiCommand(
             RecipeDiscoveryService discoveryService,
             RunConfigService runConfigService,
@@ -58,9 +65,14 @@ public class TuiCommand implements Runnable {
     }
 
     @Override
-    @Requirements({"atunko:TUI_0001", "atunko:TUI_0002", "atunko:TUI_0002.1", "atunko:TUI_0005"})
+    @Requirements({"atunko:TUI_0001", "atunko:TUI_0002", "atunko:TUI_0002.1", "atunko:TUI_0005", "atunko:TUI_0006"})
     public void run() {
-        List<RecipeInfo> recipes = discoveryService.discoverAll();
+        // A dedicated discovery service when user recipe jars were supplied, so their recipes join the
+        // catalog classified as USER without polluting the shared provider.
+        RecipeDiscoveryService discovery = recipeJars.isEmpty()
+                ? discoveryService
+                : new RecipeDiscoveryService(new EnvironmentProvider(recipeJars));
+        List<RecipeInfo> recipes = discovery.discoverAll();
         // The one LST cache of this TUI session — shared by the controller and the workspace engine so a
         // project parsed by either is a cache hit for the other.
         ParsedSourcesCache sourceCache = sourceParser != null ? new ParsedSourcesCache(sourceParser) : null;
