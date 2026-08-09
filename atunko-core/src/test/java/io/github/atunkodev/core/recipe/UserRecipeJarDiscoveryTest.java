@@ -2,14 +2,11 @@ package io.github.atunkodev.core.recipe;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.github.atunkodev.testing.RecipeJarFixture;
 import io.github.reqstool.annotations.SVCs;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -21,8 +18,8 @@ import org.junit.jupiter.api.io.TempDir;
 @SVCs({"atunko:SVC_CORE_0019"})
 class UserRecipeJarDiscoveryTest {
 
-    private static final String USER_RECIPE_NAME = "io.github.atunkodev.test.UserSuppliedRecipe";
-    private static final String BUNDLED_SUB_RECIPE_NAME = "org.openrewrite.java.RemoveUnusedImports";
+    private static final String USER_RECIPE_NAME = RecipeJarFixture.USER_RECIPE_NAME;
+    private static final String BUNDLED_SUB_RECIPE_NAME = RecipeJarFixture.BUNDLED_SUB_RECIPE_NAME;
 
     // The environment build performs a full classpath scan, so it is shared across all tests in this class.
     private static EnvironmentProvider provider;
@@ -30,7 +27,7 @@ class UserRecipeJarDiscoveryTest {
 
     @BeforeAll
     static void buildEnvironmentWithUserJar(@TempDir Path tempDir) throws IOException {
-        Path jar = createUserRecipeJar(tempDir);
+        Path jar = RecipeJarFixture.create(tempDir);
         provider = new EnvironmentProvider(List.of(jar));
         service = new RecipeDiscoveryService(provider);
     }
@@ -92,23 +89,20 @@ class UserRecipeJarDiscoveryTest {
                 .isEmpty();
     }
 
-    private static Path createUserRecipeJar(Path dir) throws IOException {
-        String yaml = """
-            type: specs.openrewrite.org/v1beta/recipe
-            name: %s
-            displayName: User supplied test recipe
-            description: A declarative recipe contributed from a user jar for testing.
-            tags:
-              - user-test
-            recipeList:
-              - %s
-            """.formatted(USER_RECIPE_NAME, BUNDLED_SUB_RECIPE_NAME);
-        Path jar = dir.resolve("user-recipes.jar");
-        try (JarOutputStream out = new JarOutputStream(Files.newOutputStream(jar))) {
-            out.putNextEntry(new JarEntry("META-INF/rewrite/user-recipes.yml"));
-            out.write(yaml.getBytes(StandardCharsets.UTF_8));
-            out.closeEntry();
-        }
-        return jar;
+    /** A user jar redeclaring a bundled recipe name must neither duplicate the catalog entry nor reclassify it. */
+    @Test
+    @SVCs({"atunko:SVC_CORE_0019.1"})
+    void userJarRedeclaringBundledNameNeitherDuplicatesNorReclassifies(@TempDir Path dir) throws IOException {
+        Path colliding =
+                RecipeJarFixture.create(dir, BUNDLED_SUB_RECIPE_NAME, "org.openrewrite.java.format.AutoFormat");
+        RecipeDiscoveryService collidingService =
+                new RecipeDiscoveryService(new EnvironmentProvider(List.of(colliding)));
+
+        List<RecipeInfo> matches = collidingService.discoverAll().stream()
+                .filter(r -> BUNDLED_SUB_RECIPE_NAME.equals(r.name()))
+                .toList();
+
+        assertThat(matches).hasSize(1);
+        assertThat(matches.getFirst().source()).isEqualTo(RecipeSource.BUNDLED);
     }
 }

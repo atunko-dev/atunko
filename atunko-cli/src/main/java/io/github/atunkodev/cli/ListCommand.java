@@ -1,7 +1,7 @@
 package io.github.atunkodev.cli;
 
+import io.github.atunkodev.core.RecipeToolchain;
 import io.github.atunkodev.core.project.WorkspaceScanner;
-import io.github.atunkodev.core.recipe.EnvironmentProvider;
 import io.github.atunkodev.core.recipe.RecipeDiscoveryService;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.RecipeSourceFilter;
@@ -80,10 +80,10 @@ public class ListCommand implements Runnable {
         out.flush();
     }
 
-    /** The shared discovery service, or a dedicated one when user recipe jars were supplied. */
+    /** The shared discovery service, or a dedicated jar-aware one when user recipe jars were supplied. */
     @Requirements({"atunko:CLI_0008.1"})
     private RecipeDiscoveryService discoveryService() {
-        return recipeJars.isEmpty() ? service : new RecipeDiscoveryService(new EnvironmentProvider(recipeJars));
+        return RecipeToolchain.resolve(service, null, recipeJars).discoveryService();
     }
 
     @Requirements({"atunko:CLI_0005"})

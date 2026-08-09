@@ -99,4 +99,17 @@ class ListCommandTest {
         assertThat(cli.stdout()).contains(RecipeJarFixture.USER_RECIPE_NAME);
         assertThat(cli.stdout()).contains("1 recipe(s) found.");
     }
+
+    /** A mistyped jar path must fail loudly, not scan past it and report an empty catalog with exit 0. */
+    @Test
+    @SVCs({"atunko:SVC_CLI_0008.1"})
+    void listWithNonexistentRecipeJarFails(@TempDir Path tempDir) {
+        Path missing = tempDir.resolve("no-such.jar");
+        CommandLineFixture cli = CommandLineFixture.create();
+
+        int exitCode = cli.execute("list", "--recipe-jar", missing.toString());
+
+        assertThat(exitCode).isNotZero();
+        assertThat(cli.stderr()).contains("Recipe jar not found").contains("no-such.jar");
+    }
 }

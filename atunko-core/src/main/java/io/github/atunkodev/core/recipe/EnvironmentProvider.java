@@ -20,10 +20,12 @@ import org.openrewrite.config.RecipeDescriptor;
  * <p>The environment always contains the bundled catalog scanned from atunko's own runtime classpath. Optionally it
  * also loads user-supplied recipe jars; the recipe names contributed by those jars are tracked so that discovery can
  * classify each recipe's {@link RecipeSource} honestly — {@code USER} exactly when the recipe came from a user jar.
+ * A user jar redeclaring a name that also exists in the bundled catalog does not reclassify the bundled recipe:
+ * such collisions stay {@code BUNDLED}, so `--source bundled` never silently drops a bundled recipe.
  */
 public class EnvironmentProvider {
 
-    private record Scan(Environment environment, Set<String> userRecipeNames) {}
+    private record Scan(Environment environment, Set<String> bundledRecipeNames, Set<String> userRecipeNames) {}
 
     private final List<Path> userRecipeJars;
     private volatile Scan scan;
@@ -46,10 +48,15 @@ public class EnvironmentProvider {
         return scan().userRecipeNames();
     }
 
-    /** Whether the named recipe was contributed by a user-supplied recipe jar. */
+    /**
+     * Whether the named recipe was contributed by a user-supplied recipe jar. A name that also exists in the
+     * bundled catalog is not a user recipe — the bundled classification wins for collisions.
+     */
     @Requirements({"atunko:CORE_0019.1"})
     public boolean isUserRecipe(String recipeName) {
-        return scan().userRecipeNames().contains(recipeName);
+        Scan s = scan();
+        return s.userRecipeNames().contains(recipeName)
+                && !s.bundledRecipeNames().contains(recipeName);
     }
 
     public void invalidate() {
@@ -76,6 +83,8 @@ public class EnvironmentProvider {
         // the dependency loader for user jars, letting declarative user recipes reference bundled recipes.
         ClasspathScanningLoader bundled = new ClasspathScanningLoader(new Properties(), new String[0]);
         Environment.Builder builder = Environment.builder().load(bundled);
+        Set<String> bundledNames = new LinkedHashSet<>();
+        bundled.listRecipeDescriptors().stream().map(RecipeDescriptor::getName).forEach(bundledNames::add);
         Set<String> userNames = new LinkedHashSet<>();
         for (Path jar : userRecipeJars) {
             ClasspathScanningLoader userLoader =
@@ -85,7 +94,7 @@ public class EnvironmentProvider {
                     .map(RecipeDescriptor::getName)
                     .forEach(userNames::add);
         }
-        return new Scan(builder.build(), Set.copyOf(userNames));
+        return new Scan(builder.build(), Set.copyOf(bundledNames), Set.copyOf(userNames));
     }
 
     // The classloader must stay open for the lifetime of the environment: imperative user recipes are instantiated

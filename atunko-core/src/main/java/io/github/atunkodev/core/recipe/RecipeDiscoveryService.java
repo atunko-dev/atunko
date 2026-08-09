@@ -1,6 +1,7 @@
 package io.github.atunkodev.core.recipe;
 
 import io.github.reqstool.annotations.Requirements;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -22,7 +23,11 @@ public class RecipeDiscoveryService {
 
     @Requirements({"atunko:CORE_0001"})
     public List<RecipeInfo> discoverAll() {
+        // A user jar redeclaring a bundled name contributes a duplicate descriptor; keep one entry per name so
+        // the catalog never lists the same recipe twice.
+        Set<String> seen = new HashSet<>();
         return environmentProvider.get().listRecipeDescriptors().stream()
+                .filter(descriptor -> seen.add(descriptor.getName()))
                 .map(this::toRecipeInfo)
                 .toList();
     }
