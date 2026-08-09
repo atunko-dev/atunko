@@ -1,5 +1,6 @@
 package io.github.atunkodev.tui;
 
+import io.github.atunkodev.core.RecipeToolchain;
 import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
@@ -44,6 +45,12 @@ public class TuiCommand implements Runnable {
     @Option(names = "--css-file", description = "Path to a custom CSS theme file (replaces bundled theme)")
     private Path cssFile;
 
+    @Option(
+            names = "--recipe-jar",
+            description = "User recipe jar added to the discovery and execution environment (repeatable); "
+                    + "its recipes are classified as user recipes")
+    private List<Path> recipeJars = List.of();
+
     public TuiCommand(
             RecipeDiscoveryService discoveryService,
             RunConfigService runConfigService,
@@ -58,9 +65,13 @@ public class TuiCommand implements Runnable {
     }
 
     @Override
-    @Requirements({"atunko:TUI_0001", "atunko:TUI_0002", "atunko:TUI_0002.1", "atunko:TUI_0005"})
+    @Requirements({"atunko:TUI_0001", "atunko:TUI_0002", "atunko:TUI_0002.1", "atunko:TUI_0005", "atunko:TUI_0006"})
     public void run() {
-        List<RecipeInfo> recipes = discoveryService.discoverAll();
+        // One toolchain for the session: when user recipe jars were supplied, discovery AND execution share
+        // the same jar-aware environment — otherwise the catalog would list user recipes the engine cannot run.
+        RecipeToolchain.Resolved toolchain = RecipeToolchain.resolve(discoveryService, engine, recipeJars);
+        RecipeExecutionEngine sessionEngine = toolchain.engine();
+        List<RecipeInfo> recipes = toolchain.discoveryService().discoverAll();
         // The one LST cache of this TUI session — shared by the controller and the workspace engine so a
         // project parsed by either is a cache hit for the other.
         ParsedSourcesCache sourceCache = sourceParser != null ? new ParsedSourcesCache(sourceParser) : null;
@@ -68,16 +79,22 @@ public class TuiCommand implements Runnable {
         if (workspaceDir != null) {
             Workspace workspace = WorkspaceScanner.scan(workspaceDir);
             SessionHolder.initWorkspace(workspace.root(), workspace.projects());
-            WorkspaceExecutionEngine workspaceEngine = new WorkspaceExecutionEngine(engine, sourceCache);
+            WorkspaceExecutionEngine workspaceEngine = new WorkspaceExecutionEngine(sessionEngine, sourceCache);
             controller = new TuiController(
-                    recipes, runConfigService, engine, sourceCache, changeApplier, workspaceEngine, workspaceDir);
+                    recipes,
+                    runConfigService,
+                    sessionEngine,
+                    sourceCache,
+                    changeApplier,
+                    workspaceEngine,
+                    workspaceDir);
         } else {
             Path dir = projectDir != null ? projectDir : Path.of(".");
             // Detect fails fast on a directory without build files, but the scan itself is the
             // expensive part and is deferred to the first recipe execution.
             ProjectScannerFactory.detect(dir);
             SessionHolder.initLazy(dir);
-            controller = new TuiController(recipes, runConfigService, engine, sourceCache, changeApplier, dir);
+            controller = new TuiController(recipes, runConfigService, sessionEngine, sourceCache, changeApplier, dir);
         }
         ThemeConfig themeConfig = ThemeConfig.resolve(theme, cssFile);
         AtunkoTui tui = new AtunkoTui(controller, logFile, themeConfig);

@@ -1,6 +1,7 @@
 package io.github.atunkodev.core.recipe;
 
 import io.github.reqstool.annotations.Requirements;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -22,9 +23,18 @@ public class RecipeDiscoveryService {
 
     @Requirements({"atunko:CORE_0001"})
     public List<RecipeInfo> discoverAll() {
+        // A user jar redeclaring a bundled name contributes a duplicate descriptor; keep one entry per name so
+        // the catalog never lists the same recipe twice.
+        Set<String> seen = new HashSet<>();
         return environmentProvider.get().listRecipeDescriptors().stream()
+                .filter(descriptor -> seen.add(descriptor.getName()))
                 .map(this::toRecipeInfo)
                 .toList();
+    }
+
+    @Requirements({"atunko:CORE_0019.2"})
+    public List<RecipeInfo> discoverAll(RecipeSourceFilter filter) {
+        return discoverAll().stream().filter(r -> filter.matches(r.source())).toList();
     }
 
     @Requirements({"atunko:CORE_0002"})
@@ -40,6 +50,13 @@ public class RecipeDiscoveryService {
         String lowerQuery = query.toLowerCase(Locale.ROOT);
         return discoverAll().stream()
                 .filter(recipe -> matches(recipe, lowerQuery, fields))
+                .toList();
+    }
+
+    @Requirements({"atunko:CORE_0019.2"})
+    public List<RecipeInfo> search(String query, Set<RecipeField> fields, RecipeSourceFilter filter) {
+        return search(query, fields).stream()
+                .filter(r -> filter.matches(r.source()))
                 .toList();
     }
 
@@ -62,7 +79,7 @@ public class RecipeDiscoveryService {
                         .anyMatch(tag -> tag.toLowerCase(Locale.ROOT).contains(lowerQuery));
     }
 
-    @Requirements({"atunko:CORE_0001.1", "atunko:CORE_0014"})
+    @Requirements({"atunko:CORE_0001.1", "atunko:CORE_0014", "atunko:CORE_0019"})
     private RecipeInfo toRecipeInfo(RecipeDescriptor descriptor) {
         List<RecipeInfo> subRecipes = descriptor.getRecipeList() != null
                 ? descriptor.getRecipeList().stream().map(this::toRecipeInfo).toList()
@@ -79,12 +96,15 @@ public class RecipeDiscoveryService {
                                 o.isRequired()))
                         .toList()
                 : List.of();
+        RecipeSource source =
+                environmentProvider.isUserRecipe(descriptor.getName()) ? RecipeSource.USER : RecipeSource.BUNDLED;
         return new RecipeInfo(
                 descriptor.getName(),
                 descriptor.getDisplayName(),
                 descriptor.getDescription(),
                 descriptor.getTags(),
                 subRecipes,
-                options);
+                options,
+                source);
     }
 }

@@ -13,6 +13,8 @@ import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.Workspace;
 import io.github.atunkodev.core.recipe.RecipeInfo;
+import io.github.atunkodev.core.recipe.RecipeSource;
+import io.github.atunkodev.core.recipe.RecipeSourceFilter;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
 import io.github.reqstool.annotations.SVCs;
@@ -315,6 +317,63 @@ class TuiControllerTest {
 
         assertThat(controller.recipes()).hasSize(3);
         assertThat(controller.selectedTags()).isEmpty();
+    }
+
+    // --- Recipe source filter ---
+
+    private static final RecipeInfo USER_RECIPE = new RecipeInfo(
+            "org.test.UserRecipe",
+            "User Recipe",
+            "A user-supplied recipe",
+            Set.of("user-test"),
+            List.of(),
+            List.of(),
+            RecipeSource.USER);
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0006"})
+    void cycleSourceFilterCyclesAllBundledUserAndBackToAll() {
+        TuiController controller = new TuiController(List.of(ALPHA, USER_RECIPE));
+
+        assertThat(controller.sourceFilter()).isEqualTo(RecipeSourceFilter.ALL);
+        controller.cycleSourceFilter();
+        assertThat(controller.sourceFilter()).isEqualTo(RecipeSourceFilter.BUNDLED);
+        controller.cycleSourceFilter();
+        assertThat(controller.sourceFilter()).isEqualTo(RecipeSourceFilter.USER);
+        controller.cycleSourceFilter();
+        assertThat(controller.sourceFilter()).isEqualTo(RecipeSourceFilter.ALL);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0006"})
+    void sourceFilterNarrowsRecipeListAndResetsHighlight() {
+        TuiController controller = new TuiController(List.of(ALPHA, BETA, USER_RECIPE));
+        controller.moveDown();
+
+        controller.cycleSourceFilter(); // BUNDLED
+        assertThat(controller.recipes()).containsExactlyInAnyOrder(ALPHA, BETA);
+        assertThat(controller.highlightedIndex()).isZero();
+
+        controller.cycleSourceFilter(); // USER
+        assertThat(controller.recipes()).containsExactly(USER_RECIPE);
+
+        controller.cycleSourceFilter(); // ALL
+        assertThat(controller.recipes()).hasSize(3);
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_TUI_0006"})
+    void sourceFilterComposesWithSearchAndClearAllResetsIt() {
+        TuiController controller = new TuiController(List.of(ALPHA, BETA, USER_RECIPE));
+        controller.setSearchQuery("recipe");
+        controller.cycleSourceFilter(); // BUNDLED
+
+        assertThat(controller.recipes()).containsExactlyInAnyOrder(ALPHA, BETA);
+
+        controller.clearAll();
+
+        assertThat(controller.sourceFilter()).isEqualTo(RecipeSourceFilter.ALL);
+        assertThat(controller.recipes()).hasSize(3);
     }
 
     // --- Recipe Options ---

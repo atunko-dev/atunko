@@ -9,7 +9,8 @@ public record RecipeInfo(
         String description,
         Set<String> tags,
         List<RecipeInfo> recipeList,
-        List<RecipeOptionInfo> options) {
+        List<RecipeOptionInfo> options,
+        RecipeSource source) {
 
     public RecipeInfo(String name, String displayName, String description, Set<String> tags) {
         this(name, displayName, description, tags, List.of(), List.of());
@@ -18,6 +19,16 @@ public record RecipeInfo(
     public RecipeInfo(
             String name, String displayName, String description, Set<String> tags, List<RecipeInfo> recipeList) {
         this(name, displayName, description, tags, recipeList, List.of());
+    }
+
+    public RecipeInfo(
+            String name,
+            String displayName,
+            String description,
+            Set<String> tags,
+            List<RecipeInfo> recipeList,
+            List<RecipeOptionInfo> options) {
+        this(name, displayName, description, tags, recipeList, options, RecipeSource.BUNDLED);
     }
 
     public boolean isComposite() {

@@ -1,5 +1,6 @@
 package io.github.atunkodev.cli;
 
+import io.github.atunkodev.core.RecipeToolchain;
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
@@ -40,6 +41,12 @@ public class RunCommand implements Runnable {
 
     @Option(names = "--workspace", description = "Path to a workspace root — scans for all projects underneath")
     private Path workspaceDir;
+
+    @Option(
+            names = "--recipe-jar",
+            description = "User recipe jar added to the execution environment (repeatable), "
+                    + "so recipes discovered via `list --recipe-jar` can also be run")
+    private List<Path> recipeJars = List.of();
 
     @Option(
             names = "--git-checkpoint",
@@ -126,6 +133,12 @@ public class RunCommand implements Runnable {
         }
     }
 
+    /** The injected engine, or a jar-aware one when {@code --recipe-jar} was supplied. */
+    @Requirements({"atunko:CLI_0008.1"})
+    private RecipeExecutionEngine effectiveEngine() {
+        return RecipeToolchain.resolve(null, engine, recipeJars).engine();
+    }
+
     private void runSingleProject() {
         PrintWriter out = spec.commandLine().getOut();
         List<SourceFile> sources = sourceParser.parse(projectDir);
@@ -136,7 +149,7 @@ public class RunCommand implements Runnable {
             return;
         }
 
-        ExecutionResult result = engine.execute(recipe, sources);
+        ExecutionResult result = effectiveEngine().execute(recipe, sources);
 
         if (result.changes().isEmpty()) {
             out.println("No changes produced by recipe: " + recipe);
@@ -164,8 +177,8 @@ public class RunCommand implements Runnable {
 
         // One-shot run: every project is visited exactly once, so a live cache could never hit and would
         // only pin every project's LSTs in memory until the process exits.
-        WorkspaceExecutionEngine workspaceEngine =
-                new WorkspaceExecutionEngine(engine, new ParsedSourcesCache(new ProjectSourceParser(), false));
+        WorkspaceExecutionEngine workspaceEngine = new WorkspaceExecutionEngine(
+                effectiveEngine(), new ParsedSourcesCache(new ProjectSourceParser(), false));
         WorkspaceExecutionResult result = workspaceEngine.execute(recipe, workspace);
 
         applyWorkspaceChanges(result);

@@ -1747,3 +1747,80 @@ cases:
       WHEN the same unchanged project is requested twice
       THEN the parser runs on every request and no entry is served from cache
     revision: "0.1.0"
+
+  - id: SVC_CORE_0019
+    requirement_ids: ["CORE_0019"]
+    title: Discovered recipes carry an honest source classification
+    verification: automated-test
+    description: |
+      GIVEN a discovery environment built without user recipe jars
+      WHEN all recipes are discovered
+      THEN every recipe is classified BUNDLED
+      AND RecipeInfo instances built through the pre-existing constructors default to BUNDLED
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0019.1
+    requirement_ids: ["CORE_0019.1"]
+    title: Recipes from a user-supplied jar are discovered and classified USER
+    verification: automated-test
+    description: |
+      GIVEN a recipe jar containing a declarative recipe that references a bundled recipe
+      WHEN the discovery environment is built with that jar as a user recipe jar
+      THEN the jar's recipe appears in the catalog classified USER
+      AND its bundled sub-recipe and every other recipe remain classified BUNDLED
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0019.2
+    requirement_ids: ["CORE_0019.2"]
+    title: Discovery and search filter top-level recipes by source
+    verification: automated-test
+    description: |
+      GIVEN a catalog containing bundled recipes and a user-jar recipe
+      WHEN recipes are discovered or searched with the filter set to bundled, user, or all
+      THEN bundled returns only BUNDLED recipes, user returns only USER recipes, and all returns everything
+      AND the filter cycles All to Bundled to User and back to All
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0008
+    requirement_ids: ["CLI_0008"]
+    title: List and search recipes filtered by source via CLI
+    verification: automated-test
+    description: |
+      GIVEN recipes on the classpath
+      WHEN the user runs `atunko list --source bundled` or `atunko search <query> --source bundled`
+      THEN the output equals the unfiltered output, since every classpath recipe is bundled
+      AND `--source user` without user recipe jars reports that no recipes were found
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0008.1
+    requirement_ids: ["CLI_0008.1"]
+    title: A --recipe-jar contributes user recipes to list and search
+    verification: automated-test
+    description: |
+      GIVEN a recipe jar containing a declarative recipe
+      WHEN the user runs `atunko list --recipe-jar <jar> --source user`
+      THEN only the jar's recipe is listed
+      AND searching its name with `--source bundled` excludes it while `--source all` includes it
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0006
+    requirement_ids: ["TUI_0006"]
+    title: The TUI source toggle key cycles the recipe list filter
+    verification: automated-test
+    description: |
+      GIVEN the TUI is running headlessly with a catalog of bundled and user recipes
+      WHEN the user presses the source toggle key repeatedly
+      THEN the filter cycles All to Bundled to User and back to All
+      AND the recipe list narrows to the matching recipes at each step with the highlight reset
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0006.1
+    requirement_ids: ["TUI_0006.1"]
+    title: The TUI shows the active source filter and documents the toggle key
+    verification: automated-test
+    description: |
+      GIVEN the TUI recipe browser is rendered
+      WHEN the source filter is cycled
+      THEN the status bar names the active filter
+      AND the help overlay lists the source toggle key
+    revision: "0.1.0"

@@ -36,6 +36,10 @@ resolve source dirs, resource dirs, test dirs, and compile classpath for each mo
 
 | `--log-file <path>`
 | Write TUI debug output to a file (useful for troubleshooting)
+
+| `--recipe-jar <path>`
+| Add a user recipe jar to the discovery environment (repeatable). Its recipes join the
+catalog classified as user recipes. See <<recipe-sources>>.
 |===
 
 ==== Theming
@@ -91,8 +95,12 @@ atunko tui --css-file ~/.config/atunko/mytheme.tcss
 | `s`
 | Toggle sort order (name / tags)
 
+| `u`
+| Cycle recipe source filter (all → bundled → user). The active filter is shown as
+`src:` in the status bar. See <<recipe-sources>>.
+
 | `Esc`
-| Clear search and tag filters (reset to full list)
+| Clear search, tag, and recipe source filters (reset to full list)
 
 | `q`
 | Quit
@@ -168,6 +176,14 @@ atunko list --sort tags --format table
 | `--format <text\|table>`
 | Output format: plain text (default) or table
 
+| `--source <all\|bundled\|user>`
+| Filter by recipe source: bundled recipes, user recipes, or both (default: `all`).
+See <<recipe-sources>>.
+
+| `--recipe-jar <path>`
+| Add a user recipe jar to the discovery environment (repeatable). Its recipes are
+classified as user recipes. See <<recipe-sources>>.
+
 | `--help`
 | Show help for the list command
 |===
@@ -204,6 +220,14 @@ atunko search "spring" --field name --format table
 | `--format <text\|table>`
 | Output format: plain text (default) or table
 
+| `--source <all\|bundled\|user>`
+| Filter by recipe source: bundled recipes, user recipes, or both (default: `all`).
+See <<recipe-sources>>.
+
+| `--recipe-jar <path>`
+| Add a user recipe jar to the discovery environment (repeatable). Its recipes are
+classified as user recipes. See <<recipe-sources>>.
+
 | `--help`
 | Show help for the search command
 |===
@@ -232,6 +256,10 @@ atunko run -r org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0 --project-
 
 | `--project-dir <path>`
 | Path to the project directory (required)
+
+| `--recipe-jar <path>`
+| User recipe jar added to the execution environment (repeatable), so user recipes can
+be run from the command line. See <<recipe-sources>>.
 
 | `--git-checkpoint`
 | Create a git stash-based safety checkpoint of the working tree before applying
@@ -281,6 +309,41 @@ continues without a checkpoint:
 * tracked files are unmodified (nothing a stash could snapshot)
 * git itself fails (for example a repository without an initial commit) — reported as
   `Git checkpoint FAILED (<reason>)`, never as a clean tree
+
+[#recipe-sources]
+== Recipe sources
+
+Every recipe in the catalog is classified by source:
+
+* *Bundled* — recipes shipped with atunko's built-in OpenRewrite recipe modules.
+* *User* — recipes you add yourself, e.g. via `--recipe-jar <path>` (repeatable) on
+  `list`, `search`, `tui`, and `run`.
+
+The `list` and `search` commands filter by source with `--source <all|bundled|user>`
+(default: `all`). In the TUI, the `u` key cycles the same filter
+(all → bundled → user → all) and the status bar shows the active filter as `src:`.
+
+Discovery and execution share the same environment: a recipe browsable in the TUI via
+`--recipe-jar` is also executable there, and `run --recipe-jar` executes user recipes
+from the command line. A `--recipe-jar` path that does not exist is an error — the
+command fails with `Recipe jar not found` instead of silently reporting an empty
+catalog. A user jar that redeclares a name already present in the bundled catalog does
+not reclassify or duplicate the bundled recipe: the name stays classified as bundled.
+
+[source,bash]
+----
+# Only your own recipes, from a custom recipe jar
+atunko list --recipe-jar ~/recipes/my-recipes.jar --source user
+
+# Search bundled recipes only
+atunko search "logging" --source bundled
+
+# Browse bundled + user recipes in the TUI
+atunko tui --recipe-jar ~/recipes/my-recipes.jar
+
+# Execute a user recipe from the command line
+atunko run -r io.example.MyTeamRecipe --recipe-jar ~/recipes/my-recipes.jar --project-dir .
+----
 
 == Performance — LST caching
 

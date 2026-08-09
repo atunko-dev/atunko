@@ -1397,3 +1397,90 @@ requirements:
       requirement_ids: ["CORE_0018"]
     categories: [functional-suitability]
     revision: 0.1.0
+
+  # Recipe source classification requirements
+  - id: CORE_0019
+    title: Core — Recipe Source Classification
+    significance: shall
+    description: >-
+      Every discovered recipe shall carry a source classification telling where it came
+      from: BUNDLED when it was discovered from atunko's own runtime classpath, USER when
+      it was contributed by a recipe jar the user supplied, so that bundled and
+      user-maintained recipes can be told apart honestly
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0019.1
+    title: Core — User Recipe Jar Loading
+    significance: shall
+    description: >-
+      The discovery environment shall be buildable with additional user-supplied recipe
+      jars; recipes contributed by those jars — declarative or imperative — shall be
+      discovered alongside the bundled catalog and shall be classified USER, while every
+      other recipe, including sub-recipes of user composites that resolve to bundled
+      recipes, shall remain classified BUNDLED
+    references:
+      requirement_ids: ["CORE_0019"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0019.2
+    title: Core — Recipe Source Filtering
+    significance: shall
+    description: >-
+      Recipe discovery and search shall be filterable by source with the values all,
+      bundled, and user, applied to top-level recipes, with a single filtering
+      implementation in the core module reused by every user interface
+    references:
+      requirement_ids: ["CORE_0019"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0008
+    title: CLI — Recipe Source Filter on List and Search
+    significance: shall
+    description: >-
+      The list and search subcommands shall accept a --source option with the values
+      bundled, user, and all (defaulting to all) that filters the displayed recipes by
+      their source classification
+    references:
+      requirement_ids: ["CORE_0019"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0008.1
+    title: CLI — User Recipe Jars via --recipe-jar
+    significance: shall
+    description: >-
+      The list and search subcommands shall accept a repeatable --recipe-jar <path>
+      option that adds user recipe jars to the discovery environment, so that the
+      recipes they contribute appear in the catalog classified as user recipes
+    references:
+      requirement_ids: ["CLI_0008"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0006
+    title: TUI — Recipe Source Toggle
+    significance: shall
+    description: >-
+      The TUI recipe browser shall provide a source toggle key that cycles the recipe
+      list filter through All, Bundled, and User, composing with the existing search
+      and tag filters and resetting the highlight when cycled; the tui subcommand
+      shall accept the same repeatable --recipe-jar option as list and search so that
+      user recipes are available to the toggle
+    references:
+      requirement_ids: ["CORE_0019"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0006.1
+    title: TUI — Source Filter Indication
+    significance: shall
+    description: >-
+      The TUI shall indicate the active recipe source filter in the browser status bar
+      and shall document the source toggle key in the help overlay
+    references:
+      requirement_ids: ["TUI_0006"]
+    categories: [interaction-capability]
+    revision: 0.1.0

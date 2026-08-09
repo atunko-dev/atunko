@@ -23,6 +23,7 @@ import io.github.atunkodev.core.recipe.RecipeApplicability;
 import io.github.atunkodev.core.recipe.RecipeApplicabilityService;
 import io.github.atunkodev.core.recipe.RecipeCoverageUtils;
 import io.github.atunkodev.core.recipe.RecipeInfo;
+import io.github.atunkodev.core.recipe.RecipeSourceFilter;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
@@ -316,6 +317,7 @@ public class TuiController {
     private Screen currentScreen = Screen.BROWSER;
     private String searchQuery = "";
     private SortOrder sortOrder = SortOrder.NAME;
+    private RecipeSourceFilter sourceFilter = RecipeSourceFilter.ALL;
     private final Set<String> selectedRecipes = new LinkedHashSet<>();
     private final Set<String> selectedTags = new LinkedHashSet<>();
     private boolean searchMode;
@@ -550,6 +552,20 @@ public class TuiController {
         this.sortOrder = order;
     }
 
+    // --- Recipe source filter ---
+
+    @Requirements({"atunko:TUI_0006"})
+    public RecipeSourceFilter sourceFilter() {
+        return sourceFilter;
+    }
+
+    /** Cycles the recipe source filter All → Bundled → User → All and resets the highlight. */
+    @Requirements({"atunko:TUI_0006"})
+    public void cycleSourceFilter() {
+        this.sourceFilter = sourceFilter.next();
+        browserState.resetHighlight();
+    }
+
     public Optional<RecipeInfo> highlightedRecipe() {
         return browserState.highlightedRecipe();
     }
@@ -670,6 +686,7 @@ public class TuiController {
         this.selectedTags.clear();
         this.selectedRecipes.clear();
         this.recipeOptions.clear();
+        this.sourceFilter = RecipeSourceFilter.ALL;
         browserState.resetHighlight();
     }
 
@@ -1369,6 +1386,9 @@ public class TuiController {
 
     private List<RecipeInfo> filterRecipes() {
         var stream = allRecipes.stream();
+        if (sourceFilter != RecipeSourceFilter.ALL) {
+            stream = stream.filter(r -> sourceFilter.matches(r.source()));
+        }
         if (!selectedTags.isEmpty()) {
             stream = stream.filter(r ->
                     r.tags().stream().anyMatch(t -> selectedTags.stream().anyMatch(st -> st.equalsIgnoreCase(t))));
