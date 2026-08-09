@@ -108,7 +108,8 @@ opsx skills for the full cycle:
   **Stop after proposing** and wait for user review/approval before implementing.
 - `/opsx:apply` — implement the tasks. All implementation (including work delegated to
   subagents) goes through the apply skill's task loop so `tasks.md` progress is tracked.
-- `/openspec-archive-change` — archive after the PR is merged.
+- `/opsx:archive` — execute as soon as the PR is deemed ready (all tasks done, build
+  green, PR checks passing) so the change is archived as part of the PR itself.
 
 When writing any `spec.md` that references reqstool IDs, load the
 `reqstool-openspec:reqstool-openspec` skill first and follow its conventions:
