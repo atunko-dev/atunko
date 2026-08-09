@@ -1,14 +1,13 @@
 package io.github.atunkodev.core.recipe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.github.atunkodev.core.config.ConfigDirs;
+import io.github.atunkodev.core.config.YamlMappers;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,16 +36,13 @@ public class FavoritesService {
 
     public FavoritesService(Path file) {
         this.file = file;
-        YAMLFactory yamlFactory = YAMLFactory.builder()
-                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-                .build();
-        this.yamlMapper = new ObjectMapper(yamlFactory).disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        this.yamlMapper = YamlMappers.configMapper();
     }
 
     /** The favorite recipe names, in the order they were marked. */
     @Requirements({"atunko:CORE_0021"})
     public Set<String> favorites() {
-        return Set.copyOf(loaded());
+        return Collections.unmodifiableSet(new LinkedHashSet<>(loaded()));
     }
 
     @Requirements({"atunko:CORE_0021"})
@@ -57,12 +53,14 @@ public class FavoritesService {
     /** Marks or unmarks the recipe as favorite and persists the change. Returns the new favorite state. */
     @Requirements({"atunko:CORE_0021"})
     public boolean toggle(String recipeName) throws IOException {
-        Set<String> names = loaded();
-        boolean nowFavorite = !names.remove(recipeName);
+        Set<String> updated = new LinkedHashSet<>(loaded());
+        boolean nowFavorite = !updated.remove(recipeName);
         if (nowFavorite) {
-            names.add(recipeName);
+            updated.add(recipeName);
         }
-        save(names);
+        save(updated);
+        // Assigned only after a successful write, so the in-memory state can never diverge from disk.
+        favorites = updated;
         return nowFavorite;
     }
 

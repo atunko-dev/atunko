@@ -49,6 +49,12 @@ public class RunCommand implements Runnable {
     private List<Path> recipeJars = List.of();
 
     @Option(
+            names = "--recipes-file",
+            description = "User recipe YAML file added to the execution environment (repeatable), "
+                    + "so recipes discovered via `list --recipes-file` can also be run")
+    private List<Path> recipeFiles = List.of();
+
+    @Option(
             names = "--git-checkpoint",
             description = "Create a git stash checkpoint per project before applying changes"
                     + " (restore with the printed `git restore --source=<sha> -- .` command)")
@@ -133,10 +139,10 @@ public class RunCommand implements Runnable {
         }
     }
 
-    /** The injected engine, or a jar-aware one when {@code --recipe-jar} was supplied. */
+    /** The injected engine, or a user-source-aware one when user recipe jars or files are in play. */
     @Requirements({"atunko:CLI_0008.1"})
     private RecipeExecutionEngine effectiveEngine() {
-        return RecipeToolchain.resolve(null, engine, recipeJars).engine();
+        return RecipeToolchain.resolve(null, engine, recipeJars, recipeFiles).engine();
     }
 
     private void runSingleProject() {

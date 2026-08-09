@@ -1,10 +1,8 @@
 package io.github.atunkodev.core.recipe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.github.atunkodev.core.config.ConfigDirs;
+import io.github.atunkodev.core.config.YamlMappers;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -50,10 +48,7 @@ public class RecentRecipesService {
     public RecentRecipesService(Path file, Clock clock) {
         this.file = file;
         this.clock = clock;
-        YAMLFactory yamlFactory = YAMLFactory.builder()
-                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-                .build();
-        this.yamlMapper = new ObjectMapper(yamlFactory).disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        this.yamlMapper = YamlMappers.configMapper();
     }
 
     /** The recently executed recipes, newest first. */
@@ -81,8 +76,11 @@ public class RecentRecipesService {
         List<RecentRecipe> updated = new ArrayList<>();
         recipeNames.stream().distinct().forEach(name -> updated.add(new RecentRecipe(name, now)));
         loaded().stream().filter(entry -> !recipeNames.contains(entry.name())).forEach(updated::add);
-        recent = updated.size() > MAX_ENTRIES ? new ArrayList<>(updated.subList(0, MAX_ENTRIES)) : updated;
-        save(recent);
+        List<RecentRecipe> truncated =
+                updated.size() > MAX_ENTRIES ? new ArrayList<>(updated.subList(0, MAX_ENTRIES)) : updated;
+        save(truncated);
+        // Assigned only after a successful write, so the in-memory state can never diverge from disk.
+        recent = truncated;
     }
 
     private List<RecentRecipe> loaded() {

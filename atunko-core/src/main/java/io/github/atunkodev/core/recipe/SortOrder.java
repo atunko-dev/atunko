@@ -16,14 +16,14 @@ public enum SortOrder {
     @Requirements({"atunko:CLI_0002.3", "atunko:CLI_0002.4", "atunko:CLI_0004.3", "atunko:CLI_0004.4"})
     public Comparator<RecipeInfo> comparator() {
         return switch (this) {
-            case NAME -> Comparator.comparing(r -> r.name().toLowerCase(Locale.ROOT));
+            // One arm for NAME and RECENT: without recent context RECENT degrades honestly to name order,
+            // and sharing the arm means a future NAME tweak cannot silently miss the fallback.
+            case NAME, RECENT -> Comparator.comparing(r -> r.name().toLowerCase(Locale.ROOT));
             case TAGS ->
                 Comparator.comparing((RecipeInfo r) -> r.tags().isEmpty()
                                 ? ""
                                 : Collections.min(r.tags()).toLowerCase(Locale.ROOT))
                         .thenComparing(r -> r.name().toLowerCase(Locale.ROOT));
-            // Without recent context RECENT degrades honestly to name order.
-            case RECENT -> NAME.comparator();
         };
     }
 

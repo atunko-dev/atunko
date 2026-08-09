@@ -283,6 +283,10 @@ atunko run -r org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0 --project-
 | User recipe jar added to the execution environment (repeatable), so user recipes can
 be run from the command line. See <<recipe-sources>>.
 
+| `--recipes-file <path>`
+| User recipe YAML file added to the execution environment (repeatable). Auto-discovered
+config-dir recipe files (see <<user-recipe-yaml>>) are always included.
+
 | `--git-checkpoint`
 | Create a git stash-based safety checkpoint of the working tree before applying
 changes (see <<git-checkpoint>>)

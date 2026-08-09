@@ -408,7 +408,7 @@ public class TuiController {
                 allRecipes,
                 runConfigService,
                 engine,
-                sourceParser,
+                sourceCache,
                 changeApplier,
                 workspaceEngine,
                 workspaceProjects,
@@ -421,7 +421,7 @@ public class TuiController {
             List<RecipeInfo> allRecipes,
             RunConfigService runConfigService,
             RecipeExecutionEngine engine,
-            ProjectSourceParser sourceParser,
+            ParsedSourcesCache sourceCache,
             ChangeApplier changeApplier,
             WorkspaceExecutionEngine workspaceEngine,
             List<ProjectEntry> workspaceProjects,
@@ -468,10 +468,7 @@ public class TuiController {
     public List<RecipeInfo> recipes() {
         List<RecipeInfo> filtered = filterRecipes();
         List<RecipeInfo> sorted = new ArrayList<>(filtered);
-        sorted.sort(
-                sortOrder == SortOrder.RECENT
-                        ? sortOrder.comparator(recentRecipesService.recentNames())
-                        : sortOrder.comparator());
+        sorted.sort(sortOrder.comparator(recentRecipesService.recentNames()));
         return List.copyOf(sorted);
     }
 
@@ -648,6 +645,8 @@ public class TuiController {
             } catch (IOException e) {
                 LOG.warning(() -> "Could not persist favorite for " + recipe.name() + ": " + e);
             }
+            // Unfavoriting under an active favorites filter shrinks the list — keep the highlight in range.
+            browserState.clampHighlightIndex();
         });
     }
 
@@ -1107,11 +1106,11 @@ public class TuiController {
         this.executionError = null;
         List<String> recipesToRun =
                 runOrder.stream().filter(selectedRecipes::contains).toList();
-        recordRecentRecipes(recipesToRun);
 
         if (isWorkspaceMode()) {
             Workspace workspace = new Workspace(projectDir, workspaceProjects);
             WorkspaceExecutionResult wsResult = workspaceEngine.execute(recipesToRun, workspace);
+            recordRecentRecipes(recipesToRun);
             if (!dryRun && changeApplier != null) {
                 wsResult.results().stream()
                         .filter(r -> r.succeeded() && r.result() != null)
@@ -1161,6 +1160,8 @@ public class TuiController {
             showExecutionError("Execution failed: " + describe(e));
             return;
         }
+        // Recorded only after the run actually executed — an aborted run must not surface under Sort:Recent.
+        recordRecentRecipes(recipesToRun);
         if (dryRun) {
             showDryRunResult(combined);
         } else {
