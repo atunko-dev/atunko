@@ -233,9 +233,54 @@ atunko run -r org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0 --project-
 | `--project-dir <path>`
 | Path to the project directory (required)
 
+| `--git-checkpoint`
+| Create a git stash-based safety checkpoint of the working tree before applying
+changes (see <<git-checkpoint>>)
+
 | `--help`
 | Show help for the run command
 |===
+
+[#git-checkpoint]
+==== Git checkpoint
+
+With `--git-checkpoint`, atunko records a safety checkpoint immediately before changes
+are applied, so a recipe run can be undone:
+
+[source,bash]
+----
+atunko run -r org.openrewrite.java.RemoveUnusedImports --project-dir . --git-checkpoint
+----
+
+----
+Git checkpoint created: 4f0c9a1e...
+Restore with: git restore --source=4f0c9a1e... -- .
+----
+
+The checkpoint is created with `git stash create` + `git stash store`, which records a
+stash entry in `refs/stash` *without touching the working tree* — your uncommitted
+changes stay exactly as they are. The printed `git restore --source=<sha> -- .` command
+overwrites the working tree with the snapshot's contents, undoing the recipe's changes.
+(A plain `git stash apply` would not undo the run: it merges the pre-run diff onto the
+current tree rather than restoring the snapshot.)
+
+The checkpoint snapshots *tracked files only*. When untracked files are present, atunko
+prints a warning that they are not covered — recipes can still modify untracked source
+files, and no checkpoint can bring those back.
+
+In workspace mode the checkpoint is taken *per project directory*, right before that
+project's changes are applied. Workspace projects are frequently independent git
+clones, so a single checkpoint at the workspace root could cover none of them; in a
+monorepo this simply records one stash entry per changed project.
+
+The flag degrades gracefully — in each of these cases a message is printed and the run
+continues without a checkpoint:
+
+* the `git` executable is not on the `PATH`
+* the target directory is not inside a git repository
+* tracked files are unmodified (nothing a stash could snapshot)
+* git itself fails (for example a repository without an initial commit) — reported as
+  `Git checkpoint FAILED (<reason>)`, never as a clean tree
 
 == Performance — LST caching
 

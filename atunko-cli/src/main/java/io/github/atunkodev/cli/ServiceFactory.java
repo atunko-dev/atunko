@@ -3,6 +3,7 @@ package io.github.atunkodev.cli;
 import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.git.GitCheckpointService;
 import io.github.atunkodev.core.project.JavaSourceParser;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.recipe.EnvironmentProvider;
@@ -31,7 +32,10 @@ public class ServiceFactory implements CommandLine.IFactory {
         }
         if (cls == RunCommand.class) {
             return cls.cast(new RunCommand(
-                    new RecipeExecutionEngine(environmentProvider), new JavaSourceParser(), new ChangeApplier()));
+                    new RecipeExecutionEngine(environmentProvider),
+                    new JavaSourceParser(),
+                    new ChangeApplier(),
+                    new GitCheckpointService()));
         }
         if (cls == WebUiCommand.class) {
             return cls.cast(new WebUiCommand(

@@ -728,6 +728,44 @@ requirements:
     categories: [functional-suitability, safety]
     revision: 0.1.0
 
+  - id: CORE_0006.1
+    title: Git — Repository Detection
+    significance: should
+    description: >-
+      The core engine should detect whether a project directory is inside a git
+      working tree, so that git-dependent features can degrade gracefully when
+      it is not
+    references:
+      requirement_ids: ["CORE_0006"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0006.2
+    title: Git — Pre-Execution Stash Checkpoint
+    significance: should
+    description: >-
+      Before a recipe run applies changes, the core engine should be able to record
+      a stash-based safety checkpoint that is restorable with a single git command
+      and that never removes or alters the user's uncommitted working-tree changes,
+      not even transiently
+    references:
+      requirement_ids: ["CORE_0006"]
+    categories: [functional-suitability, safety]
+    revision: 0.1.0
+
+  - id: CORE_0006.3
+    title: Git — CLI Checkpoint Flag
+    significance: should
+    description: >-
+      The run subcommand should accept a --git-checkpoint flag that creates the
+      safety checkpoint before execution and prints the stash reference together
+      with the restore command; when the target is not a git repository the command
+      should print a clear message and continue without a checkpoint
+    references:
+      requirement_ids: ["CORE_0006"]
+    categories: [functional-suitability, safety]
+    revision: 0.1.0
+
   - id: CORE_0007
     title: Save Run Configuration
     significance: shall

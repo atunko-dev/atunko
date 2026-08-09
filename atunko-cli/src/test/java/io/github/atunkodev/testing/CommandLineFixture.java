@@ -16,9 +16,13 @@ import picocli.CommandLine;
 public record CommandLineFixture(CommandLine cmd, StringWriter out, StringWriter err) {
 
     public static CommandLineFixture create() {
+        return create(new ServiceFactory());
+    }
+
+    public static CommandLineFixture create(CommandLine.IFactory factory) {
         StringWriter out = new StringWriter();
         StringWriter err = new StringWriter();
-        CommandLine cmd = new CommandLine(new App(), new ServiceFactory());
+        CommandLine cmd = new CommandLine(new App(), factory);
         cmd.setCaseInsensitiveEnumValuesAllowed(true);
         cmd.setOut(new PrintWriter(out));
         cmd.setErr(new PrintWriter(err));
