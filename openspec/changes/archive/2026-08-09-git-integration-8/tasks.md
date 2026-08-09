@@ -42,5 +42,5 @@
 
 - [x] 4.1 `./gradlew spotlessApply` then `./gradlew build` green;
       `openspec validate --all --strict` passes
-- [ ] 4.2 PR `feat(core): git integration — repo detection and stash-based
+- [x] 4.2 PR `feat(core): git integration — repo detection and stash-based
       checkpoint (#8)`, refs #8
