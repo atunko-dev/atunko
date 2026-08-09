@@ -8,6 +8,7 @@ import io.github.atunkodev.core.engine.RecipeExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionResult;
 import io.github.atunkodev.core.project.JavaSourceParser;
+import io.github.atunkodev.core.project.ParsedSourcesCache;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.Workspace;
 import io.github.atunkodev.core.project.WorkspaceScanner;
@@ -106,7 +107,10 @@ public class RunCommand implements Runnable {
             return;
         }
 
-        WorkspaceExecutionEngine workspaceEngine = new WorkspaceExecutionEngine(engine, new ProjectSourceParser());
+        // One-shot run: every project is visited exactly once, so a live cache could never hit and would
+        // only pin every project's LSTs in memory until the process exits.
+        WorkspaceExecutionEngine workspaceEngine =
+                new WorkspaceExecutionEngine(engine, new ParsedSourcesCache(new ProjectSourceParser(), false));
         WorkspaceExecutionResult result = workspaceEngine.execute(recipe, workspace);
 
         printSummaryTable(out, result);

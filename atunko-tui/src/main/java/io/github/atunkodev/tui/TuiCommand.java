@@ -4,6 +4,7 @@ import io.github.atunkodev.core.config.RunConfigService;
 import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
 import io.github.atunkodev.core.engine.WorkspaceExecutionEngine;
+import io.github.atunkodev.core.project.ParsedSourcesCache;
 import io.github.atunkodev.core.project.ProjectScannerFactory;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.SessionHolder;
@@ -60,20 +61,23 @@ public class TuiCommand implements Runnable {
     @Requirements({"atunko:TUI_0001", "atunko:TUI_0002", "atunko:TUI_0002.1", "atunko:TUI_0005"})
     public void run() {
         List<RecipeInfo> recipes = discoveryService.discoverAll();
+        // The one LST cache of this TUI session — shared by the controller and the workspace engine so a
+        // project parsed by either is a cache hit for the other.
+        ParsedSourcesCache sourceCache = sourceParser != null ? new ParsedSourcesCache(sourceParser) : null;
         TuiController controller;
         if (workspaceDir != null) {
             Workspace workspace = WorkspaceScanner.scan(workspaceDir);
             SessionHolder.initWorkspace(workspace.root(), workspace.projects());
-            WorkspaceExecutionEngine workspaceEngine = new WorkspaceExecutionEngine(engine, sourceParser);
+            WorkspaceExecutionEngine workspaceEngine = new WorkspaceExecutionEngine(engine, sourceCache);
             controller = new TuiController(
-                    recipes, runConfigService, engine, sourceParser, changeApplier, workspaceEngine, workspaceDir);
+                    recipes, runConfigService, engine, sourceCache, changeApplier, workspaceEngine, workspaceDir);
         } else {
             Path dir = projectDir != null ? projectDir : Path.of(".");
             // Detect fails fast on a directory without build files, but the scan itself is the
             // expensive part and is deferred to the first recipe execution.
             ProjectScannerFactory.detect(dir);
             SessionHolder.initLazy(dir);
-            controller = new TuiController(recipes, runConfigService, engine, sourceParser, changeApplier, dir);
+            controller = new TuiController(recipes, runConfigService, engine, sourceCache, changeApplier, dir);
         }
         ThemeConfig themeConfig = ThemeConfig.resolve(theme, cssFile);
         AtunkoTui tui = new AtunkoTui(controller, logFile, themeConfig);

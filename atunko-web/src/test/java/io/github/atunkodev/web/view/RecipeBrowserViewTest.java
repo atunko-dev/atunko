@@ -28,6 +28,7 @@ import io.github.atunkodev.core.engine.ChangeApplier;
 import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
+import io.github.atunkodev.core.project.ParsedSources;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.core.project.ProjectInfo;
 import io.github.atunkodev.core.project.ProjectSourceParser;
@@ -483,8 +484,8 @@ class RecipeBrowserViewTest {
         };
         ProjectSourceParser noOpParser = new ProjectSourceParser() {
             @Override
-            public List<org.openrewrite.SourceFile> parse(io.github.atunkodev.core.project.ProjectInfo info) {
-                return List.of();
+            public ParsedSources parseWithCapabilities(io.github.atunkodev.core.project.ProjectInfo info) {
+                return ParsedSources.empty();
             }
         };
         AppServices.init(noOpEngine, noOpParser, trackingApplier);
@@ -1013,14 +1014,14 @@ class RecipeBrowserViewTest {
                 },
                 new ProjectSourceParser() {
                     @Override
-                    public List<SourceFile> parse(ProjectInfo info) {
+                    public ParsedSources parseWithCapabilities(ProjectInfo info) {
                         parserStarted.countDown();
                         try {
                             releaseParsing.await(3, TimeUnit.SECONDS);
                         } catch (InterruptedException ignored) {
                             Thread.currentThread().interrupt();
                         }
-                        return List.of();
+                        return ParsedSources.empty();
                     }
                 },
                 null);

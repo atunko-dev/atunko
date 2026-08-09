@@ -1662,3 +1662,43 @@ cases:
       AND when a run is executed against a session whose scan fails, an error notification is shown
       AND the view stays usable with its action buttons re-enabled
     revision: "0.1.0"
+
+  - id: SVC_CORE_0018
+    requirement_ids: ["CORE_0018"]
+    title: Repeated executions reuse cached LSTs
+    verification: automated-test
+    description: |
+      GIVEN a project parsed once through the LST cache
+      WHEN the same project is requested again without any file change
+      THEN the cached ParsedSources instance is returned and the parser is not invoked again
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0018.1
+    requirement_ids: ["CORE_0018.1"]
+    title: Source or build file changes invalidate the cache
+    verification: automated-test
+    description: |
+      GIVEN a project parsed once through the LST cache
+      WHEN a source file is modified, added, or removed (or a build file changes)
+      THEN the next request re-parses the project and returns fresh LSTs
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0018.2
+    requirement_ids: ["CORE_0018.2"]
+    title: Workspace projects are cached independently
+    verification: automated-test
+    description: |
+      GIVEN two projects parsed through the same LST cache
+      WHEN a file in the first project changes
+      THEN only the first project is re-parsed and the second still serves its cached LSTs
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0018.3
+    requirement_ids: ["CORE_0018.3"]
+    title: Disabled cache always re-parses
+    verification: automated-test
+    description: |
+      GIVEN the LST cache is disabled
+      WHEN the same unchanged project is requested twice
+      THEN the parser runs on every request and no entry is served from cache
+    revision: "0.1.0"

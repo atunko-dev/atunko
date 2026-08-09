@@ -55,6 +55,11 @@ Three layers of automated quality checks run on every build:
 
 **Before committing:** always run `./gradlew spotlessApply` then `./gradlew build`.
 
+**Docs:** `docs/antora/` (user-facing Antora documentation, e.g. `modules/ROOT/pages/cli.adoc`)
+must be updated in every PR whose changes affect documented behavior — new/changed CLI
+flags, commands, or user-visible workflows. If a PR has nothing user-facing to document,
+leave it untouched.
+
 ## Code Conventions
 
 - Java 25, Gradle 9.3.1 (Groovy DSL)

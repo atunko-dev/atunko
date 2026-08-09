@@ -53,4 +53,15 @@ public record ProjectInfo(
         all.addAll(testResourceDirs);
         return List.copyOf(all);
     }
+
+    /**
+     * The directories {@link ProjectSourceParser} walks, absolute and normalized. Both the parser and
+     * {@link ParsedSourcesCache} must derive their file sets from this single method so the fingerprinted
+     * files can never drift from the parsed ones.
+     */
+    public List<Path> parseRoots() {
+        return allSourceAndResourceDirs().stream()
+                .map(d -> d.toAbsolutePath().normalize())
+                .toList();
+    }
 }

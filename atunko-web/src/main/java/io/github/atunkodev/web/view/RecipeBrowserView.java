@@ -458,8 +458,9 @@ public class RecipeBrowserView extends AppLayout {
                 }
                 ProjectInfo projectInfo = SessionHolder.getProjectInfo();
                 Path projectDir = SessionHolder.getProjectDir();
-                ParsedSources parsed = AppServices.getSourceParser()
-                        .parseWithCapabilities(
+                ParsedSources parsed = AppServices.getSourceCache()
+                        .get(
+                                projectDir,
                                 projectInfo != null ? projectInfo : new ProjectInfo(List.of(), List.of(projectDir)));
                 AppServices.setSourceCapabilities(parsed.capabilities());
                 List<SourceFile> sources = parsed.sources();
@@ -545,7 +546,8 @@ public class RecipeBrowserView extends AppLayout {
                     ui.access(() -> statusSpan.setText("Project " + current + "/" + total + ": " + projectName));
 
                     try {
-                        List<SourceFile> sources = AppServices.getSourceParser().parse(entry.info());
+                        List<SourceFile> sources =
+                                AppServices.getSourceCache().get(entry).sources();
                         List<FileChange> projectChanges = new ArrayList<>();
                         for (String recipeName : recipeNames) {
                             ExecutionResult r = AppServices.getEngine().execute(recipeName, sources);

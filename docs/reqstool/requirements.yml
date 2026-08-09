@@ -1315,3 +1315,47 @@ requirements:
       requirement_ids: ["CORE_0017"]
     categories: [performance-efficiency, interaction-capability]
     revision: 0.1.0
+
+  # LST in-process caching (#11)
+  - id: CORE_0018
+    title: LST In-Process Caching
+    significance: shall
+    description: >-
+      The core engine shall cache parsed LSTs in memory for the duration of a session,
+      so that repeated recipe executions against unchanged sources skip re-parsing
+    categories: [performance-efficiency]
+    revision: 0.1.0
+
+  - id: CORE_0018.1
+    title: LST Cache Invalidation on Source Change
+    significance: shall
+    description: >-
+      The LST cache shall detect changes to any source or build file of a cached project
+      (added, removed, or modified content) and re-parse the project on the next execution
+      instead of serving stale LSTs
+    references:
+      requirement_ids: ["CORE_0018"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0018.2
+    title: LST Cache Per-Project Scope
+    significance: shall
+    description: >-
+      The LST cache shall key entries by project directory so that each project of a
+      workspace is cached and invalidated independently
+    references:
+      requirement_ids: ["CORE_0018"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0018.3
+    title: LST Cache Disable
+    significance: shall
+    description: >-
+      The LST cache shall be fully disabled when configured off, with every execution
+      re-parsing the project sources
+    references:
+      requirement_ids: ["CORE_0018"]
+    categories: [functional-suitability]
+    revision: 0.1.0
