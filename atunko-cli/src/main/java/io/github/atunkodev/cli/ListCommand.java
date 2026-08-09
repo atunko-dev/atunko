@@ -43,6 +43,12 @@ public class ListCommand implements Runnable {
     private List<Path> recipeJars = List.of();
 
     @Option(
+            names = "--recipes-file",
+            description = "User recipe YAML file added to the discovery environment (repeatable); "
+                    + "its recipes are classified as user recipes")
+    private List<Path> recipeFiles = List.of();
+
+    @Option(
             names = "--workspace",
             description = "Path to a workspace root — lists discovered project paths instead of recipes")
     private Path workspaceDir;
@@ -70,20 +76,16 @@ public class ListCommand implements Runnable {
         }
     }
 
-    @Requirements({"atunko:CLI_0002", "atunko:CLI_0008"})
+    @Requirements({"atunko:CLI_0002", "atunko:CLI_0008", "atunko:CLI_0008.1"})
     private void listRecipes() {
         PrintWriter out = spec.commandLine().getOut();
-        List<RecipeInfo> recipes = discoveryService().discoverAll(source).stream()
+        RecipeToolchain.Resolved toolchain = RecipeToolchain.resolve(service, null, recipeJars, recipeFiles);
+        List<RecipeInfo> recipes = toolchain.discoveryService().discoverAll(source).stream()
                 .sorted(sort.comparator())
                 .toList();
+        toolchain.reportWarnings(spec.commandLine().getErr());
         format.render(out, recipes);
         out.flush();
-    }
-
-    /** The shared discovery service, or a dedicated jar-aware one when user recipe jars were supplied. */
-    @Requirements({"atunko:CLI_0008.1"})
-    private RecipeDiscoveryService discoveryService() {
-        return RecipeToolchain.resolve(service, null, recipeJars).discoveryService();
     }
 
     @Requirements({"atunko:CLI_0005"})

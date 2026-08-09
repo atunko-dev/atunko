@@ -55,6 +55,12 @@ public class SearchCommand implements Runnable {
                     + "its recipes are classified as user recipes")
     private List<Path> recipeJars = List.of();
 
+    @Option(
+            names = "--recipes-file",
+            description = "User recipe YAML file added to the discovery environment (repeatable); "
+                    + "its recipes are classified as user recipes")
+    private List<Path> recipeFiles = List.of();
+
     @Spec
     private CommandSpec spec;
 
@@ -69,20 +75,16 @@ public class SearchCommand implements Runnable {
     }
 
     @Override
-    @Requirements({"atunko:CLI_0004", "atunko:CLI_0004.5", "atunko:CLI_0008"})
+    @Requirements({"atunko:CLI_0004", "atunko:CLI_0004.5", "atunko:CLI_0008", "atunko:CLI_0008.1"})
     public void run() {
         PrintWriter out = spec.commandLine().getOut();
         Set<RecipeField> searchFields = (fields != null && !fields.isEmpty()) ? fields : ALL_FIELDS;
-        List<RecipeInfo> recipes = discoveryService().search(query, searchFields, source).stream()
+        RecipeToolchain.Resolved toolchain = RecipeToolchain.resolve(service, null, recipeJars, recipeFiles);
+        List<RecipeInfo> recipes = toolchain.discoveryService().search(query, searchFields, source).stream()
                 .sorted(sort.comparator())
                 .toList();
+        toolchain.reportWarnings(spec.commandLine().getErr());
         format.render(out, recipes);
         out.flush();
-    }
-
-    /** The shared discovery service, or a dedicated jar-aware one when user recipe jars were supplied. */
-    @Requirements({"atunko:CLI_0008.1"})
-    private RecipeDiscoveryService discoveryService() {
-        return RecipeToolchain.resolve(service, null, recipeJars).discoveryService();
     }
 }

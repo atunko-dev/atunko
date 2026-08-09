@@ -16,6 +16,7 @@ import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.tui.event.MouseEvent;
 import dev.tamboui.tui.event.MouseEventKind;
 import dev.tamboui.widgets.input.TextInputState;
+import io.github.atunkodev.core.recipe.FavoritesFilter;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.tui.AtunkoTui;
@@ -239,11 +240,19 @@ public final class BrowserView {
             return EventResult.HANDLED;
         }
         if (event.isChar('s')) {
-            controller.setSortOrder(controller.sortOrder() == SortOrder.NAME ? SortOrder.TAGS : SortOrder.NAME);
+            controller.cycleSortOrder();
             return EventResult.HANDLED;
         }
         if (event.isChar('u')) {
             controller.cycleSourceFilter();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('f')) {
+            controller.toggleFavorite();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('F')) {
+            controller.cycleFavoritesFilter();
             return EventResult.HANDLED;
         }
         if (event.isChar('?')) {
@@ -285,10 +294,11 @@ public final class BrowserView {
                         .cursorRequiresFocus(false)
                         .constraint(Constraint.fill(3)),
                 text(" "),
-                tabs(SortOrder.NAME.name(), SortOrder.TAGS.name())
-                        .selected(controller.sortOrder() == SortOrder.NAME ? 0 : 1));
+                tabs(SortOrder.NAME.name(), SortOrder.TAGS.name(), SortOrder.RECENT.name())
+                        .selected(controller.sortOrder().ordinal()));
     }
 
+    @Requirements({"atunko:TUI_0007.1"})
     private static Element renderRecipeList(TuiController controller, List<DisplayRow> displayRows) {
         return RecipeListRenderer.renderRecipeList(
                 displayRows,
@@ -300,7 +310,8 @@ public final class BrowserView {
                 "Recipes",
                 RecipeListRenderer.RenderOptions.BROWSER,
                 Constraint.fill(2),
-                controller::applicability);
+                controller::applicability,
+                controller.favoriteRecipes());
     }
 
     @Requirements({"atunko:TUI_0001.16"})
@@ -348,13 +359,14 @@ public final class BrowserView {
         return "Composite: " + coveredCount + "/" + total + " covered";
     }
 
-    @Requirements({"atunko:TUI_0006.1"})
+    @Requirements({"atunko:TUI_0006.1", "atunko:TUI_0007.1"})
     private static Element renderStatusBar(TuiController controller, List<DisplayRow> displayRows) {
         int selected = controller.selectedRecipes().size();
         long parentCount = displayRows.stream().filter(r -> !r.isSubRecipe()).count();
         String source = controller.sourceFilter().name().toLowerCase(Locale.ROOT);
-        String status =
-                parentCount + " recipes | " + selected + " selected | src:" + source + " | o:options  ?:help  q:quit";
+        String favorites = controller.favoritesFilter() == FavoritesFilter.FAVORITES ? "only" : "all";
+        String status = parentCount + " recipes | " + selected + " selected | src:" + source + " | fav:" + favorites
+                + " | o:options  ?:help  q:quit";
         return text(" " + status).addClass("status-bar");
     }
 }

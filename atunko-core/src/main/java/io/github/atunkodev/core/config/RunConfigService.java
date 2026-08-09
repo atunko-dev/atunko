@@ -1,23 +1,13 @@
 package io.github.atunkodev.core.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
 import java.nio.file.Path;
 
 public class RunConfigService {
 
-    private final ObjectMapper yamlMapper;
-
-    public RunConfigService() {
-        YAMLFactory yamlFactory = YAMLFactory.builder()
-                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-                .build();
-        this.yamlMapper = new ObjectMapper(yamlFactory).disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-    }
+    private final ObjectMapper yamlMapper = YamlMappers.configMapper();
 
     @Requirements({"atunko:CORE_0007"})
     public void save(RunConfig config, Path file) throws IOException {

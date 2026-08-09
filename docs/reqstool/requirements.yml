@@ -1484,3 +1484,137 @@ requirements:
       requirement_ids: ["TUI_0006"]
     categories: [interaction-capability]
     revision: 0.1.0
+
+  # Recipe management requirements
+  - id: CORE_0020
+    title: Core — Custom Recipe YAML Loading
+    significance: shall
+    description: >-
+      User-authored declarative OpenRewrite recipe YAML files shall be loadable into the
+      discovery environment alongside the bundled catalog; recipes they contribute shall
+      be discovered, classified USER under the recipe source classification, and shall be
+      able to reference bundled recipes
+    references:
+      requirement_ids: ["CORE_0019"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0020.1
+    title: Core — Explicit Recipe YAML Files via --recipes-file
+    significance: shall
+    description: >-
+      The list, search, and tui subcommands shall accept a repeatable
+      --recipes-file <path> option that adds user recipe YAML files to the discovery
+      environment
+    references:
+      requirement_ids: ["CORE_0020"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0020.2
+    title: Core — Recipe YAML Auto-Discovery from the Config Dir
+    significance: shall
+    description: >-
+      Recipe YAML files placed in the recipes directory of the atunko config dir shall be
+      auto-discovered and loaded without any command-line option; the config dir shall
+      follow XDG conventions (XDG_CONFIG_HOME, falling back to ~/.config) and its
+      location shall be overridable for tests
+    references:
+      requirement_ids: ["CORE_0020"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0020.3
+    title: Core — Malformed Recipe YAML Resilience
+    significance: shall
+    description: >-
+      A malformed user recipe YAML file shall never crash startup: the failure shall be
+      reported as a clear warning naming the file, the file shall be skipped, and every
+      other recipe source shall still load
+    references:
+      requirement_ids: ["CORE_0020"]
+    categories: [reliability, functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0021
+    title: Core — Favorites Persistence
+    significance: shall
+    description: >-
+      A recipe shall be markable and unmarkable as favorite, with the favorite names
+      persisted to a favorites file in the atunko config dir (location overridable);
+      a missing or malformed favorites file shall read as no favorites without
+      blocking startup
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0021.1
+    title: Core — Favorites Filter
+    significance: shall
+    description: >-
+      Recipe browsing shall be filterable to favorites only, with a single cycling
+      filter implementation in the core module reused by every user interface
+    references:
+      requirement_ids: ["CORE_0021"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0022
+    title: Core — Recently Used Recipe Tracking
+    significance: shall
+    description: >-
+      Recipe names shall be recorded with a timestamp whenever recipes are executed,
+      persisted newest-first to a recent file in the atunko config dir (location
+      overridable), deduplicated so a re-run moves a recipe to the front, and capped
+      at 20 entries; a missing or malformed recent file shall read as empty
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CORE_0022.1
+    title: Core — Recent-First Sort Order
+    significance: shall
+    description: >-
+      A recent sort order shall order recipes recorded as recently used first, in
+      recency order, with all remaining recipes following in name order; without
+      recent context it shall degrade to name order
+    references:
+      requirement_ids: ["CORE_0022"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: TUI_0007
+    title: TUI — Favorites
+    significance: shall
+    description: >-
+      The TUI recipe browser shall provide a key that toggles favorite on the
+      highlighted recipe, persisted through the core favorites service, and a key
+      cycling a favorites filter between all recipes and favorites only, composing
+      with the existing search, tag, and source filters and resetting the highlight
+      and the filter on clear-all
+    references:
+      requirement_ids: ["CORE_0021"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0007.1
+    title: TUI — Favorite Indication
+    significance: shall
+    description: >-
+      The TUI shall mark favorite recipes with a star marker in the recipe list,
+      shall indicate the active favorites filter in the browser status bar, and
+      shall document the favorite keys in the help overlay
+    references:
+      requirement_ids: ["TUI_0007"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0008
+    title: TUI — Recently Used Recipes
+    significance: shall
+    description: >-
+      The TUI shall record executed recipes through the core recently-used service
+      when a run is triggered and shall surface them via a recent sort order included
+      in the browser sort cycle
+    references:
+      requirement_ids: ["CORE_0022"]
+    categories: [interaction-capability]
+    revision: 0.1.0

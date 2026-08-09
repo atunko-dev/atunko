@@ -19,6 +19,9 @@ import io.github.atunkodev.core.project.SessionHolder;
 import io.github.atunkodev.core.project.SourceCapability;
 import io.github.atunkodev.core.project.SourceCapabilityHints;
 import io.github.atunkodev.core.project.Workspace;
+import io.github.atunkodev.core.recipe.FavoritesFilter;
+import io.github.atunkodev.core.recipe.FavoritesService;
+import io.github.atunkodev.core.recipe.RecentRecipesService;
 import io.github.atunkodev.core.recipe.RecipeApplicability;
 import io.github.atunkodev.core.recipe.RecipeApplicabilityService;
 import io.github.atunkodev.core.recipe.RecipeCoverageUtils;
@@ -318,6 +321,9 @@ public class TuiController {
     private String searchQuery = "";
     private SortOrder sortOrder = SortOrder.NAME;
     private RecipeSourceFilter sourceFilter = RecipeSourceFilter.ALL;
+    private FavoritesFilter favoritesFilter = FavoritesFilter.ALL;
+    private final FavoritesService favoritesService;
+    private final RecentRecipesService recentRecipesService;
     private final Set<String> selectedRecipes = new LinkedHashSet<>();
     private final Set<String> selectedTags = new LinkedHashSet<>();
     private boolean searchMode;
@@ -338,6 +344,22 @@ public class TuiController {
 
     public TuiController(List<RecipeInfo> allRecipes) {
         this(allRecipes, new RunConfigService());
+    }
+
+    /** Convenience constructor for tests that point favorites and recent tracking at temporary files. */
+    public TuiController(
+            List<RecipeInfo> allRecipes, FavoritesService favoritesService, RecentRecipesService recentRecipesService) {
+        this(
+                allRecipes,
+                new RunConfigService(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                Path.of("."),
+                favoritesService,
+                recentRecipesService);
     }
 
     public TuiController(List<RecipeInfo> allRecipes, RunConfigService runConfigService) {
@@ -382,7 +404,33 @@ public class TuiController {
             WorkspaceExecutionEngine workspaceEngine,
             List<ProjectEntry> workspaceProjects,
             Path projectDir) {
+        this(
+                allRecipes,
+                runConfigService,
+                engine,
+                sourceCache,
+                changeApplier,
+                workspaceEngine,
+                workspaceProjects,
+                projectDir,
+                new FavoritesService(),
+                new RecentRecipesService());
+    }
+
+    public TuiController(
+            List<RecipeInfo> allRecipes,
+            RunConfigService runConfigService,
+            RecipeExecutionEngine engine,
+            ParsedSourcesCache sourceCache,
+            ChangeApplier changeApplier,
+            WorkspaceExecutionEngine workspaceEngine,
+            List<ProjectEntry> workspaceProjects,
+            Path projectDir,
+            FavoritesService favoritesService,
+            RecentRecipesService recentRecipesService) {
         this.allRecipes = List.copyOf(allRecipes);
+        this.favoritesService = favoritesService;
+        this.recentRecipesService = recentRecipesService;
         this.runConfigService = runConfigService;
         this.engine = engine;
         this.sourceCache = sourceCache;
@@ -416,10 +464,11 @@ public class TuiController {
         return Set.copyOf(selectedRecipes);
     }
 
+    @Requirements({"atunko:TUI_0008"})
     public List<RecipeInfo> recipes() {
         List<RecipeInfo> filtered = filterRecipes();
         List<RecipeInfo> sorted = new ArrayList<>(filtered);
-        sorted.sort(sortOrder.comparator());
+        sorted.sort(sortOrder.comparator(recentRecipesService.recentNames()));
         return List.copyOf(sorted);
     }
 
@@ -552,6 +601,13 @@ public class TuiController {
         this.sortOrder = order;
     }
 
+    /** Cycles the sort order Name → Tags → Recent → Name. */
+    @Requirements({"atunko:TUI_0008"})
+    public void cycleSortOrder() {
+        SortOrder[] orders = SortOrder.values();
+        this.sortOrder = orders[(sortOrder.ordinal() + 1) % orders.length];
+    }
+
     // --- Recipe source filter ---
 
     @Requirements({"atunko:TUI_0006"})
@@ -564,6 +620,45 @@ public class TuiController {
     public void cycleSourceFilter() {
         this.sourceFilter = sourceFilter.next();
         browserState.resetHighlight();
+    }
+
+    // --- Favorites ---
+
+    @Requirements({"atunko:TUI_0007"})
+    public FavoritesFilter favoritesFilter() {
+        return favoritesFilter;
+    }
+
+    /** Cycles the favorites filter All → Favorites → All and resets the highlight. */
+    @Requirements({"atunko:TUI_0007"})
+    public void cycleFavoritesFilter() {
+        this.favoritesFilter = favoritesFilter.next();
+        browserState.resetHighlight();
+    }
+
+    /** Toggles favorite on the highlighted recipe, persisted through the core favorites service. */
+    @Requirements({"atunko:TUI_0007"})
+    public void toggleFavorite() {
+        browserState.highlightedRecipe().ifPresent(recipe -> {
+            try {
+                favoritesService.toggle(recipe.name());
+            } catch (IOException e) {
+                LOG.warning(() -> "Could not persist favorite for " + recipe.name() + ": " + e);
+            }
+            // Unfavoriting under an active favorites filter shrinks the list — keep the highlight in range.
+            browserState.clampHighlightIndex();
+        });
+    }
+
+    @Requirements({"atunko:TUI_0007.1"})
+    public boolean isFavorite(String recipeName) {
+        return favoritesService.isFavorite(recipeName);
+    }
+
+    /** The favorite recipe names, the shape the list renderer consumes for the star marker. */
+    @Requirements({"atunko:TUI_0007.1"})
+    public Set<String> favoriteRecipes() {
+        return favoritesService.favorites();
     }
 
     public Optional<RecipeInfo> highlightedRecipe() {
@@ -687,6 +782,7 @@ public class TuiController {
         this.selectedRecipes.clear();
         this.recipeOptions.clear();
         this.sourceFilter = RecipeSourceFilter.ALL;
+        this.favoritesFilter = FavoritesFilter.ALL;
         browserState.resetHighlight();
     }
 
@@ -1014,6 +1110,7 @@ public class TuiController {
         if (isWorkspaceMode()) {
             Workspace workspace = new Workspace(projectDir, workspaceProjects);
             WorkspaceExecutionResult wsResult = workspaceEngine.execute(recipesToRun, workspace);
+            recordRecentRecipes(recipesToRun);
             if (!dryRun && changeApplier != null) {
                 wsResult.results().stream()
                         .filter(r -> r.succeeded() && r.result() != null)
@@ -1063,6 +1160,8 @@ public class TuiController {
             showExecutionError("Execution failed: " + describe(e));
             return;
         }
+        // Recorded only after the run actually executed — an aborted run must not surface under Sort:Recent.
+        recordRecentRecipes(recipesToRun);
         if (dryRun) {
             showDryRunResult(combined);
         } else {
@@ -1072,6 +1171,16 @@ public class TuiController {
 
     private static String describe(Throwable e) {
         return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+    }
+
+    /** Records executed recipes through the core recently-used service; a persistence failure never blocks the run. */
+    @Requirements({"atunko:TUI_0008"})
+    private void recordRecentRecipes(List<String> recipeNames) {
+        try {
+            recentRecipesService.record(recipeNames);
+        } catch (IOException e) {
+            LOG.warning(() -> "Could not record recently used recipes: " + e);
+        }
     }
 
     @Requirements({"atunko:TUI_0001.10"})
@@ -1384,10 +1493,15 @@ public class TuiController {
         runState.setHighlightedIndex(Math.max(0, Math.min(idx, rows.size() - 1)));
     }
 
+    @Requirements({"atunko:TUI_0007"})
     private List<RecipeInfo> filterRecipes() {
         var stream = allRecipes.stream();
         if (sourceFilter != RecipeSourceFilter.ALL) {
             stream = stream.filter(r -> sourceFilter.matches(r.source()));
+        }
+        if (favoritesFilter != FavoritesFilter.ALL) {
+            Set<String> favorites = favoritesService.favorites();
+            stream = stream.filter(r -> favoritesFilter.matches(favorites.contains(r.name())));
         }
         if (!selectedTags.isEmpty()) {
             stream = stream.filter(r ->

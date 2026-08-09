@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.atunkodev.testing.CommandLineFixture;
 import io.github.atunkodev.testing.RecipeJarFixture;
+import io.github.atunkodev.testing.RecipeYamlFixture;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Path;
 import java.util.List;
@@ -111,5 +112,34 @@ class ListCommandTest {
 
         assertThat(exitCode).isNotZero();
         assertThat(cli.stderr()).contains("Recipe jar not found").contains("no-such.jar");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0020.1"})
+    void listWithRecipesFileAndSourceUserListsOnlyUserRecipes(@TempDir Path tempDir) throws Exception {
+        Path file = RecipeYamlFixture.create(tempDir);
+        CommandLineFixture cli = CommandLineFixture.create();
+
+        int exitCode = cli.execute("list", "--recipes-file", file.toString(), "--source", "user");
+
+        assertThat(exitCode).isZero();
+        assertThat(cli.stdout()).contains(RecipeYamlFixture.USER_RECIPE_NAME);
+        assertThat(cli.stdout()).contains("1 recipe(s) found.");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0020.3"})
+    void listWithMalformedRecipesFileWarnsOnStderrAndStillSucceeds(@TempDir Path tempDir) throws Exception {
+        Path valid = RecipeYamlFixture.create(tempDir);
+        Path malformed = RecipeYamlFixture.createMalformed(tempDir);
+        CommandLineFixture cli = CommandLineFixture.create();
+
+        int exitCode = cli.execute(
+                "list", "--recipes-file", valid.toString(), "--recipes-file", malformed.toString(), "--source", "user");
+
+        assertThat(exitCode).isZero();
+        assertThat(cli.stderr()).contains("Skipping malformed recipe file").contains(malformed.toString());
+        assertThat(cli.stdout()).contains(RecipeYamlFixture.USER_RECIPE_NAME);
+        assertThat(cli.stdout()).contains("1 recipe(s) found.");
     }
 }

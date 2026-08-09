@@ -134,7 +134,13 @@ public class RecipeBrowserView extends AppLayout {
         Select<SortOrder> sortSelect = new Select<>();
         sortSelect.setItems(SortOrder.NAME, SortOrder.TAGS);
         sortSelect.setValue(SortOrder.NAME);
-        sortSelect.setItemLabelGenerator(s -> s == SortOrder.NAME ? "Sort: Name" : "Sort: Tags");
+        sortSelect.setItemLabelGenerator(s -> switch (s) {
+            case NAME -> "Sort: Name";
+            case TAGS -> "Sort: Tags";
+            // Not offered in the select — the web UI does not track recent executions — but the label must
+            // stay honest for every SortOrder constant reaching applySortOrder(); RECENT sorts by name.
+            case RECENT -> "Sort: Recent";
+        });
         sortSelect.addValueChangeListener(e -> {
             currentSortOrder = e.getValue();
             applyFilters();

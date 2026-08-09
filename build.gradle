@@ -103,6 +103,9 @@ subprojects {
 
     tasks.named('test') {
         useJUnitPlatform()
+        // Tests must never read the developer's real ~/.config/atunko (favorites, recent, user recipes)
+        systemProperty 'atunko.config.dir',
+                layout.buildDirectory.dir('test-atunko-config').get().asFile.absolutePath
         testLogging {
             events 'passed', 'skipped', 'failed'
             showStandardStreams = true
