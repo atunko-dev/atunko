@@ -2,7 +2,7 @@
 :description: Command reference for atunko CLI
 
 atunko provides a CLI interface for headless and scripted usage of OpenRewrite recipes,
-plus an interactive TUI for browsing and selecting recipes.
+an interactive TUI for browsing and selecting recipes, and a browser-based Web UI.
 
 == Commands
 
@@ -26,6 +26,11 @@ atunko        # same as above — tui is the default
 | `--project-dir <path>`
 | Project directory for recipe execution (default: `.`). Uses the Gradle Tooling API to
 resolve source dirs, resource dirs, test dirs, and compile classpath for each module.
+Mutually exclusive with `--workspace`.
+
+| `--workspace <path>`
+| Workspace root — scans for all projects underneath and lets recipes run against each
+of them. Mutually exclusive with `--project-dir`.
 
 | `--theme <dark\|light>`
 | Select a bundled colour theme (default: `dark`).
@@ -69,7 +74,7 @@ atunko tui --css-file ~/.config/atunko/mytheme.tcss
 |===
 | Key | Action
 
-| `↑` / `↓`
+| `↑` / `↓` (or `j` / `k`)
 | Navigate recipe list
 
 | `Enter`
@@ -79,7 +84,13 @@ atunko tui --css-file ~/.config/atunko/mytheme.tcss
 | Toggle recipe selection
 
 | `a`
-| Cycle selection (none → all → none)
+| Select all recipes
+
+| `A`
+| Deselect all recipes
+
+| `o`
+| Open the recipe options editor for the highlighted recipe (see <<recipe-options>>)
 
 | `r`
 | Open run dialog with selected recipes
@@ -90,11 +101,20 @@ atunko tui --css-file ~/.config/atunko/mytheme.tcss
 | `/`
 | Enter search mode (type query, `Enter` to apply, `Esc` to cancel)
 
-| `→` / `e`
+| `n` / `N`
+| Jump to next / previous search match (when a search is active)
+
+| `→` / `e` / `>`
 | Expand composite recipe (show sub-recipes)
 
-| `←` / `c`
+| `←` / `<`
 | Collapse composite recipe
+
+| `E`
+| Expand all composite recipes
+
+| `W`
+| Collapse all composite recipes
 
 | `s`
 | Cycle sort order (name → tags → recent). See <<favorites-and-recent>>.
@@ -111,12 +131,25 @@ atunko tui --css-file ~/.config/atunko/mytheme.tcss
 | Cycle favorites filter (all → favorites only). The active filter is shown as `fav:`
 in the status bar. See <<favorites-and-recent>>.
 
+| `S`
+| Save the current selection as a run configuration (see <<run-configurations>>)
+
+| `L`
+| Load a saved run configuration (see <<run-configurations>>)
+
+| `?`
+| Toggle the help overlay (all bindings at a glance)
+
 | `Esc`
-| Clear search, tag, and recipe source filters (reset to full list)
+| Clear everything: search, tag, source, and favorites filters, selection, and recipe
+options (reset to full list)
 
 | `q`
 | Quit
 |===
+
+In the recipe list, `[x]` marks a selected recipe, `[c]` a recipe covered by a selected
+composite, and `*` a favorite.
 
 ==== Run dialog key bindings
 
@@ -126,26 +159,39 @@ The run dialog opens when you press `r` from the browser with selected recipes.
 |===
 | Key | Action
 
-| `↑` / `↓`
+| `↑` / `↓` (or `j` / `k`)
 | Navigate run list
 
 | `Space` / `Enter`
 | Toggle individual recipe on/off
 
 | `a`
-| Cycle selection (all/none)
+| Select all
 
-| `+` / `-`
+| `A`
+| Deselect all
+
+| `+` / `-` (or `Ctrl+↑` / `Ctrl+↓`)
 | Reorder recipes (move highlighted recipe up/down)
 
-| `→` / `e`
+| `→` / `e` / `>`
 | Expand composite recipe
 
-| `←` / `c`
+| `←` / `c` / `<`
 | Collapse composite recipe
 
 | `f`
-| Flatten composite (replace with individual sub-recipes)
+| Flatten highlighted composite (replace with individual sub-recipes)
+
+| `F`
+| Flatten all composites
+
+| `o`
+| Open the recipe options editor for the highlighted recipe (see <<recipe-options>>)
+
+| `x`
+| Export the run configuration as a Maven/Gradle plugin snippet (see
+<<run-configurations>>)
 
 | `r`
 | Run selected recipes (apply changes)
@@ -153,15 +199,81 @@ The run dialog opens when you press `r` from the browser with selected recipes.
 | `d`
 | Dry-run (preview changes without applying)
 
+| `?`
+| Toggle the help overlay
+
 | `Esc` / `q`
 | Back to browser
 |===
 
+After `r` or `d`, the execution results view lists the changed files: `↑`/`↓` (or
+`j`/`k`) navigates, `Enter` opens the per-file diff, `q`/`Esc` goes back.
+
 ==== Composite recipes
 
 Recipes that contain sub-recipes are marked with `▶` in the browser.
-Use `→`/`e` to expand and see their sub-recipes, `←`/`c` to collapse.
-In the run dialog, `f` flattens a composite into its individual sub-recipes.
+Use `→`/`e`/`>` to expand and see their sub-recipes, `←`/`<` to collapse.
+In the run dialog, `f` flattens a composite into its individual sub-recipes and `F`
+flattens all composites at once.
+
+==== Detail view
+
+`Enter` on a recipe opens the detail view with its full description, tags, options,
+and sub-recipes. `Space` toggles the recipe's selection, `?` shows the help overlay,
+and `Esc`/`q` goes back to the browser.
+
+[#recipe-options]
+==== Recipe options
+
+Many recipes take options (for example a package name to target). Press `o` on a
+recipe — in the browser or the run dialog — to open the options editor: `↑`/`↓` (or
+`j`/`k`) moves between options, `Enter` edits the highlighted value, and `Esc`/`q`
+returns. Configured options are used when the recipe runs, and are included in saved
+run configurations.
+
+[#run-configurations]
+==== Run configurations
+
+A run configuration captures the selected recipes (and their configured options) as a
+portable YAML file, so a curated recipe set can be re-used and shared.
+
+* `S` in the browser prompts for a name and saves the current selection to
+  `<project-dir>/atunko/runs/<name>.yml`.
+* `L` lists the saved configurations in that directory; `Enter` loads one, replacing
+  the current selection; `Esc`/`q` cancels.
+* `x` in the run dialog opens the export overlay, which renders the current run as an
+  OpenRewrite build-plugin configuration: `g` for Gradle, `m` for Maven, `Tab` toggles
+  between a minimal plugin snippet and a full standalone build file, `Esc` closes.
+
+Run configuration files can also be exported from the command line — see
+<<config-export>>.
+
+=== `webui` — Browser-based recipe browser
+
+Launch the Web UI: a browser-based interface for browsing, searching, configuring, and
+executing recipes, with GitHub-style side-by-side diff preview.
+
+[source,bash]
+----
+atunko webui                       # http://localhost:8080
+atunko webui --port 9090 --project-dir /path/to/project
+----
+
+==== Options
+
+[cols="1,3"]
+|===
+| Option | Description
+
+| `--port <port>`
+| Port to listen on (default: `8080`)
+
+| `--project-dir <path>`
+| Project directory for recipe execution (default: `.`)
+
+| `--workspace <path>`
+| Workspace root — scans for all projects underneath
+|===
 
 === `list` — List all recipes
 
@@ -201,6 +313,10 @@ classified as user recipes. See <<recipe-sources>>.
 | Add a user recipe YAML file to the discovery environment (repeatable). Its recipes
 are classified as user recipes. See <<user-recipe-yaml>>.
 
+| `--workspace <path>`
+| Path to a workspace root — lists the discovered project paths underneath it instead
+of recipes
+
 | `--help`
 | Show help for the list command
 |===
@@ -226,10 +342,11 @@ atunko search "spring" --field name --format table
 | Option | Description
 
 | `<query>`
-| Search keyword (matches against name, description, and tags by default)
+| Search keyword (matches against name, display name, description, and tags by default)
 
-| `--field <name\|description\|tags\|all>`
-| Restrict search to a specific field (default: all)
+| `--field <name\|display_name\|description\|tags>`
+| Restrict search to specific fields, as a comma-separated list (e.g.
+`--field name,tags`). Omit to search all fields.
 
 | `--sort <name\|tags\|recent>`
 | Sort order: by recipe name (default) or by tags (`recent` is accepted for parity
@@ -256,16 +373,24 @@ are classified as user recipes. See <<user-recipe-yaml>>.
 
 === `run` — Execute a recipe
 
-Execute an OpenRewrite recipe against a project directory.
+Execute an OpenRewrite recipe against a single project directory, or against every
+project in a workspace.
 
 [source,bash]
 ----
-# Run a specific recipe
+# Run a specific recipe against a single project
 atunko run -r org.openrewrite.java.RemoveUnusedImports --project-dir .
 
 # Run a Spring Boot migration recipe
 atunko run -r org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0 --project-dir /path/to/project
+
+# Run against every project found under a workspace root
+atunko run -r org.openrewrite.java.RemoveUnusedImports --workspace /path/to/workspace
 ----
+
+In workspace mode the recipe is executed against each discovered project, and a
+per-project summary table (project, change count, status) is printed at the end. If
+any project fails, the command exits with a non-zero exit code.
 
 ==== Options
 
@@ -277,7 +402,12 @@ atunko run -r org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0 --project-
 | Fully qualified recipe name (required)
 
 | `--project-dir <path>`
-| Path to the project directory (required)
+| Path to a single project directory (one of `--project-dir` or `--workspace` is
+required)
+
+| `--workspace <path>`
+| Path to a workspace root — scans for all projects underneath and executes against
+each (one of `--project-dir` or `--workspace` is required)
 
 | `--recipe-jar <path>`
 | User recipe jar added to the execution environment (repeatable), so user recipes can
@@ -336,6 +466,44 @@ continues without a checkpoint:
 * git itself fails (for example a repository without an initial commit) — reported as
   `Git checkpoint FAILED (<reason>)`, never as a clean tree
 
+[#config-export]
+=== `config export` — Export a run configuration
+
+Convert a saved run configuration (see <<run-configurations>>) into OpenRewrite
+build-plugin configuration for Maven or Gradle, printed to stdout. `atunko config`
+without a subcommand prints its usage.
+
+[source,bash]
+----
+# Gradle plugin snippet for a saved run configuration
+atunko config export -f atunko/runs/cleanup.yml --gradle
+
+# Full standalone Maven pom instead of a snippet
+atunko config export -f atunko/runs/cleanup.yml --maven --full > pom.xml
+----
+
+==== Options
+
+[cols="1,3"]
+|===
+| Option | Description
+
+| `-f`, `--file <path>`
+| Path to the run configuration YAML file (required)
+
+| `--gradle`
+| Export in Gradle format (exactly one of `--gradle` or `--maven` is required)
+
+| `--maven`
+| Export in Maven format (exactly one of `--gradle` or `--maven` is required)
+
+| `--full`
+| Emit a full standalone build file instead of a plugin snippet
+
+| `--help`
+| Show help for the config export command
+|===
+
 [#recipe-sources]
 == Recipe sources
 
@@ -377,7 +545,8 @@ atunko run -r io.example.MyTeamRecipe --recipe-jar ~/recipes/my-recipes.jar --pr
 
 Declarative OpenRewrite recipe YAML files can be added to the catalog in two ways:
 
-* Explicitly, with `--recipes-file <path>` (repeatable) on `list`, `search`, and `tui`.
+* Explicitly, with `--recipes-file <path>` (repeatable) on `list`, `search`, `tui`,
+  and `run`.
 * Automatically: every `*.yml`/`*.yaml` file in the `recipes` directory of the atunko
   config dir (`~/.config/atunko/recipes/`, or `$XDG_CONFIG_HOME/atunko/recipes/` when
   set) is loaded on startup, in filename order.

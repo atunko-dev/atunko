@@ -13,12 +13,38 @@ with or endorsed by Moderne.
 == Features
 
 * **Interactive TUI** — Browse, search, and select recipes in a full-screen terminal UI
+* **Web UI** — Browser-based recipe browser with side-by-side diff preview (`atunko webui`)
 * **CLI Commands** — List, search, and run recipes from the command line
-* **Recipe Execution** — Run recipes against your project
-* **Run Configurations** — Save and load recipe setups as portable `.atunko.yml` files
+* **Recipe Execution** — Run recipes against your project, or against every project in
+  a workspace (`--workspace`)
+* **Run Configurations** — Save and load recipe setups as portable YAML files, and
+  export them as Maven/Gradle plugin configuration
+* **User Recipes** — Add your own recipe jars and declarative recipe YAML files
 * **Project Scanning** — Gradle and Maven project support for classpath resolution
 
 == Quick Start
+
+=== Run with JBang (zero install)
+
+With https://www.jbang.dev[JBang] installed, no download or build is needed — JBang
+fetches the JAR and provisions a matching JDK:
+
+[source,bash]
+----
+# Launch the interactive recipe browser
+jbang atunko@atunko-dev/atunko tui
+
+# Search for recipes
+jbang atunko@atunko-dev/atunko search "spring"
+
+# Run a recipe against the current project
+jbang atunko@atunko-dev/atunko run -r org.openrewrite.java.RemoveUnusedImports --project-dir .
+----
+
+NOTE: JBang caches downloaded JARs, and the snapshot release is rolling — pass
+`--fresh` to pick up the newest build: `jbang --fresh atunko@atunko-dev/atunko tui`
+
+=== Build from source
 
 [source,bash]
 ----
