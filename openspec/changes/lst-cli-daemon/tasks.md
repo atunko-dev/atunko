@@ -28,20 +28,20 @@
 
 ## 3. Daemon server
 
-- [ ] 3.1 Write `DaemonServerTest.reusesParsedSourcesAcrossRequests` — two executions for an
+- [x] 3.1 Write `DaemonServerTest.reusesParsedSourcesAcrossRequests` — two executions for an
       unchanged project parse once [SVC_CORE_0023]
-- [ ] 3.2 Implement `DaemonServer`: bind `127.0.0.1:0`, own one `ParsedSourcesCache`, hold the
+- [x] 3.2 Implement `DaemonServer`: bind `127.0.0.1:0`, own one `ParsedSourcesCache`, hold the
       project's `ProjectEntry` explicitly (not via `SessionHolder`), serialize requests per
       project, execute through the existing engine
-- [ ] 3.3 Add `@Requirements({"atunko:CORE_0023"})` to `DaemonServer` and
+- [x] 3.3 Add `@Requirements({"atunko:CORE_0023"})` to `DaemonServer` and
       `@SVCs({"SVC_CORE_0023"})` to the test from 3.1
-- [ ] 3.4 Write `DaemonServerTest.refusesRequestWithWrongToken` — a bad token is refused, no
+- [x] 3.4 Write `DaemonServerTest.refusesRequestWithWrongToken` — a bad token is refused, no
       execution runs, connection closes [SVC_CORE_0023.3]
-- [ ] 3.5 Implement token check on the `hello` handshake; add
+- [x] 3.5 Implement token check on the `hello` handshake; add
       `@Requirements({"atunko:CORE_0023.3"})` and `@SVCs({"SVC_CORE_0023.3"})`
-- [ ] 3.6 Write `DaemonServerTest.exitsAfterIdleTimeout` with a short configured timeout —
+- [x] 3.6 Write `DaemonServerTest.exitsAfterIdleTimeout` with a short configured timeout —
       daemon exits and deregisters [SVC_CORE_0023.2]
-- [ ] 3.7 Implement idle-timeout shutdown (default 30 min, property
+- [x] 3.7 Implement idle-timeout shutdown (default 30 min, property
       `atunko.daemon.idle-timeout`); add `@Requirements({"atunko:CORE_0023.2"})` and
       `@SVCs({"SVC_CORE_0023.2"})`
 

@@ -24,9 +24,9 @@ class ProtocolCodecTest {
                 new DaemonMessage.Status(),
                 new DaemonMessage.Stop(),
                 new DaemonMessage.Ok(),
-                new DaemonMessage.Error("boom", true),
+                new DaemonMessage.Failure("boom", true),
                 new DaemonMessage.ExecuteResult(
-                        List.of(new DaemonMessage.ChangedFile("src/A.java", "@@ -1 +1 @@\n-a\n+b", "recipe")),
+                        List.of(new DaemonMessage.ChangedFile("src/A.java", "class A {}", "class B {}", "recipe")),
                         List.of("a warning"),
                         true),
                 new DaemonMessage.StatusResult("/tmp/project", "0.1.0-SNAPSHOT", 1234L, 42L));
@@ -55,7 +55,9 @@ class ProtocolCodecTest {
     @Test
     void diffContainingNewlinesStaysOnOneLine() throws Exception {
         DaemonMessage.ExecuteResult result = new DaemonMessage.ExecuteResult(
-                List.of(new DaemonMessage.ChangedFile("A.java", "line1\nline2\nline3", "r")), List.of(), false);
+                List.of(new DaemonMessage.ChangedFile("A.java", "line1\nline2", "line1\nline2\nline3", "r")),
+                List.of(),
+                false);
 
         StringWriter out = new StringWriter();
         ProtocolCodec.write(out, result);

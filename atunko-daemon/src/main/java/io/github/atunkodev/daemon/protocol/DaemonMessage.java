@@ -20,7 +20,7 @@ import java.util.Map;
     @JsonSubTypes.Type(value = DaemonMessage.Status.class, name = "status"),
     @JsonSubTypes.Type(value = DaemonMessage.Stop.class, name = "stop"),
     @JsonSubTypes.Type(value = DaemonMessage.Ok.class, name = "ok"),
-    @JsonSubTypes.Type(value = DaemonMessage.Error.class, name = "error"),
+    @JsonSubTypes.Type(value = DaemonMessage.Failure.class, name = "failure"),
     @JsonSubTypes.Type(value = DaemonMessage.ExecuteResult.class, name = "executeResult"),
     @JsonSubTypes.Type(value = DaemonMessage.StatusResult.class, name = "statusResult"),
 })
@@ -47,17 +47,20 @@ public sealed interface DaemonMessage {
     record Ok() implements DaemonMessage {}
 
     /** Failure response. {@code retryable} tells the client whether falling back in-process is worth reporting. */
-    record Error(String message, boolean retryable) implements DaemonMessage {}
+    record Failure(String message, boolean retryable) implements DaemonMessage {}
 
     /**
-     * Outcome of an {@link Execute}. Diffs are carried as unified text rather than LSTs, since the point of the
+     * Outcome of an {@link Execute}. Carries the resulting file contents rather than LSTs, since the point of the
      * daemon is that the trees never leave its heap.
      */
     record ExecuteResult(List<ChangedFile> changedFiles, List<String> warnings, boolean parsedFromCache)
             implements DaemonMessage {}
 
-    /** One file the recipe run would change, with its unified diff. */
-    record ChangedFile(String path, String diff, String recipeName) {}
+    /**
+     * One file the recipe run would change. Both sides of the change cross the wire because the client applies it
+     * through the same {@code ChangeApplier} the in-process path uses, which needs before as well as after.
+     */
+    record ChangedFile(String path, String before, String after, String recipeName) {}
 
     /** Response to {@link Status}. */
     record StatusResult(String projectRoot, String atunkoVersion, long idleMillis, long pid) implements DaemonMessage {}

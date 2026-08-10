@@ -1,16 +1,9 @@
 package io.github.atunkodev.core.project;
 
 import io.github.reqstool.annotations.Requirements;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.lang.ref.SoftReference;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
-import java.util.zip.CRC32;
 
 /**
  * Session-lifetime in-memory cache of {@link ParsedSources}, keyed by project directory. Parsing dominates
@@ -37,12 +30,7 @@ public class ParsedSourcesCache {
     /** System property that disables caching entirely when set to {@code true}. */
     public static final String DISABLE_PROPERTY = "atunko.lst.cache.disabled";
 
-    private record Entry(ProjectInfo info, Map<Path, Fingerprint> fingerprint, SoftReference<ParsedSources> parsed) {}
-
-    /** {@code contentCrc} is {@link #STAT_ONLY} for classpath entries, whose bytes are never read. */
-    private record Fingerprint(long size, long lastModifiedMillis, long contentCrc) {}
-
-    private static final long STAT_ONLY = -1;
+    private record Entry(ProjectInfo info, InputFingerprint fingerprint, SoftReference<ParsedSources> parsed) {}
 
     private final ProjectSourceParser parser;
     private final boolean enabled;
@@ -73,7 +61,7 @@ public class ParsedSourcesCache {
             return parser.parseWithCapabilities(info);
         }
         Path key = projectDir.toAbsolutePath().normalize();
-        Map<Path, Fingerprint> current = fingerprint(info);
+        InputFingerprint current = fingerprint(info);
         // compute() serializes callers per key: two sessions hitting the same cold project share one parse
         // instead of racing check-then-put into two. The holder keeps a strong reference so the soft one
         // cannot be reclaimed between compute() returning and this method returning.
@@ -93,52 +81,17 @@ public class ParsedSourcesCache {
         return result[0];
     }
 
-    private static Map<Path, Fingerprint> fingerprint(ProjectInfo info) {
-        Map<Path, Fingerprint> result = new HashMap<>();
+    private static InputFingerprint fingerprint(ProjectInfo info) {
+        InputFingerprint.Builder builder = InputFingerprint.builder();
         for (Path dir : info.parseRoots()) {
-            walkRegularFiles(dir, p -> result.put(p, fingerprintOf(p, true)));
+            builder.tree(dir, p -> true, true);
         }
         for (Path buildFile : info.buildFiles()) {
-            Path abs = buildFile.toAbsolutePath().normalize();
-            if (Files.isRegularFile(abs)) {
-                result.put(abs, fingerprintOf(abs, true));
-            }
+            builder.file(buildFile, true);
         }
         for (Path entry : info.classpath()) {
-            Path abs = entry.toAbsolutePath().normalize();
-            if (Files.isRegularFile(abs)) {
-                result.put(abs, fingerprintOf(abs, false));
-            } else {
-                walkRegularFiles(abs, p -> result.put(p, fingerprintOf(p, false)));
-            }
+            builder.fileOrTree(entry, false);
         }
-        return result;
-    }
-
-    private static void walkRegularFiles(Path dir, java.util.function.Consumer<Path> action) {
-        Path abs = dir.toAbsolutePath().normalize();
-        if (!Files.isDirectory(abs)) {
-            return;
-        }
-        try (Stream<Path> walk = Files.walk(abs)) {
-            walk.filter(Files::isRegularFile).forEach(action);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private static Fingerprint fingerprintOf(Path file, boolean hashContent) {
-        try {
-            long size = Files.size(file);
-            long mtime = Files.getLastModifiedTime(file).toMillis();
-            if (!hashContent) {
-                return new Fingerprint(size, mtime, STAT_ONLY);
-            }
-            CRC32 crc = new CRC32();
-            crc.update(Files.readAllBytes(file));
-            return new Fingerprint(size, mtime, crc.getValue());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return builder.build();
     }
 }
