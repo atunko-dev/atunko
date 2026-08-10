@@ -47,13 +47,13 @@
 
 ## 4. Daemon client
 
-- [ ] 4.1 Write `DaemonClientTest.replacesDaemonOnVersionMismatch` — an entry recorded by a
+- [x] 4.1 Write `DaemonClientTest.replacesDaemonOnVersionMismatch` — an entry recorded by a
       different version is stopped and replaced [SVC_CORE_0023.4]
-- [ ] 4.2 Implement `DaemonClient`: resolve project root, read/validate the registry entry,
+- [x] 4.2 Implement `DaemonClient`: resolve project root, read/validate the registry entry,
       probe liveness, auto-start a daemon when absent, perform the handshake
-- [ ] 4.3 Add `@Requirements({"atunko:CORE_0023.4"})` to the version check and
+- [x] 4.3 Add `@Requirements({"atunko:CORE_0023.4"})` to the version check and
       `@SVCs({"SVC_CORE_0023.4"})` to the test from 4.1
-- [ ] 4.4 Print a one-line stderr notice on auto-start naming the daemon and
+- [x] 4.4 Print a one-line stderr notice on auto-start naming the daemon and
       `atunko daemon stop`
 
 ## 5. CLI integration

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 /**
  * A long-lived server holding one project's parsed sources and executing recipes against them on behalf of
@@ -49,7 +50,8 @@ public class DaemonServer implements AutoCloseable {
     private final String token;
     private final String atunkoVersion;
     private final Duration idleTimeout;
-    private final RecipeExecutionEngine engine;
+    private final Supplier<RecipeExecutionEngine> engineSupplier;
+    private volatile RecipeExecutionEngine engine;
     private final JavaSourcesCache cache;
     private final DaemonRegistry registry;
 
@@ -61,13 +63,13 @@ public class DaemonServer implements AutoCloseable {
             Path projectRoot,
             String atunkoVersion,
             Duration idleTimeout,
-            RecipeExecutionEngine engine,
+            Supplier<RecipeExecutionEngine> engineSupplier,
             DaemonRegistry registry)
             throws IOException {
         this.projectRoot = projectRoot.toAbsolutePath().normalize();
         this.atunkoVersion = atunkoVersion;
         this.idleTimeout = idleTimeout;
-        this.engine = engine;
+        this.engineSupplier = engineSupplier;
         this.registry = registry;
         this.cache = new JavaSourcesCache(this.projectRoot);
         this.token = newToken();
@@ -76,6 +78,38 @@ public class DaemonServer implements AutoCloseable {
         this.serverSocket = new ServerSocket(0, 0, InetAddress.getLoopbackAddress());
         // accept() must wake up periodically, otherwise an idle daemon blocks forever and never times out.
         this.serverSocket.setSoTimeout((int) Math.min(Integer.MAX_VALUE, idleTimeout.toMillis()));
+    }
+
+    /**
+     * Convenience for callers holding an already-built engine (tests, in-process use).
+     */
+    public DaemonServer(
+            Path projectRoot,
+            String atunkoVersion,
+            Duration idleTimeout,
+            RecipeExecutionEngine engine,
+            DaemonRegistry registry)
+            throws IOException {
+        this(projectRoot, atunkoVersion, idleTimeout, () -> engine, registry);
+    }
+
+    /**
+     * Built on first use, not at startup. Constructing the engine scans the classpath for recipes, which takes long
+     * enough on a cold JVM that doing it before {@link #register()} made clients time out waiting for the daemon to
+     * appear.
+     */
+    private RecipeExecutionEngine engine() {
+        RecipeExecutionEngine local = engine;
+        if (local == null) {
+            synchronized (this) {
+                local = engine;
+                if (local == null) {
+                    local = engineSupplier.get();
+                    engine = local;
+                }
+            }
+        }
+        return local;
     }
 
     private static String newToken() {
@@ -194,7 +228,7 @@ public class DaemonServer implements AutoCloseable {
 
             List<DaemonMessage.ChangedFile> changed = new ArrayList<>();
             for (String recipeName : request.recipeNames()) {
-                ExecutionResult result = engine.execute(recipeName, sources);
+                ExecutionResult result = engine().execute(recipeName, sources);
                 for (FileChange change : result.changes()) {
                     changed.add(new DaemonMessage.ChangedFile(
                             change.path().toString(), change.before(), change.after(), recipeName));
