@@ -1944,3 +1944,97 @@ cases:
       THEN the executed recipe names are recorded newest-first
       AND the browser lists recently used recipes first
     revision: "0.1.0"
+
+  - id: SVC_CORE_0023
+    requirement_ids: ["CORE_0023"]
+    title: Second invocation reuses the daemon's parsed LSTs
+    verification: automated-test
+    description: |
+      GIVEN a daemon that has served one execution for a project
+      WHEN a second execution is requested for the same project with no file change
+      THEN the daemon serves the cached LSTs and neither scans nor parses the project again
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0023.1
+    requirement_ids: ["CORE_0023.1"]
+    title: Daemon pool is bounded and evicts least recently used
+    verification: automated-test
+    description: |
+      GIVEN the maximum number of daemons are registered and idle
+      WHEN a daemon is requested for a further project root
+      THEN the least recently used idle daemon is stopped and removed from the registry, and
+      a daemon for the new root is registered
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0023.2
+    requirement_ids: ["CORE_0023.2"]
+    title: Idle daemon exits and deregisters
+    verification: automated-test
+    description: |
+      GIVEN a running daemon with a short configured idle timeout
+      WHEN no request arrives for longer than that timeout
+      THEN the daemon exits and its registry entry is removed
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0023.3
+    requirement_ids: ["CORE_0023.3"]
+    title: Requests without the correct token are refused
+    verification: automated-test
+    description: |
+      GIVEN a running daemon
+      WHEN a request presents a token that does not match the registry file
+      THEN the daemon refuses the request, performs no execution, and closes the connection
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0023.4
+    requirement_ids: ["CORE_0023.4"]
+    title: Version mismatch replaces the daemon
+    verification: automated-test
+    description: |
+      GIVEN a registry entry recorded by a different atunko version
+      WHEN a client resolves a daemon for that project root
+      THEN the recorded daemon is stopped and a daemon of the current version is started in
+      its place
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0009
+    requirement_ids: ["CLI_0009"]
+    title: Run through the daemon matches in-process output
+    verification: automated-test
+    description: |
+      GIVEN a project and a recipe
+      WHEN the recipe is run through the daemon and then run with the daemon disabled
+      THEN both runs report the same changed files and the same exit status
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0009.1
+    requirement_ids: ["CLI_0009.1"]
+    title: Unreachable daemon falls back to in-process execution
+    verification: automated-test
+    description: |
+      GIVEN a registry entry whose daemon cannot be reached
+      WHEN a recipe is run against that project
+      THEN the run completes in-process with the correct result and a warning naming the
+      reason for the fallback
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0009.2
+    requirement_ids: ["CLI_0009.2"]
+    title: Disabled daemon starts no process
+    verification: automated-test
+    description: |
+      GIVEN the daemon is disabled by flag or configuration
+      WHEN a recipe is run
+      THEN the execution happens in-process and no daemon is started or contacted
+    revision: "0.1.0"
+
+  - id: SVC_CLI_0009.3
+    requirement_ids: ["CLI_0009.3"]
+    title: Daemon status and stop commands
+    verification: automated-test
+    description: |
+      GIVEN one or more registered daemons
+      WHEN the daemon status command runs and the daemon stop command is then issued
+      THEN status lists each daemon's project root, port, process id and idle time, and stop
+      terminates the targeted daemons and clears their registry entries
+    revision: "0.1.0"
