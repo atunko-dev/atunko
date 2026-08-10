@@ -87,4 +87,4 @@
 - [x] 7.1 `./gradlew spotlessApply build` green
 - [x] 7.2 `openspec validate --all --strict` passes
 - [x] 7.3 `reqstool status local -p docs/reqstool` — CORE_0023 and CLI_0009 families covered
-- [ ] 7.4 PR referencing #11
+- [x] 7.4 PR referencing #11
