@@ -2,28 +2,28 @@
 
 ## 1. Module and protocol scaffolding
 
-- [ ] 1.1 Add `atunko-daemon` module (`java-library`, package
+- [x] 1.1 Add `atunko-daemon` module (`java-library`, package
       `io.github.atunkodev.daemon`) depending on `atunko-core` only; register in
       `settings.gradle` and make `atunko-cli` depend on it
-- [ ] 1.2 Define the wire protocol records — `HelloRequest` (token, client version),
+- [x] 1.2 Define the wire protocol records — `HelloRequest` (token, client version),
       `ExecuteRequest` (recipe names, options, dry-run), `ExecuteResponse` (results,
       diagnostics), `StatusResponse`, `StopRequest` — as newline-delimited JSON over the
       existing Jackson mapper (`YamlMappers`/a new `JsonMappers` sibling)
-- [ ] 1.3 Write `ProtocolCodecTest` — every message type round-trips through the codec
+- [x] 1.3 Write `ProtocolCodecTest` — every message type round-trips through the codec
 
 ## 2. Daemon registry
 
-- [ ] 2.1 Write `DaemonRegistryTest` — write/read an entry; entry file is created with
+- [x] 2.1 Write `DaemonRegistryTest` — write/read an entry; entry file is created with
       owner-only permissions; a stale entry (dead PID) is detected and removed
-- [ ] 2.2 Implement `DaemonRegistry` over
+- [x] 2.2 Implement `DaemonRegistry` over
       `${XDG_STATE_HOME:-~/.local/state}/atunko/daemons/<hash-of-root>.yaml` holding port,
       PID, resolved project root, atunko version, token and last-used timestamp
-- [ ] 2.3 Write `DaemonRegistryTest.evictsLeastRecentlyUsedIdleDaemon` — at the pool limit a
+- [x] 2.3 Write `DaemonRegistryTest.evictsLeastRecentlyUsedIdleDaemon` — at the pool limit a
       further registration stops the LRU idle daemon; a busy daemon is never evicted
       [SVC_CORE_0023.1]
-- [ ] 2.4 Implement the bounded pool with LRU eviction (default max 3, property
+- [x] 2.4 Implement the bounded pool with LRU eviction (default max 3, property
       `atunko.daemon.max`)
-- [ ] 2.5 Add `@Requirements({"atunko:CORE_0023.1"})` to the eviction implementation and
+- [x] 2.5 Add `@Requirements({"atunko:CORE_0023.1"})` to the eviction implementation and
       `@SVCs({"SVC_CORE_0023.1"})` to the test from 2.3
 
 ## 3. Daemon server
