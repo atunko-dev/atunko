@@ -2037,4 +2037,91 @@ cases:
       WHEN the daemon status command runs and the daemon stop command is then issued
       THEN status lists each daemon's project root, port, process id and idle time, and stop
       terminates the targeted daemons and clears their registry entries
+  - id: SVC_TUI_0009
+    requirement_ids: ["TUI_0009"]
+    title: Every screen implements the view contract
+    verification: automated-test
+    description: |
+      GIVEN the set of TUI screen classes
+      WHEN each is inspected for the shared view contract
+      THEN every screen supplies a title, a status, key hints and help sections, and none
+      renders its own frame
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0009.1
+    requirement_ids: ["TUI_0009.1"]
+    title: Frame geometry is identical across screens
+    verification: automated-test
+    description: |
+      GIVEN the TUI rendered headlessly at a fixed terminal size
+      WHEN the user navigates from one screen to another
+      THEN the header and footer occupy the same rows on both screens and the content
+      region starts at the same row
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0009.2
+    requirement_ids: ["TUI_0009.2"]
+    title: Footer separates state from emphasised key hints
+    verification: automated-test
+    description: |
+      GIVEN a screen rendered headlessly
+      WHEN the footer is inspected
+      THEN session state and key hints occupy separate rows, each key is styled
+      distinctly from its label, and entering a different mode changes the hints shown
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0009.3
+    requirement_ids: ["TUI_0009.3"]
+    title: Tabs address screens and carry counts
+    verification: automated-test
+    description: |
+      GIVEN the browser rendered headlessly with a known number of recipes
+      WHEN the tab bar is inspected
+      THEN each tab names a screen, the active screen is indicated, each tab shows the
+      count of items on that screen, and the sort order appears as a status indicator
+      rather than a tab
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0009.4
+    requirement_ids: ["TUI_0009.4"]
+    title: Overlays draw over content and release their dismissing key
+    verification: automated-test
+    description: |
+      GIVEN a screen with an open help overlay
+      WHEN the overlay is inspected and then a key naming an action on the underlying
+      screen is pressed
+      THEN the underlying content is still present behind the overlay, the footer shows
+      the overlay's hints, and the key both closes the overlay and performs its action
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0009.5
+    requirement_ids: ["TUI_0009.5"]
+    title: Tab moves focus between regions
+    verification: automated-test
+    description: |
+      GIVEN a screen with a list region and a details region
+      WHEN Tab and then Shift-Tab are pressed
+      THEN focus moves to the details region and back, the focused region is visibly
+      indicated, and a details region taller than its area can be scrolled while focused
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0009.6
+    requirement_ids: ["TUI_0009.6"]
+    title: Hints and help derive from the binding registry
+    verification: automated-test
+    description: |
+      GIVEN the binding registry
+      WHEN a binding's description is changed and the TUI is rendered
+      THEN the footer hint and the help entry for that binding both reflect the change,
+      and no screen matches keys outside the registry
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0009.7
+    requirement_ids: ["TUI_0009.7"]
+    title: Help opens on every screen
+    verification: automated-test
+    description: |
+      GIVEN each TUI screen in turn
+      WHEN the help key is pressed
+      THEN help opens and lists the bindings of that screen
     revision: "0.1.0"

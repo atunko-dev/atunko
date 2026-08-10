@@ -1719,5 +1719,97 @@ requirements:
       port, process id and idle time, and to stop a single daemon or all of them
     references:
       requirement_ids: ["CLI_0009"]
+  # TUI layout and interaction baseline requirements
+  - id: TUI_0009
+    title: TUI — Shared View Contract
+    significance: shall
+    description: >-
+      Every TUI screen shall declare its title, status, key hints and help sections
+      through one shared view contract, and shall be rendered inside one shared frame,
+      so that consistency across screens is structural rather than per-screen convention
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0009.1
+    title: TUI — Consistent Frame Geometry
+    significance: shall
+    description: >-
+      Every screen shall use the same frame geometry — a fixed-height header, a filling
+      content region, a collapsible details region and a fixed-height footer — so that
+      the frame does not shift when the user navigates between screens
+    references:
+      requirement_ids: ["TUI_0009"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0009.2
+    title: TUI — Structured Status Bar
+    significance: shall
+    description: >-
+      The footer shall present session state and key hints on separate rows, shall
+      visually distinguish each key from its label, and shall present the hints of the
+      mode currently active rather than a single fixed set
+    references:
+      requirement_ids: ["TUI_0009"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0009.3
+    title: TUI — Tab Navigation With Live Counts
+    significance: shall
+    description: >-
+      The header tab bar shall address the application's screens rather than a sort
+      order, shall indicate the active screen, and shall show a live item count per
+      screen; sort order shall be presented as a labelled status indicator instead
+    references:
+      requirement_ids: ["TUI_0009"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0009.4
+    title: TUI — True Overlays
+    significance: shall
+    description: >-
+      Help and diff preview shall be drawn over the current screen rather than replacing
+      its content, the footer shall show the overlay's own key hints while it is open,
+      and the keystroke that dismisses an overlay shall not be consumed if it also names
+      an action on the screen beneath
+    references:
+      requirement_ids: ["TUI_0009"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0009.5
+    title: TUI — Focus Traversal
+    significance: shall
+    description: >-
+      A screen with more than one region shall let the user move focus between regions
+      with Tab and Shift-Tab, shall indicate which region has focus, and shall scroll a
+      focused region whose content exceeds its height
+    references:
+      requirement_ids: ["TUI_0009"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0009.6
+    title: TUI — Single Binding Registry
+    significance: shall
+    description: >-
+      Every key binding shall be declared once, with a description, in one registry built
+      on the framework's standard binding set, and the footer hints and the help screen
+      shall be derived from that registry so they cannot disagree with the behaviour
+    references:
+      requirement_ids: ["TUI_0009"]
+    categories: [interaction-capability, maintainability]
+    revision: 0.1.0
+
+  - id: TUI_0009.7
+    title: TUI — Help Reachable From Every Screen
+    significance: shall
+    description: >-
+      Every screen shall offer help through the same key, and the help shown shall list
+      the bindings of the screen it was opened from
+    references:
+      requirement_ids: ["TUI_0009"]
     categories: [interaction-capability]
     revision: 0.1.0
