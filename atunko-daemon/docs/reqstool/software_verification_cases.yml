@@ -2,6 +2,6 @@
 filters:
   atunko:
     custom:
-      includes: ids == /SVC_CORE_(?!0023).*/
+      includes: ids == /SVC_CORE_0023.*/
 
 cases: []

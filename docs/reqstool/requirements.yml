@@ -9,6 +9,7 @@ implementations:
   local:
     - path: ../../atunko-core/docs/reqstool
     - path: ../../atunko-cli/docs/reqstool
+    - path: ../../atunko-daemon/docs/reqstool
     - path: ../../atunko-tui/docs/reqstool
     - path: ../../atunko-web/docs/reqstool
 
@@ -1237,7 +1238,7 @@ requirements:
       build files are not parsed at all
     references:
       requirement_ids: ["CORE_0016"]
-    categories: [functional-suitability, usability]
+    categories: [functional-suitability, interaction-capability]
     revision: 0.1.0
 
   - id: CORE_0017

@@ -417,6 +417,10 @@ be run from the command line. See <<recipe-sources>>.
 | User recipe YAML file added to the execution environment (repeatable). Auto-discovered
 config-dir recipe files (see <<user-recipe-yaml>>) are always included.
 
+| `--no-daemon`
+| Execute in this process instead of through a daemon, starting and contacting none
+(see <<daemon>>)
+
 | `--git-checkpoint`
 | Create a git stash-based safety checkpoint of the working tree before applying
 changes (see <<git-checkpoint>>)
@@ -465,6 +469,32 @@ continues without a checkpoint:
 * tracked files are unmodified (nothing a stash could snapshot)
 * git itself fails (for example a repository without an initial commit) — reported as
   `Git checkpoint FAILED (<reason>)`, never as a clean tree
+
+[#daemon]
+=== `daemon` — Inspect and control the daemons
+
+`atunko run --project-dir` executes through a background daemon that keeps the
+project's parsed sources in memory between invocations, so a second run against an
+unchanged project skips both the build-system scan and the parse. A daemon is started
+automatically the first time it is needed; these commands exist so you can see what is
+running and stop it.
+
+[source,bash]
+----
+atunko daemon status                        # list running daemons
+atunko daemon stop                          # stop the daemon for the current directory
+atunko daemon stop --project-dir /path/to/p # stop a specific project's daemon
+atunko daemon stop --all                    # stop every daemon
+----
+
+`status` prints one row per daemon:
+
+----
+PID      PORT    IDLE      VERSION          PROJECT
+84213    41755   2m        0.1.0-SNAPSHOT   /home/me/projects/myapp
+----
+
+See <<daemon-caching>> for how the daemon behaves and how to switch it off.
 
 [#config-export]
 === `config export` — Export a run configuration
@@ -598,10 +628,14 @@ session's recent context it currently falls back to name order.
 
 == Performance — LST caching
 
-Long-lived sessions (the TUI and the Web UI) keep the parsed sources (OpenRewrite LSTs)
-of each project in an in-memory cache. Parsing dominates recipe-execution cost, so
-repeated executions against the same project reuse the parsed sources instead of
-re-parsing from scratch.
+Parsing dominates recipe-execution cost, so atunko avoids re-parsing whenever it can.
+There are two mechanisms, one for long-lived sessions and one for the command line.
+
+=== In-process cache (TUI and Web UI)
+
+Long-lived sessions keep the parsed sources (OpenRewrite LSTs) of each project in an
+in-memory cache, so repeated executions against the same project reuse the parsed
+sources instead of re-parsing from scratch.
 
 The cache invalidates itself automatically: before each execution the project's source
 and resource directories plus its build files are fingerprinted (file size, modification
@@ -610,15 +644,86 @@ fingerprinted by size and modification time. Any difference — a modified, adde
 removed file, a rebuilt dependency, or a project re-scan that changes the classpath or
 source directories — discards the cached entry and re-parses the whole project.
 
-The cache is per-session and in-memory only; nothing is written to disk, cached entries
-are released automatically under memory pressure, and one-shot CLI runs are unaffected.
+The cache is per-session and in-memory only; nothing is written to disk, and cached
+entries are released automatically under memory pressure.
 
-To disable caching entirely, set the system property `atunko.lst.cache.disabled=true`:
+To disable it, set the system property `atunko.lst.cache.disabled=true`:
 
 [source,bash]
 ----
 java -Datunko.lst.cache.disabled=true -jar atunko.jar tui
 ----
+
+[#daemon-caching]
+=== Daemon (CLI)
+
+`atunko run` exits after every invocation, so an in-process cache cannot help it. Instead
+the run is executed by a long-lived daemon that holds the parsed sources between
+invocations. The first run pays the usual parse cost; subsequent runs against an
+unchanged project skip it.
+
+LSTs are never written to disk — OpenRewrite trees cannot be serialized — so keeping
+them alive in a process is the only way to reuse them across runs.
+
+How it behaves:
+
+* **One daemon per project root**, started automatically when `atunko run --project-dir`
+  needs one. The first auto-start prints a one-line notice naming the daemon and how to
+  stop it.
+* **At most three daemons** are kept. Starting a fourth stops the least recently used
+  idle one; a daemon currently serving a request is never stopped.
+* **Idle daemons exit after 30 minutes**, releasing the memory their cached trees held.
+* **Invalidation** works exactly as for the in-process cache: the project's `.java`
+  files are fingerprinted before each run, and any change re-parses the project.
+* **A daemon is never reused across atunko versions.** A daemon started by a different
+  version is stopped and replaced, so trees parsed by another OpenRewrite are never
+  served.
+* **Failures are never fatal.** If a daemon cannot be started or reached, the reason is
+  printed as a warning and the run continues in this process with the same result.
+
+Runs that pass `--recipe-jar` or `--recipes-file` always execute in-process: the daemon
+builds its recipe environment from its own classpath and would not see those recipes.
+Workspace runs (`--workspace`) also execute in-process.
+
+==== Switching it off
+
+[source,bash]
+----
+atunko run -r <recipe> --project-dir . --no-daemon      # this run only
+java -Datunko.daemon.disabled=true -jar atunko.jar run ...   # every run
+----
+
+==== Configuration
+
+[cols="1,3"]
+|===
+| System property | Description
+
+| `atunko.daemon.disabled`
+| `true` disables the daemon entirely — no daemon is started or contacted
+
+| `atunko.daemon.idle-timeout`
+| How long an idle daemon lives, as seconds or an ISO-8601 duration (default: `PT30M`)
+
+| `atunko.daemon.max`
+| How many daemons are retained before the least recently used idle one is stopped
+(default: `3`)
+
+| `atunko.daemon.registry.dir`
+| Where daemon registry files live (default: `$XDG_STATE_HOME/atunko/daemons`, falling
+back to `~/.local/state/atunko/daemons`)
+|===
+
+==== Security
+
+The daemon listens on the loopback interface only, on an ephemeral port, and every
+request must present a per-daemon random token. The token is stored in the daemon's
+registry file, which is created with owner-only permissions. Loopback alone is not an
+access boundary on a shared machine — any local user can connect to `127.0.0.1` — which
+is why the token exists.
+
+Each daemon also writes a log file beside its registry entry; that is where to look if a
+daemon fails to start.
 
 == Running via Gradle
 

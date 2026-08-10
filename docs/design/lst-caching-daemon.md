@@ -106,26 +106,48 @@ Phase 1 adds a `ParsedSourcesCache` in `atunko-core` in front of those call site
 Requirements: `CORE_0018`–`CORE_0018.3` in `docs/reqstool/requirements.yml`
 (renumbered from the draft's `CORE_0010`, which main assigned to workspace scanning).
 
-## Open questions
+## Decisions
 
-1. **Daemon lifecycle** — auto-start (like Gradle: transparent, ergonomic) or explicit
-   `atunko daemon start` (predictable, opt-in)? Auto-start is friendlier but surprising.
+These were the open questions; all four were resolved when Phase 2 was implemented
+(OpenSpec change `lst-cli-daemon`, requirements CORE_0023 and CLI_0009).
 
-2. **Multi-project** — one daemon per project root. How many concurrent daemons is
-   reasonable? Gradle defaults to 3 max. Memory per daemon is roughly the size of
-   parsed LSTs (~50–200 MB for a typical Java project).
+1. **Daemon lifecycle — auto-start.** Gradle's model, with `atunko daemon stop`,
+   `--no-daemon` and `atunko.daemon.disabled` as escapes. An opt-in daemon would leave
+   the default `atunko run` exactly as slow as before, which is the thing this change
+   exists to fix. The surprise is mitigated by printing a one-line notice on the first
+   auto-start naming the daemon and how to stop it.
 
-3. **Idle timeout** — daemon should exit after N minutes of inactivity. What's right?
-   Gradle uses 3 hours; that feels long for a tool like atunko. 30 minutes seems
-   reasonable.
+2. **Concurrent daemons — one per project root, at most 3.** Same default Gradle
+   settled on; bounds worst-case memory at roughly 3 × 200 MB. A fourth start evicts the
+   least recently used *idle* daemon; one serving a request is never evicted. Rejected:
+   a single daemon serving every project, whose heap becomes the sum of every project
+   ever touched and whose OOM takes down every project's cache at once.
 
-4. **Client protocol** — Unix domain socket (fast, Linux/macOS) or local TCP (portable
-   to Windows). Windows support matters if atunko targets CI agents. The Gradle daemon
-   uses local TCP.
+3. **Idle timeout — 30 minutes**, configurable via `atunko.daemon.idle-timeout`.
+   Gradle's 3 hours suits a tool invoked continuously; atunko is invoked in bursts, and
+   holding 200 MB for hours after one run is a bad trade.
 
-5. **Partial re-parse accuracy** — when a single source file changes, re-parsing just
-   that file and splicing it back into the list is only correct if the change is isolated
-   (no cross-file type resolution dependencies). Java changes that affect public API
-   (method signatures, class names) may require re-parsing dependents. Safe default:
-   re-parse all files in the module on any Java change; re-parse just the file for
-   XML/YAML/JSON/Properties (no cross-file dependencies).
+4. **Client protocol — loopback TCP with a per-daemon token.** Unix domain sockets are
+   faster and permission-gated for free, but exclude Windows, which matters for CI
+   agents — and local TCP is what the Gradle daemon uses. Loopback alone is not an
+   authorization boundary on a shared host, so every request carries a 256-bit token
+   stored in an owner-only registry file, compared in constant time.
+
+5. **Partial re-parse — not implemented.** Any change re-parses the whole project. Java
+   types resolve across files, so splicing one re-parsed file back into the list is only
+   sound when nothing resolves against it, and establishing that reliably costs the type
+   analysis the parse was going to do anyway. The daemon's win is the *unchanged* case,
+   which is what a tweak-and-re-run loop actually produces.
+
+## Deviation from this plan
+
+Phase 1 assumed the CLI parsed through `ProjectSourceParser` and a `ParsedSourcesCache`.
+It does not: `RunCommand`'s single-project path uses `JavaSourceParser`, which walks
+`**/*.java` with no build-system scan. The daemon therefore parses through
+`JavaSourceParser` too — parsing more thoroughly inside the daemon would make its results
+differ from `--no-daemon`, and a daemon that changes your output is a far worse bug than
+one that parses no better than the CLI already did.
+
+The invalidation logic is still shared: `InputFingerprint` was extracted from
+`ParsedSourcesCache` into `atunko-core`, so both caches answer "did the input change?"
+with one implementation instead of two that can drift.

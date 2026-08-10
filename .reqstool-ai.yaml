@@ -12,6 +12,12 @@ modules:
     path: atunko-cli/docs/reqstool
     req_prefix: CLI_
     svc_prefix: SVC_CLI_
+  daemon:
+    # CORE_0023 lives in atunko-daemon, not atunko-core, so it needs a narrower prefix
+    # than the core module's CORE_ to avoid claiming every core requirement.
+    path: atunko-daemon/docs/reqstool
+    req_prefix: CORE_0023
+    svc_prefix: SVC_CORE_0023
   tui:
     path: atunko-tui/docs/reqstool
     req_prefix: TUI_

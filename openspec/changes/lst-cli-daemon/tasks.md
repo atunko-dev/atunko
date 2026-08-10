@@ -76,15 +76,15 @@
 
 ## 6. Docs
 
-- [ ] 6.1 Document the daemon in `docs/antora/modules/ROOT/pages/cli.adoc` — `atunko daemon
+- [x] 6.1 Document the daemon in `docs/antora/modules/ROOT/pages/cli.adoc` — `atunko daemon
       status|stop`, `--no-daemon`, the `atunko.daemon.*` properties, and that `run`
       auto-starts a daemon
-- [ ] 6.2 Record the four resolved design questions in `docs/design/lst-caching-daemon.md`,
+- [x] 6.2 Record the four resolved design questions in `docs/design/lst-caching-daemon.md`,
       replacing its "Open questions" section
 
 ## 7. Wrap-up
 
-- [ ] 7.1 `./gradlew spotlessApply build` green
-- [ ] 7.2 `openspec validate --all --strict` passes
-- [ ] 7.3 `reqstool status local -p docs/reqstool` — CORE_0023 and CLI_0009 families covered
+- [x] 7.1 `./gradlew spotlessApply build` green
+- [x] 7.2 `openspec validate --all --strict` passes
+- [x] 7.3 `reqstool status local -p docs/reqstool` — CORE_0023 and CLI_0009 families covered
 - [ ] 7.4 PR referencing #11
