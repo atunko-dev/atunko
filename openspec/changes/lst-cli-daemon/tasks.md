@@ -58,20 +58,20 @@
 
 ## 5. CLI integration
 
-- [ ] 5.1 Write `RunCommandDaemonTest.daemonRunMatchesInProcessRun` — same changed files and
+- [x] 5.1 Write `RunCommandDaemonTest.daemonRunMatchesInProcessRun` — same changed files and
       exit status with and without the daemon [SVC_CLI_0009]
-- [ ] 5.2 Route `RunCommand` through `DaemonClient`; add
+- [x] 5.2 Route `RunCommand` through `DaemonClient`; add
       `@Requirements({"atunko:CLI_0009"})` and `@SVCs({"SVC_CLI_0009"})`
-- [ ] 5.3 Write `RunCommandDaemonTest.fallsBackWhenDaemonUnreachable` — correct result plus a
+- [x] 5.3 Write `RunCommandDaemonTest.fallsBackWhenDaemonUnreachable` — correct result plus a
       warning naming the reason [SVC_CLI_0009.1]
-- [ ] 5.4 Implement fallback to in-process execution on any daemon failure; add
+- [x] 5.4 Implement fallback to in-process execution on any daemon failure; add
       `@Requirements({"atunko:CLI_0009.1"})` and `@SVCs({"SVC_CLI_0009.1"})`
-- [ ] 5.5 Write `RunCommandDaemonTest.noDaemonFlagStartsNoDaemon` [SVC_CLI_0009.2]
-- [ ] 5.6 Add `--no-daemon` and the `atunko.daemon.disabled` property; add
+- [x] 5.5 Write `RunCommandDaemonTest.noDaemonFlagStartsNoDaemon` [SVC_CLI_0009.2]
+- [x] 5.6 Add `--no-daemon` and the `atunko.daemon.disabled` property; add
       `@Requirements({"atunko:CLI_0009.2"})` and `@SVCs({"SVC_CLI_0009.2"})`
-- [ ] 5.7 Write `DaemonCommandTest` — `status` lists root, port, PID and idle time; `stop`
+- [x] 5.7 Write `DaemonCommandTest` — `status` lists root, port, PID and idle time; `stop`
       and `stop --all` terminate daemons and clear entries [SVC_CLI_0009.3]
-- [ ] 5.8 Implement `DaemonCommand` (`status`, `stop [--all]`) and register it on `App`; add
+- [x] 5.8 Implement `DaemonCommand` (`status`, `stop [--all]`) and register it on `App`; add
       `@Requirements({"atunko:CLI_0009.3"})` and `@SVCs({"SVC_CLI_0009.3"})`
 
 ## 6. Docs

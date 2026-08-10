@@ -2,7 +2,6 @@ package io.github.atunkodev.cli;
 
 import io.github.atunkodev.core.RecipeToolchain;
 import io.github.atunkodev.core.engine.ChangeApplier;
-import io.github.atunkodev.core.engine.ExecutionResult;
 import io.github.atunkodev.core.engine.FileChange;
 import io.github.atunkodev.core.engine.ProjectExecutionResult;
 import io.github.atunkodev.core.engine.RecipeExecutionEngine;
@@ -14,10 +13,14 @@ import io.github.atunkodev.core.project.ParsedSourcesCache;
 import io.github.atunkodev.core.project.ProjectSourceParser;
 import io.github.atunkodev.core.project.Workspace;
 import io.github.atunkodev.core.project.WorkspaceScanner;
+import io.github.atunkodev.daemon.AtunkoVersion;
+import io.github.atunkodev.daemon.DaemonClient;
+import io.github.atunkodev.daemon.protocol.DaemonMessage;
 import io.github.reqstool.annotations.Requirements;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import org.openrewrite.SourceFile;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
@@ -55,6 +58,11 @@ public class RunCommand implements Runnable {
     private List<Path> recipeFiles = List.of();
 
     @Option(
+            names = "--no-daemon",
+            description = "Execute in this process instead of through a daemon, starting and contacting none")
+    private boolean noDaemon;
+
+    @Option(
             names = "--git-checkpoint",
             description = "Create a git stash checkpoint per project before applying changes"
                     + " (restore with the printed `git restore --source=<sha> -- .` command)")
@@ -67,6 +75,7 @@ public class RunCommand implements Runnable {
     private final JavaSourceParser sourceParser;
     private final ChangeApplier changeApplier;
     private final GitCheckpointService checkpointService;
+    private final DaemonClient daemonClient;
 
     public RunCommand() {
         this(new RecipeExecutionEngine(), new JavaSourceParser(), new ChangeApplier());
@@ -81,10 +90,20 @@ public class RunCommand implements Runnable {
             JavaSourceParser sourceParser,
             ChangeApplier changeApplier,
             GitCheckpointService checkpointService) {
+        this(engine, sourceParser, changeApplier, checkpointService, new DaemonClient(AtunkoVersion.current()));
+    }
+
+    public RunCommand(
+            RecipeExecutionEngine engine,
+            JavaSourceParser sourceParser,
+            ChangeApplier changeApplier,
+            GitCheckpointService checkpointService,
+            DaemonClient daemonClient) {
         this.engine = engine;
         this.sourceParser = sourceParser;
         this.changeApplier = changeApplier;
         this.checkpointService = checkpointService;
+        this.daemonClient = daemonClient;
     }
 
     @Override
@@ -147,27 +166,73 @@ public class RunCommand implements Runnable {
 
     private void runSingleProject() {
         PrintWriter out = spec.commandLine().getOut();
-        List<SourceFile> sources = sourceParser.parse(projectDir);
 
-        if (sources.isEmpty()) {
-            out.println("No Java source files found in " + projectDir);
-            out.flush();
-            return;
+        List<FileChange> changes = daemonChanges();
+        if (changes == null) {
+            List<SourceFile> sources = sourceParser.parse(projectDir);
+            if (sources.isEmpty()) {
+                out.println("No Java source files found in " + projectDir);
+                out.flush();
+                return;
+            }
+            changes = effectiveEngine().execute(recipe, sources).changes();
         }
 
-        ExecutionResult result = effectiveEngine().execute(recipe, sources);
+        reportAndApply(out, changes);
+    }
 
-        if (result.changes().isEmpty()) {
+    private void reportAndApply(PrintWriter out, List<FileChange> changes) {
+        if (changes.isEmpty()) {
             out.println("No changes produced by recipe: " + recipe);
         } else {
             maybeCreateGitCheckpoint(projectDir);
-            changeApplier.apply(projectDir, result.changes());
-            for (FileChange change : result.changes()) {
+            changeApplier.apply(projectDir, changes);
+            for (FileChange change : changes) {
                 out.println("Changed: " + change.path());
             }
-            out.println("\n" + result.changes().size() + " file(s) changed.");
+            out.println("\n" + changes.size() + " file(s) changed.");
         }
         out.flush();
+    }
+
+    /**
+     * The daemon's answer, or {@code null} when this run must execute in-process.
+     *
+     * <p>A daemon problem is never fatal: the reason goes to stderr as a warning and the caller re-runs the recipe
+     * here, producing the same result the user would have got without a daemon at all.
+     */
+    @Requirements({"atunko:CLI_0009", "atunko:CLI_0009.1", "atunko:CLI_0009.2"})
+    private List<FileChange> daemonChanges() {
+        if (!daemonEligible()) {
+            return null;
+        }
+        DaemonClient.Attempt attempt =
+                daemonClient.execute(projectDir, new DaemonMessage.Execute(List.of(recipe), Map.of(), false));
+
+        if (attempt.result().isEmpty()) {
+            spec.commandLine()
+                    .getErr()
+                    .println("Daemon unavailable (" + attempt.fallbackReason() + ") - running in this process");
+            return null;
+        }
+        if (attempt.startedDaemon()) {
+            spec.commandLine()
+                    .getErr()
+                    .println("Started an atunko daemon for " + projectDir
+                            + " (stop it with `atunko daemon stop`, or use --no-daemon)");
+        }
+        return attempt.result().get().changedFiles().stream()
+                .map(changed -> new FileChange(Path.of(changed.path()), changed.before(), changed.after()))
+                .toList();
+    }
+
+    /**
+     * User recipe jars and files are deliberately excluded: the daemon builds its environment from its own
+     * classpath, so a run carrying extra recipe sources would silently not see them.
+     */
+    @Requirements({"atunko:CLI_0009.2"})
+    private boolean daemonEligible() {
+        return !noDaemon && !DaemonClient.disabledByConfiguration() && recipeJars.isEmpty() && recipeFiles.isEmpty();
     }
 
     @Requirements({"atunko:CLI_0005", "atunko:CLI_0005.1", "atunko:CLI_0005.2"})
