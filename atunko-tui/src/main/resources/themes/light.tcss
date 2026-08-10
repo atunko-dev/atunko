@@ -55,6 +55,21 @@ $fg-error: rgb(180, 0, 0);
 }
 
 /* Status bar / footer */
+/* Key hints: the key is emphasised, the label recedes, so the eye finds the key
+   without reading the sentence. */
+.hint-key {
+    color: $fg-accent;
+    text-style: bold;
+}
+
+.hint-label {
+    color: gray;
+}
+
+.hint-bar {
+    background: $bg-primary;
+}
+
 .status-bar {
     color: $fg-primary;
     background: rgb(230, 230, 230);

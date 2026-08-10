@@ -34,6 +34,11 @@ Constraint: `atunko-tui` may depend on `atunko-core` but must not move UI logic 
 
 Pilot uses an abstract class, but its `ToolPanel` also owns event dispatch, overlay state and 873 lines of shared behaviour — it is a framework. atunko's views are currently *static* renderers, and an interface migrates them without forcing each one to become a stateful object first. Camel's `MonitorTab` is the closer precedent.
 
+Implementation added two members not in the original sketch: `id()`, and `handleKey`/`handleMouse`. TamboUI attaches
+event handlers to elements, and the shell owns the root element — so a view that only supplies content has nowhere to
+attach its own handler. Both `ToolPanel` and `MonitorTab` carry key and mouse handling on the contract for the same
+reason; omitting them was an oversight in the sketch, not a simplification.
+
 *Alternative — abstract base:* would let the shell inherit rather than compose, but it forces instantiation of every view and a bigger first step, and Java's single inheritance costs flexibility later for nothing gained here.
 
 ### 2. The frame is fixed, and the details pane is the only variable

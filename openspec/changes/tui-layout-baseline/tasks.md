@@ -2,24 +2,24 @@
 
 ## 1. View contract and shell
 
-- [ ] 1.1 Write `TuiShellTest.everyViewSuppliesTitleStatusHintsAndHelp` — reflectively asserts
+- [x] 1.1 Write `TuiShellTest.everyViewSuppliesTitleStatusHintsAndHelp` — reflectively asserts
       every `TuiView` implementation supplies all four, and that no view builds its own
       `dock()` frame [SVC_TUI_0009]
-- [ ] 1.2 Add `TuiView` interface — `title()`, `status()`, `keyHints()`, `helpSections()`,
+- [x] 1.2 Add `TuiView` interface — `title()`, `status()`, `keyHints()`, `helpSections()`,
       `renderContent(TuiController)`
-- [ ] 1.3 Add `TuiShell.render(TuiView, TuiController)` composing the shared frame:
+- [x] 1.3 Add `TuiShell.render(TuiView, TuiController)` composing the shared frame:
       header `length(3)`, content `fill()`, details `percentage(30)`/`length(0)`,
       footer `length(2)`
-- [ ] 1.4 Add `@Requirements({"atunko:TUI_0009"})` to `TuiView`/`TuiShell` and
+- [x] 1.4 Add `@Requirements({"atunko:TUI_0009"})` to `TuiView`/`TuiShell` and
       `@SVCs({"SVC_TUI_0009"})` to the test from 1.1
 
 ## 2. Frame geometry
 
-- [ ] 2.1 Write `AtunkoTuiFramePilotTest.frameGeometryIsIdenticalAcrossScreens` — header and
+- [x] 2.1 Write `AtunkoTuiFramePilotTest.frameGeometryIsIdenticalAcrossScreens` — header and
       footer occupy the same rows and content starts at the same row after navigating
       [SVC_TUI_0009.1]
-- [ ] 2.2 Migrate `BrowserView` onto `TuiView`/`TuiShell` as the reference implementation
-- [ ] 2.3 Add `@Requirements({"atunko:TUI_0009.1"})` to the shell's frame construction and
+- [x] 2.2 Migrate `BrowserView` onto `TuiView`/`TuiShell` as the reference implementation
+- [x] 2.3 Add `@Requirements({"atunko:TUI_0009.1"})` to the shell's frame construction and
       `@SVCs({"SVC_TUI_0009.1"})` to the test from 2.1
 
 ## 3. Status bar

@@ -1,7 +1,6 @@
 package io.github.atunkodev.tui.view;
 
 import static dev.tamboui.toolkit.Toolkit.column;
-import static dev.tamboui.toolkit.Toolkit.dock;
 import static dev.tamboui.toolkit.Toolkit.handleTextInputKey;
 import static dev.tamboui.toolkit.Toolkit.panel;
 import static dev.tamboui.toolkit.Toolkit.row;
@@ -12,6 +11,7 @@ import static dev.tamboui.toolkit.Toolkit.textInput;
 
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
+import dev.tamboui.toolkit.element.StyledElement;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.tui.event.MouseEvent;
 import dev.tamboui.tui.event.MouseEventKind;
@@ -22,56 +22,115 @@ import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.tui.AtunkoTui;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
+import io.github.atunkodev.tui.shell.KeyHint;
+import io.github.atunkodev.tui.shell.TuiView;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Logger;
 
-@Requirements({"atunko:TUI_0001.1", "atunko:TUI_0001.2", "atunko:TUI_0001.13"})
-public final class BrowserView {
+@Requirements({"atunko:TUI_0001.1", "atunko:TUI_0001.2", "atunko:TUI_0001.13", "atunko:TUI_0009"})
+public final class BrowserView implements TuiView {
 
     private static final Logger LOG = Logger.getLogger(BrowserView.class.getName());
     private static final TextInputState SEARCH_STATE = new TextInputState();
     private static final TextInputState SAVE_NAME_STATE = new TextInputState();
 
-    private BrowserView() {}
+    private final AtunkoTui app;
 
-    public static Element render(TuiController controller, AtunkoTui app) {
+    public BrowserView(AtunkoTui app) {
+        this.app = app;
+    }
+
+    @Override
+    public String id() {
+        return "browser";
+    }
+
+    @Override
+    public String title() {
+        return controllerIsSearching ? "SEARCH" : "atunko";
+    }
+
+    // Set on each render so title() can reflect search mode without taking a controller argument.
+    private boolean controllerIsSearching;
+
+    /** State only — key hints live on their own footer row now. */
+    @Override
+    @Requirements({"atunko:TUI_0006.1", "atunko:TUI_0009.2"})
+    public String status(TuiController controller) {
+        int selected = controller.selectedRecipes().size();
+        long parentCount =
+                controller.displayRows().stream().filter(r -> !r.isSubRecipe()).count();
+        String source = controller.sourceFilter().name().toLowerCase(Locale.ROOT);
+        String favorites = controller.favoritesFilter() == FavoritesFilter.FAVORITES ? "only" : "all";
+        String sort = controller.sortOrder().name().toLowerCase(Locale.ROOT);
+        return parentCount + " recipes | " + selected + " selected | sort:" + sort + " | src:" + source + " | fav:"
+                + favorites;
+    }
+
+    @Override
+    @Requirements({"atunko:TUI_0009.2"})
+    public List<KeyHint> keyHints(TuiController controller) {
+        if (controller.isSaveConfigMode()) {
+            return List.of(KeyHint.of("Enter", "save"), KeyHint.of("Esc", "cancel"));
+        }
+        if (controller.isSearchMode()) {
+            return List.of(KeyHint.of("Enter", "apply"), KeyHint.of("Esc", "clear"));
+        }
+        return List.of(
+                KeyHint.of("\u2191\u2193", "move"),
+                KeyHint.of("Space", "select"),
+                KeyHint.of("Enter", "detail"),
+                KeyHint.of("r", "run"),
+                KeyHint.of("/", "search"),
+                KeyHint.of("t", "tags"),
+                KeyHint.of("o", "options"),
+                KeyHint.of("?", "help"),
+                KeyHint.of("q", "quit"));
+    }
+
+    @Override
+    public List<HelpOverlay.Section> helpSections() {
+        return HelpOverlay.BROWSER_HELP;
+    }
+
+    @Override
+    public StyledElement<?> renderContent(TuiController controller) {
+        controllerIsSearching = controller.isSearchMode();
         if (controller.isShowOptions()) {
-            return RecipeOptionsView.render(controller);
+            return (StyledElement<?>) RecipeOptionsView.render(controller);
         }
+        return (StyledElement<?>) renderRecipeList(controller, controller.displayRows());
+    }
 
-        List<DisplayRow> displayRows = controller.displayRows();
+    @Override
+    public StyledElement<?> renderDetails(TuiController controller) {
+        return controller.isShowOptions() ? null : (StyledElement<?>) renderDetailPanel(controller);
+    }
 
-        Element centerContent;
-        if (controller.isShowHelp()) {
-            centerContent = row(spacer(), HelpOverlay.render(HelpOverlay.BROWSER_HELP), spacer())
-                    .constraint(Constraint.fill());
-        } else {
-            centerContent = row(renderRecipeList(controller, displayRows), renderDetailPanel(controller))
-                    .constraint(Constraint.fill());
+    @Override
+    public StyledElement<?> renderHeaderExtras(TuiController controller) {
+        if (controller.isSaveConfigMode()) {
+            return (StyledElement<?>) row(
+                    text(" Save config: ").addClass("detail-label"),
+                    textInput(SAVE_NAME_STATE)
+                            .placeholder("config-name")
+                            .rounded()
+                            .constraint(Constraint.fill()));
         }
+        return (StyledElement<?>) renderHeader(controller);
+    }
 
-        Element bottomBar = controller.isSaveConfigMode()
-                ? row(
-                        text(" Save config: ").addClass("detail-label"),
-                        textInput(SAVE_NAME_STATE)
-                                .placeholder("config-name")
-                                .rounded()
-                                .constraint(Constraint.fill()),
-                        text("  Enter:save  Esc:cancel "))
-                : renderStatusBar(controller, displayRows);
+    @Override
+    public EventResult handleKey(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
+        return handleKeyEvent(controller, app, event);
+    }
 
-        return column(dock().top(renderHeader(controller), Constraint.length(3))
-                        .center(centerContent)
-                        .bottom(bottomBar, Constraint.length(1))
-                        .constraint(Constraint.fill()))
-                .id("browser")
-                .addClass("app")
-                .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, app, event))
-                .onMouseEvent(event -> handleMouseEvent(controller, event));
+    @Override
+    public EventResult handleMouse(TuiController controller, MouseEvent event) {
+        return handleMouseEvent(controller, event);
     }
 
     private static EventResult handleMouseEvent(TuiController controller, MouseEvent event) {

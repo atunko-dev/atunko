@@ -34,7 +34,7 @@ class BrowserViewMouseTest {
         assertThat(controller.highlightedIndex()).isEqualTo(1);
 
         AtunkoTui app = new AtunkoTui(controller);
-        Element el = BrowserView.render(controller, app);
+        Element el = io.github.atunkodev.tui.shell.TuiShell.render(new BrowserView(app), controller);
 
         EventResult result = el.handleMouseEvent(MouseEvent.scrollUp(0, 5));
 
@@ -48,7 +48,7 @@ class BrowserViewMouseTest {
         TuiController controller = new TuiController(RECIPES);
 
         AtunkoTui app = new AtunkoTui(controller);
-        Element el = BrowserView.render(controller, app);
+        Element el = io.github.atunkodev.tui.shell.TuiShell.render(new BrowserView(app), controller);
 
         EventResult result = el.handleMouseEvent(MouseEvent.scrollDown(0, 5));
 
@@ -62,7 +62,7 @@ class BrowserViewMouseTest {
         TuiController controller = new TuiController(RECIPES);
 
         AtunkoTui app = new AtunkoTui(controller);
-        Element el = BrowserView.render(controller, app);
+        Element el = io.github.atunkodev.tui.shell.TuiShell.render(new BrowserView(app), controller);
 
         // header is 3 rows; row y=4 → list index 1 (second recipe)
         EventResult result = el.handleMouseEvent(MouseEvent.press(MouseButton.LEFT, 0, 4));
@@ -77,7 +77,7 @@ class BrowserViewMouseTest {
         TuiController controller = new TuiController(RECIPES);
 
         AtunkoTui app = new AtunkoTui(controller);
-        Element el = BrowserView.render(controller, app);
+        Element el = io.github.atunkodev.tui.shell.TuiShell.render(new BrowserView(app), controller);
 
         // header is 3 rows; row y=3 → list index 0 (first recipe)
         EventResult result = el.handleMouseEvent(MouseEvent.press(MouseButton.RIGHT, 0, 3));
@@ -94,7 +94,7 @@ class BrowserViewMouseTest {
         controller.toggleHelp();
 
         AtunkoTui app = new AtunkoTui(controller);
-        Element el = BrowserView.render(controller, app);
+        Element el = io.github.atunkodev.tui.shell.TuiShell.render(new BrowserView(app), controller);
 
         EventResult result = el.handleMouseEvent(MouseEvent.scrollDown(0, 5));
 
@@ -108,7 +108,7 @@ class BrowserViewMouseTest {
         TuiController controller = new TuiController(RECIPES);
 
         AtunkoTui app = new AtunkoTui(controller);
-        Element el = BrowserView.render(controller, app);
+        Element el = io.github.atunkodev.tui.shell.TuiShell.render(new BrowserView(app), controller);
 
         // header is 3 rows; y=2 is inside the header → no list row
         EventResult result = el.handleMouseEvent(MouseEvent.press(MouseButton.LEFT, 0, 2));
@@ -123,7 +123,7 @@ class BrowserViewMouseTest {
         TuiController controller = new TuiController(RECIPES);
 
         AtunkoTui app = new AtunkoTui(controller);
-        Element el = BrowserView.render(controller, app);
+        Element el = io.github.atunkodev.tui.shell.TuiShell.render(new BrowserView(app), controller);
 
         // 3 recipes, header=3 rows; last valid y=5; y=6 is beyond list
         EventResult result = el.handleMouseEvent(MouseEvent.press(MouseButton.LEFT, 0, 6));
