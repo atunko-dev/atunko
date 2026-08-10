@@ -53,7 +53,17 @@ cd atunko
 ./gradlew :atunko-cli:shadowJar
 ```
 
-The fat JAR is produced at `atunko-cli/build/libs/atunko.jar`.
+The fat JAR is produced at `atunko-cli/build/libs/atunko-<version>.jar` — for example
+`atunko-0.1.0-SNAPSHOT.jar`. (`atunko-cli/build/libs` also holds the thin
+`atunko-cli-<version>.jar`, which is *not* runnable on its own.)
+
+The usage examples below all invoke `atunko.jar`, matching the stable asset name published
+on the releases page. To get the same name from a local build, copy it:
+
+```bash
+cp atunko-cli/build/libs/atunko-[0-9]*.jar atunko.jar
+java -jar atunko.jar --help
+```
 
 ## Usage
 
@@ -61,16 +71,16 @@ The fat JAR is produced at `atunko-cli/build/libs/atunko.jar`.
 
 ```bash
 # Launch the interactive recipe browser (default command)
-java -jar atunko-cli/build/libs/atunko.jar tui
+java -jar atunko.jar tui
 
 # Launch with light theme
-java -jar atunko-cli/build/libs/atunko.jar tui --theme light
+java -jar atunko.jar tui --theme light
 
 # Launch with a custom CSS theme file
-java -jar atunko-cli/build/libs/atunko.jar tui --css-file ~/.config/atunko/mytheme.tcss
+java -jar atunko.jar tui --css-file ~/.config/atunko/mytheme.tcss
 
 # Launch with debug logging to a file
-java -jar atunko-cli/build/libs/atunko.jar tui --log-file tui.log
+java -jar atunko.jar tui --log-file tui.log
 ```
 
 Options:
@@ -123,10 +133,10 @@ to run sub-recipes individually.
 
 ```bash
 # List all available recipes
-java -jar atunko-cli/build/libs/atunko.jar list
+java -jar atunko.jar list
 
 # List with sorting and output format
-java -jar atunko-cli/build/libs/atunko.jar list --sort tags --format table
+java -jar atunko.jar list --sort tags --format table
 ```
 
 Options: `--sort <name|tags>`, `--format <text|table>`.
@@ -135,11 +145,11 @@ Options: `--sort <name|tags>`, `--format <text|table>`.
 
 ```bash
 # Search for recipes by keyword
-java -jar atunko-cli/build/libs/atunko.jar search "spring boot"
-java -jar atunko-cli/build/libs/atunko.jar search "unused imports"
+java -jar atunko.jar search "spring boot"
+java -jar atunko.jar search "unused imports"
 
 # Search in specific fields
-java -jar atunko-cli/build/libs/atunko.jar search "spring" --field name --format table
+java -jar atunko.jar search "spring" --field name --format table
 ```
 
 Options: `--field <name|description|tags|all>`, `--sort <name|tags>`, `--format <text|table>`.
@@ -148,7 +158,7 @@ Options: `--field <name|description|tags|all>`, `--sort <name|tags>`, `--format 
 
 ```bash
 # Run a recipe against a project
-java -jar atunko-cli/build/libs/atunko.jar run -r org.openrewrite.java.RemoveUnusedImports --project-dir /path/to/project
+java -jar atunko.jar run -r org.openrewrite.java.RemoveUnusedImports --project-dir /path/to/project
 ```
 
 Options:
@@ -157,6 +167,31 @@ Options:
 - `--project-dir` — Path to the project directory (required). Uses the Gradle Tooling
   API to resolve source dirs, resource dirs, test dirs, and compile classpath for each
   module. Supports `build.gradle`, `build.gradle.kts`, and multi-module projects.
+
+### Web UI
+
+A browser-based recipe browser with the same discovery, selection, execution and diff
+review as the TUI:
+
+```bash
+# Start the web UI on http://localhost:8080 against the current directory
+java -jar atunko.jar webui
+
+# Pick a port and a project
+java -jar atunko.jar webui --port 9090 --project-dir /path/to/project
+
+# Scan a parent directory and work across every project underneath
+java -jar atunko.jar webui --workspace /path/to/workspace
+```
+
+Options:
+
+- `--port <port>` — port to listen on (default: `8080`)
+- `--project-dir <path>` — project directory (default: current directory)
+- `--workspace <path>` — workspace root; scans for all Gradle/Maven projects underneath.
+  Takes precedence over `--project-dir` when both are given.
+
+The server runs in the foreground — stop it with `Ctrl+C`.
 
 ### Development shortcut
 
@@ -175,8 +210,10 @@ During development you can run commands directly via Gradle:
 atunko/
 ├── atunko-cli/   # CLI entry point — Picocli commands, App main class, shadow JAR
 ├── atunko-tui/   # TUI module — TamboUI interactive interface
+├── atunko-web/   # Web UI module — Vaadin browser interface
 ├── atunko-core/  # Core engine — recipe discovery, execution, project scanning
-└── docs/         # Requirements traceability (reqstool)
+├── docs/         # Antora user docs + requirements traceability (reqstool)
+└── openspec/     # Spec-driven development artifacts
 ```
 
 ## Contributing
