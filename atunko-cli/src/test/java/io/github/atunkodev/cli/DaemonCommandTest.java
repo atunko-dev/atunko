@@ -31,7 +31,9 @@ class DaemonCommandTest {
     @BeforeEach
     void setUp() throws Exception {
         System.setProperty(DaemonDirs.REGISTRY_DIR_PROPERTY, registryDir.toString());
-        System.setProperty("atunko.daemon.idle-timeout", "30");
+        // Long enough that a daemon cannot idle out mid-test — the first run builds the recipe environment and
+        // takes minutes on CI. Teardown kills whatever is still running, so nothing outlives the suite.
+        System.setProperty("atunko.daemon.idle-timeout", "600");
         Files.writeString(projectDir.resolve("Sample.java"), "import java.util.List;\nclass Sample {}\n");
         registry = new DaemonRegistry(registryDir);
     }

@@ -37,7 +37,12 @@ class DaemonLauncherTest {
         Files.writeString(projectRoot.resolve("A.java"), "import java.util.List;\nclass A {}\n");
         // The child JVM resolves its own registry from this property, so both sides must agree on the directory.
         System.setProperty(DaemonDirs.REGISTRY_DIR_PROPERTY, registryDir.toString());
-        System.setProperty(DaemonServer.IDLE_TIMEOUT_PROPERTY, "20");
+        // Long enough that the daemon cannot expire mid-test. A short timeout here made this flaky on CI: the
+        // first request legitimately takes minutes (the daemon builds its recipe environment on first use), and a
+        // daemon that idles out between the request returning and the registry lookup takes its entry with it.
+        // Idle expiry has its own dedicated test — DaemonServerTest.exitsAfterIdleTimeout — which runs in-process
+        // with a 500ms timeout and does not depend on how fast the machine is.
+        System.setProperty(DaemonServer.IDLE_TIMEOUT_PROPERTY, "600");
         registry = new DaemonRegistry(registryDir);
         client = new DaemonClient(registry, VERSION);
     }

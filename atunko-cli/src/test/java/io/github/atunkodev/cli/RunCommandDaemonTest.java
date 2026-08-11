@@ -32,8 +32,9 @@ class RunCommandDaemonTest {
     @BeforeEach
     void setUp() throws Exception {
         System.setProperty(DaemonDirs.REGISTRY_DIR_PROPERTY, registryDir.toString());
-        // Short-lived daemons: these tests must not leave a 30-minute process behind on a developer's machine.
-        System.setProperty("atunko.daemon.idle-timeout", "30");
+        // Long enough that a daemon cannot idle out mid-test — the first run builds the recipe environment and
+        // takes minutes on CI. Teardown kills whatever is still running, so nothing outlives the suite.
+        System.setProperty("atunko.daemon.idle-timeout", "600");
         Files.writeString(projectDir.resolve("Sample.java"), """
             import java.util.List;
             import java.util.Map;
