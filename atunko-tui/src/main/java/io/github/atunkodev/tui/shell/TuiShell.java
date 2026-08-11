@@ -10,6 +10,8 @@ import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.element.StyledElement;
 import dev.tamboui.toolkit.elements.Row;
+import dev.tamboui.toolkit.event.EventResult;
+import dev.tamboui.tui.event.KeyEvent;
 import io.github.atunkodev.tui.TuiController;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
@@ -70,7 +72,7 @@ public final class TuiShell {
                 .id(view.id())
                 .addClass("app")
                 .focusable()
-                .onKeyEvent(event -> view.handleKey(controller, event))
+                .onKeyEvent(event -> dispatchKey(view, controller, event))
                 .onMouseEvent(event -> view.handleMouse(controller, event));
     }
 
@@ -104,8 +106,28 @@ public final class TuiShell {
             StyledElement<?> element, String region, TuiView view, TuiController controller) {
         return element.id(region)
                 .focusable()
-                .onKeyEvent(event -> view.handleKey(controller, event))
+                .onKeyEvent(event -> dispatchKey(view, controller, event))
                 .onMouseEvent(event -> view.handleMouse(controller, event));
+    }
+
+    /**
+     * Handles help before the screen sees the key, so {@code ?} works everywhere instead of only on the three
+     * screens that happened to implement it.
+     *
+     * <p>The dismissing key is passed on to the screen unless it is {@code ?} itself: reading help and pressing
+     * {@code r} to run should run, not merely close the overlay and discard the press.
+     */
+    @Requirements({"atunko:TUI_0009.7", "atunko:TUI_0009.4"})
+    static EventResult dispatchKey(TuiView view, TuiController controller, KeyEvent event) {
+        if (controller.isShowHelp()) {
+            controller.toggleHelp();
+            return event.isChar('?') ? EventResult.HANDLED : view.handleKey(controller, event);
+        }
+        if (event.isChar('?')) {
+            controller.toggleHelp();
+            return EventResult.HANDLED;
+        }
+        return view.handleKey(controller, event);
     }
 
     private static Element renderHeader(TuiView view, TuiController controller) {

@@ -55,11 +55,11 @@
 - [x] 5.4 Add `@Requirements({"atunko:TUI_0009.4"})` to the overlay renderer and
       `@SVCs({"SVC_TUI_0009.4"})` to the test from 5.1
 
-- [ ] 5.5 Write `AtunkoTuiHelpPilotTest.helpOpensOnEveryScreen` — parameterised over every
+- [x] 5.5 Write `AtunkoTuiHelpPilotTest.helpOpensOnEveryScreen` — parameterised over every
       screen [SVC_TUI_0009.7]
-- [ ] 5.6 Route help through `TuiShell` so it is available wherever a `TuiView` renders, and
+- [x] 5.6 Route help through `TuiShell` so it is available wherever a `TuiView` renders, and
       populate it from the opening screen's `helpSections()`
-- [ ] 5.7 Add `@Requirements({"atunko:TUI_0009.7"})` and `@SVCs({"SVC_TUI_0009.7"})`
+- [x] 5.7 Add `@Requirements({"atunko:TUI_0009.7"})` and `@SVCs({"SVC_TUI_0009.7"})`
 
 ## 6. Focus traversal
 
@@ -104,7 +104,7 @@
 
 ## 10. Wrap-up
 
-- [ ] 10.1 `./gradlew spotlessApply build` green
-- [ ] 10.2 `openspec validate --all --strict` passes
-- [ ] 10.3 `reqstool status local -p docs/reqstool` — TUI_0009 family covered
-- [ ] 10.4 PR referencing #87
+- [x] 10.1 `./gradlew spotlessApply build` green
+- [x] 10.2 `openspec validate --all --strict` passes
+- [x] 10.3 `reqstool status local -p docs/reqstool` — TUI_0009 family covered
+- [x] 10.4 PR referencing #87
