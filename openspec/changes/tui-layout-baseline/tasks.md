@@ -46,13 +46,13 @@
 
 ## 5. Overlays
 
-- [ ] 5.1 Write `AtunkoTuiOverlayPilotTest` — underlying content still present behind the
+- [x] 5.1 Write `AtunkoTuiOverlayPilotTest` — underlying content still present behind the
       overlay, footer shows the overlay's hints, and the dismissing key also performs its
       action on the screen beneath [SVC_TUI_0009.4]
-- [ ] 5.2 Render help and diff as overlays over the content region instead of replacing it,
+- [x] 5.2 Render help and diff as overlays over the content region instead of replacing it,
       collapsing the details region while active
-- [ ] 5.3 Stop swallowing the dismissing keystroke in `BrowserView.handleKeyEvent`
-- [ ] 5.4 Add `@Requirements({"atunko:TUI_0009.4"})` to the overlay renderer and
+- [x] 5.3 Stop swallowing the dismissing keystroke in `BrowserView.handleKeyEvent`
+- [x] 5.4 Add `@Requirements({"atunko:TUI_0009.4"})` to the overlay renderer and
       `@SVCs({"SVC_TUI_0009.4"})` to the test from 5.1
 
 - [ ] 5.5 Write `AtunkoTuiHelpPilotTest.helpOpensOnEveryScreen` — parameterised over every
@@ -63,14 +63,14 @@
 
 ## 6. Focus traversal
 
-- [ ] 6.1 Write `AtunkoTuiFocusPilotTest` — Tab moves focus to details and Shift-Tab back,
+- [x] 6.1 Write `AtunkoTuiFocusPilotTest` — Tab moves focus to details and Shift-Tab back,
       focus is indicated, and an oversized details region scrolls while focused
       [SVC_TUI_0009.5]
-- [ ] 6.2 Let views declare focusable regions by id; implement Tab/Shift-Tab traversal and
+- [x] 6.2 Let views declare focusable regions by id; implement Tab/Shift-Tab traversal and
       the focus indicator in `TuiShell`
-- [ ] 6.3 Make the details region scrollable
-- [ ] 6.4 Add a focus rule to both `.tcss` themes
-- [ ] 6.5 Add `@Requirements({"atunko:TUI_0009.5"})` to the traversal implementation and
+- [x] 6.3 Make the details region scrollable
+- [x] 6.4 Add a focus rule to both `.tcss` themes
+- [x] 6.5 Add `@Requirements({"atunko:TUI_0009.5"})` to the traversal implementation and
       `@SVCs({"SVC_TUI_0009.5"})` to the test from 6.1
 
 ## 7. Tabs

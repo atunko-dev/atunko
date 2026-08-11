@@ -194,7 +194,12 @@ public final class BrowserView implements TuiView {
             TuiController controller, AtunkoTui app, dev.tamboui.tui.event.KeyEvent event) {
         if (controller.isShowHelp()) {
             controller.toggleHelp();
-            return EventResult.HANDLED;
+            // The dismissing key is not consumed: reading help and then pressing `r` to run used to do nothing,
+            // because the keystroke that closed the overlay was swallowed and had to be pressed twice. `?` is the
+            // exception — it toggles help, so closing is all it should do.
+            if (event.isChar('?')) {
+                return EventResult.HANDLED;
+            }
         }
         if (controller.isSaveConfigMode()) {
             return handleSaveConfigModeKey(controller, event);

@@ -66,9 +66,15 @@ This is the part with no precedent among the 15 TamboUI consumers surveyed — a
 
 *Alternative — leave sort on the tabs and add a second bar:* two tab-like bars in a 3-row header is worse than either alone.
 
-### 5. Focus: the shell owns traversal
+### 5. Focus: the framework owns traversal, the shell owns handler placement
 
-Views declare focusable regions by id; the shell installs `Tab`/`Shift-Tab` traversal and renders the focus indicator. Today every screen marks only the root column focusable, which is why `Tab` does nothing anywhere — that is a shell concern, not something each view should re-solve.
+**Revised during implementation.** The original decision was that the shell would implement `Tab`/`Shift-Tab` itself. It cannot: `Tab` is bound to `FOCUS_NEXT` in `BindingSets.standard()` and is consumed by the framework's focus manager before any element handler sees it.
+
+What the shell must actually do is give every focusable region the screen's key handler. TamboUI routes key events to the *focused* element, so marking the content and details regions focusable while leaving the handler only on the root made the arrow keys stop working entirely — six Pilot tests caught it immediately.
+
+This is a real tension with the project convention recorded in `CLAUDE.md` ("Single handler per screen, not per widget — inner widgets should NOT be focusable"). That convention holds as long as a screen has one focusable element; the moment a screen wants focusable panes, the handler has to follow focus. The shell attaches the *same* handler to each region, so it stays one handler per screen in every sense except registration.
+
+Focus state therefore lives in the framework's `FocusManager`, not in `TuiController`. An earlier attempt to track it in the controller was removed once the framework proved to own the key.
 
 ### 6. Migration is incremental behind the contract
 

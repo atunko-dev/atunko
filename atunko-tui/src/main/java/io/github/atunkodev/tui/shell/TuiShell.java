@@ -42,6 +42,11 @@ public final class TuiShell {
     /** Share of the frame given to a details pane when the screen has one. */
     public static final int DETAILS_PERCENT = 30;
 
+    /** Focusable region ids, so Tab has something to traverse and tests can name what holds focus. */
+    public static final String CONTENT_REGION = "content";
+
+    public static final String DETAILS_REGION = "details";
+
     private TuiShell() {}
 
     /**
@@ -80,8 +85,26 @@ public final class TuiShell {
         if (details == null) {
             return content.constraint(Constraint.fill());
         }
-        return row(content.constraint(Constraint.fill()), details.constraint(Constraint.percentage(DETAILS_PERCENT)))
+        // The framework owns traversal: Tab is bound to FOCUS_NEXT in the standard binding set and is consumed
+        // before an element handler ever sees it, so the shell cannot implement Tab itself. What it must do is
+        // put the screen's handler on every focusable region — otherwise keys route to a focused region that has
+        // no handler and navigation dies, which is exactly what happened when only the root carried it.
+        return row(
+                        focusableRegion(content.constraint(Constraint.fill()), CONTENT_REGION, view, controller),
+                        focusableRegion(
+                                details.constraint(Constraint.percentage(DETAILS_PERCENT)),
+                                DETAILS_REGION,
+                                view,
+                                controller))
                 .constraint(Constraint.fill());
+    }
+
+    private static Element focusableRegion(
+            StyledElement<?> element, String region, TuiView view, TuiController controller) {
+        return element.id(region)
+                .focusable()
+                .onKeyEvent(event -> view.handleKey(controller, event))
+                .onMouseEvent(event -> view.handleMouse(controller, event));
     }
 
     private static Element renderHeader(TuiView view, TuiController controller) {

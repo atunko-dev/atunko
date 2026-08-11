@@ -162,6 +162,16 @@ final class PilotTestSupport implements AutoCloseable {
         return capture.rows;
     }
 
+    /** Id of the element holding focus in the last frame, or {@code null} when nothing does. */
+    String focusedId() {
+        return capture.focusedId;
+    }
+
+    /** Focus traversal order of the last frame — empty when only one region is focusable. */
+    List<String> focusOrder() {
+        return capture.focusOrder;
+    }
+
     /** Dispatches a raw event into the running TUI — e.g. mouse scroll, which {@link Pilot} has no method for. */
     void dispatch(Event event) {
         runner.tuiRunner().dispatch(event);
@@ -203,6 +213,8 @@ final class PilotTestSupport implements AutoCloseable {
         private volatile String text = "";
         private volatile String[] boldByRow = new String[0];
         private volatile int rows;
+        private volatile String focusedId;
+        private volatile List<String> focusOrder = List.of();
 
         List<String> boldRuns(int row) {
             String[] snapshot = boldByRow;
@@ -242,6 +254,8 @@ final class PilotTestSupport implements AutoCloseable {
             text = sb.toString();
             boldByRow = bold;
             rows = buffer.height();
+            focusedId = focusManager.focusedId();
+            focusOrder = List.copyOf(focusManager.focusOrder());
         }
     }
 }
