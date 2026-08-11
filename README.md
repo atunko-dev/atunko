@@ -96,15 +96,17 @@ Key bindings:
 | Key | Action |
 |-----|--------|
 | `↑`/`↓` | Navigate recipe list |
+| `Tab`/`Shift+Tab` | Move focus between list and detail pane |
 | `Enter` | Open recipe detail |
 | `Space` | Toggle selection |
-| `a` | Cycle selection (none → all → none) |
+| `a` | Select all |
+| `A` | Deselect all |
 | `r` | Open run dialog with selected recipes |
 | `t` | Open tag browser |
 | `/` | Search recipes |
 | `→`/`e` | Expand composite recipe |
-| `←`/`c` | Collapse composite recipe |
-| `s` | Toggle sort order |
+| `←`/`<` | Collapse composite recipe |
+| `s` | Cycle sort order |
 | `Esc` | Reset filters / go back |
 | `?` | Show help overlay |
 | `q` | Quit |
@@ -115,15 +117,20 @@ Key bindings:
 |-----|--------|
 | `↑`/`↓` | Navigate run list |
 | `Space`/`Enter` | Toggle individual recipe |
-| `a` | Cycle selection (all/none) |
+| `a` | Select all |
+| `A` | Deselect all |
 | `+`/`-` | Reorder recipes (move up/down) |
 | `→`/`e` | Expand composite recipe |
-| `←`/`c` | Collapse composite recipe |
-| `f` | Flatten composite (replace with sub-recipes) |
+| `←`/`<` | Collapse composite recipe |
+| `l` | Flatten composite (replace with sub-recipes) |
+| `L` | Flatten all composites |
 | `r` | Run selected recipes |
 | `d` | Dry-run (preview changes) |
 | `?` | Show help overlay |
 | `Esc`/`q` | Back |
+
+> **Note:** atunko has no vim- or emacs-style bindings. `j`/`k` do not navigate — use the
+> arrow keys, `Tab`, `Enter`, `Esc` and the single-letter mnemonics above.
 
 **Composite recipes:** Recipes containing sub-recipes are marked with `▶` in the
 browser. Expand them to see their sub-recipes, or flatten them in the run dialog

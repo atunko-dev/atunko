@@ -95,11 +95,11 @@
 
 ## 9. Docs
 
-- [ ] 9.1 Regenerate the key tables in `README.md` from the binding registry, fixing the
+- [x] 9.1 Regenerate the key tables in `README.md` from the binding registry, fixing the
       existing drift (`c` documented but unbound; `a` documented as cycle)
-- [ ] 9.2 Update `docs/antora/modules/ROOT/pages/tui.adoc` — frame, tabs-as-navigation,
+- [x] 9.2 Update `docs/antora/modules/ROOT/pages/tui.adoc` — frame, tabs-as-navigation,
       focus traversal, help everywhere, and the removal of `j`/`k`
-- [ ] 9.3 Add a test asserting the documented key tables match the registry, so they cannot
+- [x] 9.3 Add a test asserting the documented key tables match the registry, so they cannot
       drift again
 
 ## 10. Wrap-up

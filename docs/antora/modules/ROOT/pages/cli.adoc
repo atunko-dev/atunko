@@ -68,14 +68,35 @@ atunko tui --theme light
 atunko tui --css-file ~/.config/atunko/mytheme.tcss
 ----
 
+==== Layout
+
+Every screen uses the same frame: a fixed three-row header carrying the screen title and
+the tab bar, a filling content region, an optional detail pane, and a two-row footer. The
+first footer row is session state (counts, active filters); the second is key hints, with
+each key highlighted against its label.
+
+The header tab bar names the screens you can move between — Recipes, Tags, Run — marks the
+active one, and shows a live count for each. Sort order is *not* a tab; it appears as
+`sort:` in the status row beside `src:` and `fav:`.
+
+`?` opens help on any screen, drawn over the current screen rather than replacing it. The
+key that dismisses help also performs its own action, so reading help and pressing `r`
+runs the recipes in one press.
+
+NOTE: `j` / `k` are not bound. atunko uses arrow keys, `Tab`, `Enter`, `Esc` and
+single-letter mnemonics; there are no vim- or emacs-style bindings.
+
 ==== Browser key bindings
 
 [cols="1,3"]
 |===
 | Key | Action
 
-| `↑` / `↓` (or `j` / `k`)
+| `↑` / `↓`
 | Navigate recipe list
+
+| `Tab` / `Shift+Tab`
+| Move focus between the recipe list and the detail pane
 
 | `Enter`
 | Open recipe detail view
@@ -159,7 +180,7 @@ The run dialog opens when you press `r` from the browser with selected recipes.
 |===
 | Key | Action
 
-| `↑` / `↓` (or `j` / `k`)
+| `↑` / `↓`
 | Navigate run list
 
 | `Space` / `Enter`
@@ -177,13 +198,13 @@ The run dialog opens when you press `r` from the browser with selected recipes.
 | `→` / `e` / `>`
 | Expand composite recipe
 
-| `←` / `c` / `<`
+| `←` / `<`
 | Collapse composite recipe
 
-| `f`
+| `l`
 | Flatten highlighted composite (replace with individual sub-recipes)
 
-| `F`
+| `L`
 | Flatten all composites
 
 | `o`

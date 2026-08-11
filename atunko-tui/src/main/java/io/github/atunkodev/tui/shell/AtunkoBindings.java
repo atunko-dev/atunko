@@ -65,6 +65,7 @@ public final class AtunkoBindings {
     public static final String OPEN_DIFF = "ATUNKO_OPEN_DIFF";
     public static final String FLATTEN = "ATUNKO_FLATTEN";
     public static final String EXPORT = "ATUNKO_EXPORT";
+    public static final String DRY_RUN = "ATUNKO_DRY_RUN";
 
     /**
      * One binding.
@@ -110,7 +111,8 @@ public final class AtunkoBindings {
             // 'f' is Toggle favorite in the browser and used to be Flatten in the run dialog — the cross-screen
             // collision issue #87 flagged. A single registry cannot hold both, so flatten moves to 'l'.
             new Binding(FLATTEN, KeyTrigger.ch('l'), "l", "Flatten composite", "Actions"),
-            new Binding(EXPORT, KeyTrigger.ch('x'), "x", "Export config", "Actions"));
+            new Binding(EXPORT, KeyTrigger.ch('x'), "x", "Export config", "Actions"),
+            new Binding(DRY_RUN, KeyTrigger.ch('d'), "d", "Dry-run", "Actions"));
 
     private AtunkoBindings() {}
 
