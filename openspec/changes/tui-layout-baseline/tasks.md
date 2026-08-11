@@ -24,24 +24,24 @@
 
 ## 3. Status bar
 
-- [ ] 3.1 Write `AtunkoTuiFooterPilotTest` — state and hints on separate rows, keys styled
+- [x] 3.1 Write `AtunkoTuiFooterPilotTest` — state and hints on separate rows, keys styled
       distinctly from labels, hints change with mode [SVC_TUI_0009.2]
-- [ ] 3.2 Implement the two-row footer in `TuiShell`, rendering `keyHints()` as
+- [x] 3.2 Implement the two-row footer in `TuiShell`, rendering `keyHints()` as
       key/label span pairs and selecting the hint set from the active mode
-- [ ] 3.3 Add `@Requirements({"atunko:TUI_0009.2"})` to the footer renderer and
+- [x] 3.3 Add `@Requirements({"atunko:TUI_0009.2"})` to the footer renderer and
       `@SVCs({"SVC_TUI_0009.2"})` to the test from 3.1
 
 ## 4. Binding registry
 
-- [ ] 4.1 Write `BindingsTest` — every registry entry has a description; rendering the TUI
+- [x] 4.1 Write `BindingsTest` — every registry entry has a description; rendering the TUI
       after changing a description updates both the footer hint and the help entry; no
       screen matches a key outside the registry [SVC_TUI_0009.6]
-- [ ] 4.2 Add `Bindings` built on `BindingSets.standard().toBuilder()` with atunko actions,
+- [x] 4.2 Add `Bindings` built on `BindingSets.standard().toBuilder()` with atunko actions,
       each carrying trigger, action and description
-- [ ] 4.3 Install the registry via `ToolkitRunner.Builder.bindings(...)` and replace the 65
+- [x] 4.3 Install the registry via `ToolkitRunner.Builder.bindings(...)` and replace the 65
       `isChar(...)` matches with `event.matches(ACTION)` across the views
-- [ ] 4.4 Remove the `j`/`k` vim bindings (14 `isChar('j')`/`isChar('k')` call sites)
-- [ ] 4.5 Add `@Requirements({"atunko:TUI_0009.6"})` to `Bindings` and
+- [x] 4.4 Remove the `j`/`k` vim bindings (14 `isChar('j')`/`isChar('k')` call sites)
+- [x] 4.5 Add `@Requirements({"atunko:TUI_0009.6"})` to `Bindings` and
       `@SVCs({"SVC_TUI_0009.6"})` to the test from 4.1
 
 ## 5. Overlays

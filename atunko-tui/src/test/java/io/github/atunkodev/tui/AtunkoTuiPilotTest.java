@@ -36,6 +36,25 @@ class AtunkoTuiPilotTest {
     }
 
     @Test
+    @SVCs({"atunko:SVC_TUI_0009.6"})
+    void vimKeysDoNotNavigate() throws Exception {
+        // Removed deliberately: the owner's constraint is no vim/emacs bindings, and TamboUI's own
+        // BindingSets.standard() binds no letter key to navigation. Asserted so it cannot creep back.
+        try (PilotTestSupport tui = PilotTestSupport.launch()) {
+            tui.pilot().press('j');
+            assertThat(tui.controller().highlightedIndex())
+                    .as("j must not move the highlight")
+                    .isZero();
+
+            tui.pilot().press(KeyCode.DOWN);
+            tui.pilot().press('k');
+            assertThat(tui.controller().highlightedIndex())
+                    .as("k must not move the highlight")
+                    .isEqualTo(1);
+        }
+    }
+
+    @Test
     @SVCs({"atunko:SVC_TUI_0003.1"})
     void keyboardNavigationMovesHighlightAndOpensDetail() throws Exception {
         try (PilotTestSupport tui = PilotTestSupport.launch()) {
@@ -43,9 +62,9 @@ class AtunkoTuiPilotTest {
 
             pilot.press(KeyCode.DOWN);
             assertThat(tui.controller().highlightedIndex()).isEqualTo(1);
-            pilot.press('j');
+            pilot.press(KeyCode.DOWN);
             assertThat(tui.controller().highlightedIndex()).isEqualTo(2);
-            pilot.press('k');
+            pilot.press(KeyCode.UP);
             pilot.press(KeyCode.UP);
             assertThat(tui.controller().highlightedIndex()).isZero();
 

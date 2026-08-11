@@ -152,11 +152,11 @@ public final class RecipeOptionsView {
             return EventResult.HANDLED;
         }
 
-        if (event.isDown() || event.isChar('j')) {
+        if (event.isDown()) {
             controller.moveOptionHighlightDown(options.size());
             return EventResult.HANDLED;
         }
-        if (event.isUp() || event.isChar('k')) {
+        if (event.isUp()) {
             controller.moveOptionHighlightUp(options.size());
             return EventResult.HANDLED;
         }

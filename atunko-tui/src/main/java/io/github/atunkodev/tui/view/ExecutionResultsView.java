@@ -127,7 +127,7 @@ public final class ExecutionResultsView {
                 ? text(" " + title + " ").addClass("screen-title", "dryrun-mode")
                 : text(" " + title + " ").addClass("screen-title", "success-mode");
 
-        String footer = hasChanges ? " ↑↓/jk:navigate  Enter:diff  Esc/q:back" : " Esc/q:back";
+        String footer = hasChanges ? " ↑↓:navigate  Enter:diff  Esc/q:back" : " Esc/q:back";
 
         return column(dock().top(
                                 row(titleElement, spacer(), text(summary + " ").addClass("coverage-indicator")),
@@ -161,11 +161,11 @@ public final class ExecutionResultsView {
         boolean hasChanges =
                 controller.executionResult().map(r -> !r.changes().isEmpty()).orElse(false);
         if (hasChanges) {
-            if (event.isDown() || event.isChar('j')) {
+            if (event.isDown()) {
                 controller.moveFileDown();
                 return EventResult.HANDLED;
             }
-            if (event.isUp() || event.isChar('k')) {
+            if (event.isUp()) {
                 controller.moveFileUp();
                 return EventResult.HANDLED;
             }

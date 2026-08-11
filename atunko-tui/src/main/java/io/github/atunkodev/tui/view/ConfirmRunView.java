@@ -148,11 +148,11 @@ public final class ConfirmRunView {
             return EventResult.HANDLED;
         }
         if (hasRecipes) {
-            if (event.isDown() || event.isChar('j')) {
+            if (event.isDown()) {
                 controller.moveRunHighlightDown();
                 return EventResult.HANDLED;
             }
-            if (event.isUp() || event.isChar('k')) {
+            if (event.isUp()) {
                 controller.moveRunHighlightUp();
                 return EventResult.HANDLED;
             }

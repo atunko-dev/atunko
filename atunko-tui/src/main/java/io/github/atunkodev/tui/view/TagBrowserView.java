@@ -73,7 +73,7 @@ public final class TagBrowserView {
 
         String footer = tagSearchMode
                 ? " Type to filter | Enter:apply Esc:clear search"
-                : " \u2191\u2193/jk:nav Space:sel Enter:apply /:search Esc:clear q:back";
+                : " \u2191\u2193:nav Space:sel Enter:apply /:search Esc:clear q:back";
 
         return column(dock().top(header, Constraint.length(3))
                         .center(recipeList
@@ -127,11 +127,11 @@ public final class TagBrowserView {
             tagIndex = 0;
             return EventResult.HANDLED;
         }
-        if (event.isDown() || event.isChar('j')) {
+        if (event.isDown()) {
             tagIndex = Math.min(tagIndex + 1, Math.max(tags.size() - 1, 0));
             return EventResult.HANDLED;
         }
-        if (event.isUp() || event.isChar('k')) {
+        if (event.isUp()) {
             tagIndex = Math.max(tagIndex - 1, 0);
             return EventResult.HANDLED;
         }
@@ -144,11 +144,11 @@ public final class TagBrowserView {
 
     private static EventResult handleBrowseModeKey(
             TuiController controller, List<String> tags, dev.tamboui.tui.event.KeyEvent event) {
-        if (event.isDown() || event.isChar('j')) {
+        if (event.isDown()) {
             tagIndex = Math.min(tagIndex + 1, Math.max(tags.size() - 1, 0));
             return EventResult.HANDLED;
         }
-        if (event.isUp() || event.isChar('k')) {
+        if (event.isUp()) {
             tagIndex = Math.max(tagIndex - 1, 0);
             return EventResult.HANDLED;
         }

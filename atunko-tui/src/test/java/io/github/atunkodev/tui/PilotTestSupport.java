@@ -149,6 +149,19 @@ final class PilotTestSupport implements AutoCloseable {
         return capture.text;
     }
 
+    /**
+     * The bold runs on one row of the last frame. Styling is otherwise invisible to {@link #screen()}, and "the key
+     * is emphasised, the label is not" is exactly the property the footer redesign has to prove.
+     */
+    List<String> boldRunsOnRow(int row) {
+        return capture.boldRuns(row);
+    }
+
+    /** Number of rows in the last frame, so tests can index the footer from the bottom. */
+    int rowCount() {
+        return capture.rows;
+    }
+
     /** Dispatches a raw event into the running TUI — e.g. mouse scroll, which {@link Pilot} has no method for. */
     void dispatch(Event event) {
         runner.tuiRunner().dispatch(event);
@@ -188,6 +201,19 @@ final class PilotTestSupport implements AutoCloseable {
     private static final class FrameCapture implements ToolkitPostRenderProcessor {
 
         private volatile String text = "";
+        private volatile String[] boldByRow = new String[0];
+        private volatile int rows;
+
+        List<String> boldRuns(int row) {
+            String[] snapshot = boldByRow;
+            if (row < 0 || row >= snapshot.length) {
+                return List.of();
+            }
+            return java.util.Arrays.stream(snapshot[row].split("\\u0000"))
+                    .map(String::strip)
+                    .filter(run -> !run.isEmpty())
+                    .toList();
+        }
 
         @Override
         public void process(
@@ -198,13 +224,24 @@ final class PilotTestSupport implements AutoCloseable {
                 Duration elapsed) {
             Buffer buffer = frame.buffer();
             StringBuilder sb = new StringBuilder(buffer.height() * (buffer.width() + 1));
+            String[] bold = new String[buffer.height()];
             for (int y = 0; y < buffer.height(); y++) {
+                StringBuilder boldRow = new StringBuilder();
                 for (int x = 0; x < buffer.width(); x++) {
-                    sb.append(buffer.get(x, y).symbol());
+                    var cell = buffer.get(x, y);
+                    sb.append(cell.symbol());
+                    // NUL separates runs, so adjacent bold spans do not merge into one.
+                    boldRow.append(
+                            cell.style().effectiveModifiers().contains(dev.tamboui.style.Modifier.BOLD)
+                                    ? cell.symbol()
+                                    : "\u0000");
                 }
+                bold[y] = boldRow.toString();
                 sb.append('\n');
             }
             text = sb.toString();
+            boldByRow = bold;
+            rows = buffer.height();
         }
     }
 }

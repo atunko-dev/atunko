@@ -84,11 +84,11 @@ public final class LoadConfigView {
     }
 
     private static EventResult handleKeyEvent(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
-        if (event.isDown() || event.isChar('j')) {
+        if (event.isDown()) {
             controller.moveLoadConfigDown();
             return EventResult.HANDLED;
         }
-        if (event.isUp() || event.isChar('k')) {
+        if (event.isUp()) {
             controller.moveLoadConfigUp();
             return EventResult.HANDLED;
         }

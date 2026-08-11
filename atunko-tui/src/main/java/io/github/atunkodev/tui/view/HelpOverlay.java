@@ -22,7 +22,7 @@ public final class HelpOverlay {
             new Section(
                     "Navigation",
                     List.of(
-                            new Entry("\u2191\u2193/jk", "Move"),
+                            new Entry("\u2191\u2193", "Move"),
                             new Entry(">/\u2192", "Expand"),
                             new Entry("</\u2190", "Collapse"),
                             new Entry("E", "Expand all"),
@@ -61,7 +61,7 @@ public final class HelpOverlay {
             new Section(
                     "Navigation",
                     List.of(
-                            new Entry("\u2191\u2193/jk", "Move"),
+                            new Entry("\u2191\u2193", "Move"),
                             new Entry("+/-", "Reorder up/down"),
                             new Entry("Ctrl+\u2191\u2193", "Reorder up/down"),
                             new Entry("e/>", "Expand composite"),

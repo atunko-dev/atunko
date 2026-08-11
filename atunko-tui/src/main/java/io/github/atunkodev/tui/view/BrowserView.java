@@ -22,6 +22,7 @@ import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.tui.AtunkoTui;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
+import io.github.atunkodev.tui.shell.AtunkoBindings;
 import io.github.atunkodev.tui.shell.KeyHint;
 import io.github.atunkodev.tui.shell.TuiView;
 import io.github.reqstool.annotations.Requirements;
@@ -79,21 +80,48 @@ public final class BrowserView implements TuiView {
         if (controller.isSearchMode()) {
             return List.of(KeyHint.of("Enter", "apply"), KeyHint.of("Esc", "clear"));
         }
-        return List.of(
-                KeyHint.of("\u2191\u2193", "move"),
-                KeyHint.of("Space", "select"),
-                KeyHint.of("Enter", "detail"),
-                KeyHint.of("r", "run"),
-                KeyHint.of("/", "search"),
-                KeyHint.of("t", "tags"),
-                KeyHint.of("o", "options"),
-                KeyHint.of("?", "help"),
-                KeyHint.of("q", "quit"));
+        // Derived from the registry, not written out here — that is what stops the footer disagreeing with the keys.
+        return AtunkoBindings.hintsFor(
+                AtunkoBindings.MOVE,
+                AtunkoBindings.TOGGLE_SELECTION,
+                AtunkoBindings.OPEN_DETAIL,
+                AtunkoBindings.OPEN_RUN,
+                AtunkoBindings.SEARCH,
+                AtunkoBindings.OPEN_TAGS,
+                AtunkoBindings.OPEN_OPTIONS,
+                AtunkoBindings.HELP,
+                AtunkoBindings.QUIT);
     }
 
+    /** Same registry the footer hints come from, so the two cannot describe different keys. */
     @Override
+    @Requirements({"atunko:TUI_0009.6", "atunko:TUI_0009.7"})
     public List<HelpOverlay.Section> helpSections() {
-        return HelpOverlay.BROWSER_HELP;
+        return AtunkoBindings.helpSections(
+                AtunkoBindings.MOVE,
+                AtunkoBindings.FOCUS_NEXT,
+                AtunkoBindings.EXPAND,
+                AtunkoBindings.COLLAPSE,
+                AtunkoBindings.EXPAND_ALL,
+                AtunkoBindings.COLLAPSE_ALL,
+                AtunkoBindings.TOGGLE_SELECTION,
+                AtunkoBindings.SELECT_ALL,
+                AtunkoBindings.DESELECT_ALL,
+                AtunkoBindings.OPEN_DETAIL,
+                AtunkoBindings.OPEN_OPTIONS,
+                AtunkoBindings.OPEN_RUN,
+                AtunkoBindings.OPEN_TAGS,
+                AtunkoBindings.SEARCH,
+                AtunkoBindings.NEXT_MATCH,
+                AtunkoBindings.PREV_MATCH,
+                AtunkoBindings.CYCLE_SORT,
+                AtunkoBindings.CYCLE_SOURCE,
+                AtunkoBindings.TOGGLE_FAVORITE,
+                AtunkoBindings.CYCLE_FAVORITES_FILTER,
+                AtunkoBindings.SAVE_CONFIG,
+                AtunkoBindings.LOAD_CONFIG,
+                AtunkoBindings.HELP,
+                AtunkoBindings.QUIT);
     }
 
     @Override
@@ -218,11 +246,11 @@ public final class BrowserView implements TuiView {
 
     private static EventResult handleBrowseModeKey(
             TuiController controller, AtunkoTui app, dev.tamboui.tui.event.KeyEvent event) {
-        if (event.isDown() || event.isChar('j')) {
+        if (event.isDown()) {
             controller.moveDown();
             return EventResult.HANDLED;
         }
-        if (event.isUp() || event.isChar('k')) {
+        if (event.isUp()) {
             controller.moveUp();
             return EventResult.HANDLED;
         }
