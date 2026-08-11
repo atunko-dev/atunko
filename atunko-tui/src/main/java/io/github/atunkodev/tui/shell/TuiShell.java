@@ -99,6 +99,7 @@ public final class TuiShell {
                 .constraint(Constraint.fill());
     }
 
+    @Requirements({"atunko:TUI_0009.5"})
     private static Element focusableRegion(
             StyledElement<?> element, String region, TuiView view, TuiController controller) {
         return element.id(region)

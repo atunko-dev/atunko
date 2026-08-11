@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -99,11 +99,15 @@ class DocumentedKeysMatchRegistryTest {
         return keys;
     }
 
-    /** Sanity check that the registry itself is non-trivial, so an empty registry cannot make the above vacuous. */
-    @ParameterizedTest
-    @MethodSource("documentationFiles")
-    void theRegistryDeclaresKeys(Path file) {
-        List<AtunkoBindings.Binding> all = AtunkoBindings.all();
-        assertThat(all).hasSizeGreaterThan(15);
+    /**
+     * Sanity check that the registry itself is non-trivial, so an empty registry cannot make the above vacuous.
+     *
+     * <p>Plain {@code @Test}: reqstool cannot recover a method name from a parameterised result, so an SVC carried
+     * only by the parameterised case above would read as "automated test missing".
+     */
+    @Test
+    @SVCs({"atunko:SVC_TUI_0009.6"})
+    void theRegistryDeclaresKeys() {
+        assertThat(AtunkoBindings.all()).hasSizeGreaterThan(15);
     }
 }

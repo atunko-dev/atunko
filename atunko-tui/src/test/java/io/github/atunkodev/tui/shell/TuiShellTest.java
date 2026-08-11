@@ -90,6 +90,23 @@ class TuiShellTest {
         });
     }
 
+    /**
+     * Non-parameterised on purpose: reqstool cannot recover a method name from a parameterised result, so an SVC
+     * carried only by a {@code @ParameterizedTest} reads as "automated test missing".
+     */
+    @Test
+    @SVCs({"atunko:SVC_TUI_0009", "atunko:SVC_TUI_0009.2"})
+    void theBrowserSatisfiesTheViewContract() {
+        TuiController controller = controller();
+        TuiView view = new BrowserView(new AtunkoTui(controller));
+
+        assertThat(view.title(controller)).isNotBlank();
+        assertThat(view.status(controller)).isNotBlank();
+        assertThat(view.keyHints(controller)).isNotEmpty();
+        assertThat(view.helpSections()).isNotEmpty();
+        assertThat(view.status(controller)).doesNotContain("?:help");
+    }
+
     @Test
     @SVCs({"atunko:SVC_TUI_0009.1"})
     void frameHeightsAreConstantsOwnedByTheShell() {
