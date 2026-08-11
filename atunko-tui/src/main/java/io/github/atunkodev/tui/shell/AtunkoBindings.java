@@ -61,6 +61,10 @@ public final class AtunkoBindings {
     public static final String LOAD_CONFIG = "ATUNKO_LOAD_CONFIG";
     public static final String HELP = "ATUNKO_HELP";
     public static final String QUIT = "ATUNKO_QUIT";
+    public static final String BACK = "ATUNKO_BACK";
+    public static final String OPEN_DIFF = "ATUNKO_OPEN_DIFF";
+    public static final String FLATTEN = "ATUNKO_FLATTEN";
+    public static final String EXPORT = "ATUNKO_EXPORT";
 
     /**
      * One binding.
@@ -100,7 +104,13 @@ public final class AtunkoBindings {
             new Binding(SAVE_CONFIG, KeyTrigger.ch('S'), "S", "Save run config", "Actions"),
             new Binding(LOAD_CONFIG, KeyTrigger.ch('L'), "L", "Load run config", "Actions"),
             new Binding(HELP, KeyTrigger.ch('?'), "?", "Help", "Actions"),
-            new Binding(QUIT, KeyTrigger.ch('q'), "q", "Quit", "Actions"));
+            new Binding(QUIT, KeyTrigger.ch('q'), "q", "Quit", "Actions"),
+            new Binding(BACK, null, "Esc", "Back", "Actions"),
+            new Binding(OPEN_DIFF, null, "Enter", "Show diff", "Actions"),
+            // 'f' is Toggle favorite in the browser and used to be Flatten in the run dialog — the cross-screen
+            // collision issue #87 flagged. A single registry cannot hold both, so flatten moves to 'l'.
+            new Binding(FLATTEN, KeyTrigger.ch('l'), "l", "Flatten composite", "Actions"),
+            new Binding(EXPORT, KeyTrigger.ch('x'), "x", "Export config", "Actions"));
 
     private AtunkoBindings() {}
 

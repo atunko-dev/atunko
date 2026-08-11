@@ -8,6 +8,7 @@ import dev.tamboui.tui.TuiConfig;
 import dev.tamboui.tui.error.ErrorAction;
 import io.github.atunkodev.tui.shell.KeyHint;
 import io.github.atunkodev.tui.shell.TuiShell;
+import io.github.atunkodev.tui.shell.TuiView;
 import io.github.atunkodev.tui.view.BrowserView;
 import io.github.atunkodev.tui.view.ConfirmRunView;
 import io.github.atunkodev.tui.view.DetailView;
@@ -46,15 +47,22 @@ public class AtunkoTui extends ToolkitApp {
 
     @Override
     protected Element render() {
+        return renderThroughShell(viewFor());
+    }
+
+    /**
+     * The screen currently selected, as a {@link TuiView}. Exhaustive over {@link Screen} by construction — a new
+     * screen will not compile until it has a view, which is what keeps every screen inside the shared frame.
+     */
+    public TuiView viewFor() {
         return switch (controller.currentScreen()) {
-            case BROWSER -> renderThroughShell(new BrowserView(this));
-            case DETAIL -> DetailView.render(controller);
-            case TAG_BROWSER -> TagBrowserView.render(controller);
-            case EXECUTION_RESULTS -> ExecutionResultsView.render(controller);
-            case WORKSPACE_RESULTS -> ExecutionResultsView.render(controller);
-            case FILE_DIFF -> FileDiffView.render(controller);
-            case CONFIRM_RUN -> ConfirmRunView.render(controller);
-            case LOAD_CONFIG -> LoadConfigView.render(controller);
+            case BROWSER -> new BrowserView(this);
+            case DETAIL -> new DetailView();
+            case TAG_BROWSER -> new TagBrowserView();
+            case EXECUTION_RESULTS, WORKSPACE_RESULTS -> new ExecutionResultsView();
+            case FILE_DIFF -> new FileDiffView();
+            case CONFIRM_RUN -> new ConfirmRunView();
+            case LOAD_CONFIG -> new LoadConfigView();
         };
     }
 
@@ -63,7 +71,7 @@ public class AtunkoTui extends ToolkitApp {
      * than replacing it.
      */
     @Requirements({"atunko:TUI_0009", "atunko:TUI_0009.4"})
-    private Element renderThroughShell(io.github.atunkodev.tui.shell.TuiView view) {
+    private Element renderThroughShell(TuiView view) {
         if (controller.isShowHelp()) {
             return TuiShell.render(
                     view,

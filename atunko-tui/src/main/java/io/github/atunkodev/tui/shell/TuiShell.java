@@ -109,7 +109,7 @@ public final class TuiShell {
 
     private static Element renderHeader(TuiView view, TuiController controller) {
         StyledElement<?> extras = view.renderHeaderExtras(controller);
-        Row header = row(text(" " + view.title() + " ").addClass("screen-title"), text(" "));
+        Row header = row(text(" " + view.title(controller) + " ").addClass("screen-title"), text(" "));
         header.add(TabBar.render(controller));
         if (extras != null) {
             header.add(text(" "));

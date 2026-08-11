@@ -48,12 +48,9 @@ public final class BrowserView implements TuiView {
     }
 
     @Override
-    public String title() {
-        return controllerIsSearching ? "SEARCH" : "atunko";
+    public String title(TuiController controller) {
+        return controller.isSearchMode() ? "SEARCH" : "atunko";
     }
-
-    // Set on each render so title() can reflect search mode without taking a controller argument.
-    private boolean controllerIsSearching;
 
     /** State only — key hints live on their own footer row now. */
     @Override
@@ -124,7 +121,6 @@ public final class BrowserView implements TuiView {
 
     @Override
     public StyledElement<?> renderContent(TuiController controller) {
-        controllerIsSearching = controller.isSearchMode();
         if (controller.isShowOptions()) {
             return (StyledElement<?>) RecipeOptionsView.render(controller);
         }

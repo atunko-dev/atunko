@@ -4,8 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.AtunkoTui;
+import io.github.atunkodev.tui.Screen;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.view.BrowserView;
+import io.github.atunkodev.tui.view.ConfirmRunView;
+import io.github.atunkodev.tui.view.DetailView;
+import io.github.atunkodev.tui.view.ExecutionResultsView;
+import io.github.atunkodev.tui.view.FileDiffView;
+import io.github.atunkodev.tui.view.LoadConfigView;
+import io.github.atunkodev.tui.view.TagBrowserView;
 import io.github.reqstool.annotations.SVCs;
 import java.util.List;
 import java.util.Set;
@@ -22,9 +29,31 @@ class TuiShellTest {
                 new RecipeInfo("org.example.Second", "Second", "Does the second thing", Set.of("java", "spring"))));
     }
 
-    /** Every screen migrated onto the contract. Section 8 adds the assertion that this covers every Screen. */
     static Stream<TuiView> migratedViews() {
-        return Stream.of(new BrowserView(new AtunkoTui(controller())));
+        return Stream.of(
+                new BrowserView(new AtunkoTui(controller())),
+                new DetailView(),
+                new TagBrowserView(),
+                new ConfirmRunView(),
+                new ExecutionResultsView(),
+                new LoadConfigView(),
+                new FileDiffView());
+    }
+
+    /**
+     * Completeness is enforced by the compiler, not here: {@code AtunkoTui.viewFor()} switches over {@link Screen}
+     * with no {@code default}, so a new screen does not compile until it has a {@link TuiView}. This asserts the
+     * weaker runtime half — that the mapping produces a usable view for the screen the app starts on.
+     */
+    @Test
+    @SVCs({"atunko:SVC_TUI_0009", "atunko:SVC_TUI_0009.1"})
+    void theStartingScreenRendersThroughTheShell() {
+        TuiController controller = controller();
+        AtunkoTui app = new AtunkoTui(controller);
+
+        assertThat(controller.currentScreen()).isEqualTo(Screen.BROWSER);
+        assertThat(app.viewFor()).isNotNull();
+        assertThat(TuiShell.render(app.viewFor(), controller)).isNotNull();
     }
 
     @ParameterizedTest
@@ -34,7 +63,7 @@ class TuiShellTest {
         TuiController controller = controller();
 
         assertThat(view.id()).as("id").isNotBlank();
-        assertThat(view.title()).as("title").isNotBlank();
+        assertThat(view.title(controller)).as("title").isNotBlank();
         assertThat(view.status(controller)).as("status").isNotBlank();
         assertThat(view.keyHints(controller)).as("key hints").isNotEmpty();
         assertThat(view.helpSections()).as("help sections").isNotEmpty();

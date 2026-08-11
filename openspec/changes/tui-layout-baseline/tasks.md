@@ -83,14 +83,14 @@
 
 ## 8. Migrate remaining views
 
-- [ ] 8.1 Migrate `DetailView` onto the contract (drops its computed header height)
-- [ ] 8.2 Migrate `ConfirmRunView`
-- [ ] 8.3 Migrate `ExecutionResultsView`
-- [ ] 8.4 Migrate `TagBrowserView`
-- [ ] 8.5 Migrate `RecipeOptionsView`
-- [ ] 8.6 Migrate `LoadConfigView` and `ExportConfigView`
-- [ ] 8.7 Migrate `FileDiffView`, rendering the diff as an overlay rather than a screen
-- [ ] 8.8 Resolve the open question — details pane bottom vs right-hand — by comparing
+- [x] 8.1 Migrate `DetailView` onto the contract (drops its computed header height)
+- [x] 8.2 Migrate `ConfirmRunView`
+- [x] 8.3 Migrate `ExecutionResultsView`
+- [x] 8.4 Migrate `TagBrowserView`
+- [x] 8.5 Migrate `RecipeOptionsView`
+- [x] 8.6 Migrate `LoadConfigView` and `ExportConfigView`
+- [x] 8.7 Migrate `FileDiffView`, rendering the diff as an overlay rather than a screen
+- [x] 8.8 Resolve the open question — details pane bottom vs right-hand — by comparing
       Pilot-harness screenshots of both, and record the choice in `design.md`
 
 ## 9. Docs

@@ -21,8 +21,13 @@ import java.util.List;
 @Requirements({"atunko:TUI_0009"})
 public interface TuiView {
 
-    /** Shown in the header. Short — it sits beside the tab bar. */
-    String title();
+    /**
+     * Shown in the header. Short — it sits beside the tab bar.
+     *
+     * <p>Takes the controller because several screens title themselves from state: the results screen reads
+     * "Execution Failed" or "Dry-Run Preview" depending on the run, and the browser switches to "SEARCH".
+     */
+    String title(TuiController controller);
 
     /** The state line of the footer: counts, active filters, current mode. Never key hints — those are separate. */
     String status(TuiController controller);

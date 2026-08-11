@@ -4,29 +4,79 @@ import static dev.tamboui.toolkit.Toolkit.column;
 import static dev.tamboui.toolkit.Toolkit.dock;
 import static dev.tamboui.toolkit.Toolkit.panel;
 import static dev.tamboui.toolkit.Toolkit.row;
-import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
 import static dev.tamboui.toolkit.markdown.MarkdownElement.markdown;
 
 import dev.tamboui.layout.Constraint;
-import dev.tamboui.toolkit.element.Element;
+import dev.tamboui.toolkit.element.StyledElement;
 import dev.tamboui.toolkit.event.EventResult;
 import io.github.atunkodev.core.recipe.RecipeApplicability;
 import io.github.atunkodev.core.recipe.RecipeInfo;
 import io.github.atunkodev.tui.TuiController;
+import io.github.atunkodev.tui.shell.AtunkoBindings;
+import io.github.atunkodev.tui.shell.KeyHint;
+import io.github.atunkodev.tui.shell.TuiView;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 
 @Requirements({"atunko:TUI_0001.4", "atunko:TUI_0001.7", "atunko:TUI_0001.20", "atunko:TUI_0004.1"})
-public final class DetailView {
+public final class DetailView implements TuiView {
 
-    private DetailView() {}
+    @Override
+    public String id() {
+        return "detail";
+    }
 
-    public static Element render(TuiController controller) {
+    @Override
+    public String title(TuiController controller) {
+        return "Recipe Detail";
+    }
+
+    @Override
+    public String status(TuiController controller) {
         return controller
                 .highlightedRecipe()
-                .map(recipe -> renderRecipeDetail(controller, recipe))
-                .orElse(text("No recipe selected"));
+                .map(recipe -> controller.selectedRecipes().contains(recipe.name()) ? "selected" : "not selected")
+                .orElse("no recipe selected");
+    }
+
+    @Override
+    public List<KeyHint> keyHints(TuiController controller) {
+        return AtunkoBindings.hintsFor(AtunkoBindings.TOGGLE_SELECTION, AtunkoBindings.HELP, AtunkoBindings.BACK);
+    }
+
+    @Override
+    public List<HelpOverlay.Section> helpSections() {
+        return AtunkoBindings.helpSections(AtunkoBindings.TOGGLE_SELECTION, AtunkoBindings.HELP, AtunkoBindings.BACK);
+    }
+
+    @Override
+    public StyledElement<?> renderContent(TuiController controller) {
+        return controller
+                .highlightedRecipe()
+                .<StyledElement<?>>map(recipe -> renderRecipeDetail(controller, recipe))
+                .orElseGet(() -> column(text("No recipe selected")));
+    }
+
+    @Override
+    public EventResult handleKey(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
+        if (controller.isShowHelp()) {
+            controller.toggleHelp();
+            return event.isChar('?') ? EventResult.HANDLED : EventResult.UNHANDLED;
+        }
+        if (event.isChar('?')) {
+            controller.toggleHelp();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar('q') || event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
+            controller.goBack();
+            return EventResult.HANDLED;
+        }
+        if (event.isChar(' ')) {
+            controller.toggleSelection();
+            return EventResult.HANDLED;
+        }
+        return EventResult.UNHANDLED;
     }
 
     // Name(1) + DisplayName(1) + blank(1) + Tags(1) = 4 base rows
@@ -46,12 +96,7 @@ public final class DetailView {
                 + 1;
     }
 
-    private static Element renderRecipeDetail(TuiController controller, RecipeInfo recipe) {
-        boolean selected = controller.selectedRecipes().contains(recipe.name());
-        var selectionLabel = selected
-                ? text("Selected ").addClass("selected")
-                : text("Not selected ").addClass("unselected");
-
+    private static StyledElement<?> renderRecipeDetail(TuiController controller, RecipeInfo recipe) {
         var metadataContent = column(
                 row(text("Name: ").addClass("detail-label"), text(recipe.name())),
                 row(
@@ -93,51 +138,14 @@ public final class DetailView {
 
         String description = recipe.description() != null ? recipe.description() : "*(no description)*";
 
-        Element centerContent;
-        if (controller.isShowHelp()) {
-            centerContent = row(spacer(), HelpOverlay.render(HelpOverlay.DETAIL_HELP), spacer());
-        } else {
-            centerContent = panel(
-                            "Recipe Detail",
-                            dock().top(
-                                            metadataContent,
-                                            Constraint.length(metadataLineCount(
-                                                    recipe, parents.size(), !applicability.applicable())))
-                                    .center(markdown(description))
-                                    .constraint(Constraint.fill()))
-                    .addClass("panel");
-        }
-
-        return column(dock().top(
-                                row(
-                                        text(" " + RecipeListRenderer.cleanDisplayName(recipe.displayName()))
-                                                .addClass("screen-title"),
-                                        spacer(),
-                                        selectionLabel),
-                                Constraint.length(1))
-                        .center(centerContent)
-                        .bottom(text(" ?:help Space:toggle Esc/q:back").addClass("status-bar"), Constraint.length(1))
-                        .constraint(Constraint.fill()))
-                .id("detail")
-                .focusable()
-                .onKeyEvent(event -> {
-                    if (controller.isShowHelp()) {
-                        controller.toggleHelp();
-                        return EventResult.HANDLED;
-                    }
-                    if (event.isChar('?')) {
-                        controller.toggleHelp();
-                        return EventResult.HANDLED;
-                    }
-                    if (event.isChar('q') || event.code() == dev.tamboui.tui.event.KeyCode.ESCAPE) {
-                        controller.goBack();
-                        return EventResult.HANDLED;
-                    }
-                    if (event.isChar(' ')) {
-                        controller.toggleSelection();
-                        return EventResult.HANDLED;
-                    }
-                    return EventResult.UNHANDLED;
-                });
+        return panel(
+                        "Recipe Detail",
+                        dock().top(
+                                        metadataContent,
+                                        Constraint.length(
+                                                metadataLineCount(recipe, parents.size(), !applicability.applicable())))
+                                .center(markdown(description))
+                                .constraint(Constraint.fill()))
+                .addClass("panel");
     }
 }

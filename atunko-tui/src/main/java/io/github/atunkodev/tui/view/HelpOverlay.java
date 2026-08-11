@@ -76,8 +76,8 @@ public final class HelpOverlay {
                     "Actions",
                     List.of(
                             new Entry("o", "Recipe options"),
-                            new Entry("f", "Flatten highlighted"),
-                            new Entry("F", "Flatten all composites"),
+                            new Entry("l", "Flatten highlighted"),
+                            new Entry("L", "Flatten all composites"),
                             new Entry("r", "Run"),
                             new Entry("d", "Dry-run"),
                             new Entry("?", "Toggle help"),

@@ -56,7 +56,7 @@ class ExecutionResultsViewTest {
         assertThat(controller.lastWorkspaceResult().results().getFirst().succeeded())
                 .isTrue();
 
-        Element rendered = ExecutionResultsView.render(controller);
+        Element rendered = io.github.atunkodev.tui.shell.TuiShell.render(new ExecutionResultsView(), controller);
         assertThat(rendered).isNotNull();
     }
 
@@ -84,6 +84,7 @@ class ExecutionResultsViewTest {
         controller.runSelectedRecipes(false);
 
         assertThat(controller.lastWorkspaceResult().hasFailures()).isTrue();
-        assertThat(ExecutionResultsView.render(controller)).isNotNull();
+        assertThat(io.github.atunkodev.tui.shell.TuiShell.render(new ExecutionResultsView(), controller))
+                .isNotNull();
     }
 }
