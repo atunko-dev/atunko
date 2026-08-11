@@ -55,6 +55,16 @@ $fg-error: rgb(180, 0, 0);
 }
 
 /* Status bar / footer */
+/* Tabs address screens; the active one is emphasised, the rest recede. */
+.tab-active {
+    color: $fg-accent;
+    text-style: bold;
+}
+
+.tab-inactive {
+    color: gray;
+}
+
 /* Focus indicator. Tab traversal is meaningless if the user cannot see where focus went,
    and neither theme had a focus rule before. */
 :focus {

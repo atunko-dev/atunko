@@ -75,11 +75,11 @@
 
 ## 7. Tabs
 
-- [ ] 7.1 Write `AtunkoTuiTabsPilotTest` — tabs name screens, active screen indicated, live
+- [x] 7.1 Write `AtunkoTuiTabsPilotTest` — tabs name screens, active screen indicated, live
       counts present, sort shown as a status indicator [SVC_TUI_0009.3]
-- [ ] 7.2 Replace `tabs(SortOrder…)` in the header with screen tabs carrying live counts
-- [ ] 7.3 Move sort order to the status row beside `src:` and `fav:`
-- [ ] 7.4 Add `@Requirements({"atunko:TUI_0009.3"})` and `@SVCs({"SVC_TUI_0009.3"})`
+- [x] 7.2 Replace `tabs(SortOrder…)` in the header with screen tabs carrying live counts
+- [x] 7.3 Move sort order to the status row beside `src:` and `fav:`
+- [x] 7.4 Add `@Requirements({"atunko:TUI_0009.3"})` and `@SVCs({"SVC_TUI_0009.3"})`
 
 ## 8. Migrate remaining views
 

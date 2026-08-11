@@ -5,7 +5,6 @@ import static dev.tamboui.toolkit.Toolkit.handleTextInputKey;
 import static dev.tamboui.toolkit.Toolkit.panel;
 import static dev.tamboui.toolkit.Toolkit.row;
 import static dev.tamboui.toolkit.Toolkit.spacer;
-import static dev.tamboui.toolkit.Toolkit.tabs;
 import static dev.tamboui.toolkit.Toolkit.text;
 import static dev.tamboui.toolkit.Toolkit.textInput;
 
@@ -18,7 +17,6 @@ import dev.tamboui.tui.event.MouseEventKind;
 import dev.tamboui.widgets.input.TextInputState;
 import io.github.atunkodev.core.recipe.FavoritesFilter;
 import io.github.atunkodev.core.recipe.RecipeInfo;
-import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.tui.AtunkoTui;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
@@ -385,9 +383,7 @@ public final class BrowserView implements TuiView {
                         .focusable(false)
                         .cursorRequiresFocus(false)
                         .constraint(Constraint.fill(3)),
-                text(" "),
-                tabs(SortOrder.NAME.name(), SortOrder.TAGS.name(), SortOrder.RECENT.name())
-                        .selected(controller.sortOrder().ordinal()));
+                text(" "));
     }
 
     @Requirements({"atunko:TUI_0007.1"})
