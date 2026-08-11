@@ -1,0 +1,19 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api project(':atunko-core')
+
+    // Jackson JSON for the newline-delimited wire protocol and the YAML registry files
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+
+    testImplementation testFixtures(project(':atunko-core'))
+    testRuntimeOnly libs.slf4j.nop
+}
+
+tasks.named('test') {
+    // Matches atunko-core: the Gradle Tooling API's native-platform requires native access
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
+}

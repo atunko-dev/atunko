@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/reqstool/reqstool-client/main/src/reqstool/resources/schemas/v1/requirements.schema.json
 metadata:
-  urn: atunko-core
+  urn: atunko-daemon
   variant: microservice
-  title: Atunko Core Module Requirements
+  title: Atunko Daemon Module Requirements
 
 imports:
   local:
@@ -11,6 +11,4 @@ imports:
 filters:
   atunko:
     custom:
-      # Negative lookahead rather than an excludes key: the schema allows only one
-      # expression. CORE_0023 (the daemon) is implemented in atunko-daemon, not here.
-      includes: ids == /CORE_(?!0023).*/
+      includes: ids == /CORE_0023.*/

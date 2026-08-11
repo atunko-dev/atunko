@@ -1,6 +1,7 @@
 package io.github.atunkodev;
 
 import io.github.atunkodev.cli.ConfigExportCommand;
+import io.github.atunkodev.cli.DaemonCommand;
 import io.github.atunkodev.cli.ErrorHandler;
 import io.github.atunkodev.cli.ListCommand;
 import io.github.atunkodev.cli.RunCommand;
@@ -24,7 +25,8 @@ import picocli.CommandLine.Spec;
             ListCommand.class,
             SearchCommand.class,
             RunCommand.class,
-            ConfigExportCommand.class
+            ConfigExportCommand.class,
+            DaemonCommand.class
         })
 public class App implements Runnable {
 

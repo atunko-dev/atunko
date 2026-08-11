@@ -9,6 +9,7 @@ implementations:
   local:
     - path: ../../atunko-core/docs/reqstool
     - path: ../../atunko-cli/docs/reqstool
+    - path: ../../atunko-daemon/docs/reqstool
     - path: ../../atunko-tui/docs/reqstool
     - path: ../../atunko-web/docs/reqstool
 
@@ -1237,7 +1238,7 @@ requirements:
       build files are not parsed at all
     references:
       requirement_ids: ["CORE_0016"]
-    categories: [functional-suitability, usability]
+    categories: [functional-suitability, interaction-capability]
     revision: 0.1.0
 
   - id: CORE_0017
@@ -1616,5 +1617,107 @@ requirements:
       in the browser sort cycle
     references:
       requirement_ids: ["CORE_0022"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  # LST CLI daemon requirements
+  - id: CORE_0023
+    title: Core — LST Daemon Cross-Invocation Reuse
+    significance: shall
+    description: >-
+      A long-lived daemon process shall retain a project's parsed LSTs in memory between
+      separate CLI invocations, so that a recipe execution against an unchanged project
+      skips both the build-system scan and the parse
+    categories: [performance-efficiency]
+    revision: 0.1.0
+
+  - id: CORE_0023.1
+    title: Core — Daemon Per Project Root
+    significance: shall
+    description: >-
+      The daemon registry shall hold at most one daemon per resolved project root and shall
+      retain at most a configured maximum number of daemons, evicting the least recently
+      used idle daemon when the limit is exceeded and never evicting one serving a request
+    references:
+      requirement_ids: ["CORE_0023"]
+    categories: [performance-efficiency]
+    revision: 0.1.0
+
+  - id: CORE_0023.2
+    title: Core — Daemon Idle Expiry
+    significance: shall
+    description: >-
+      A daemon shall exit on its own after a configurable idle period without requests,
+      releasing the memory held by its cached LSTs
+    references:
+      requirement_ids: ["CORE_0023"]
+    categories: [performance-efficiency]
+    revision: 0.1.0
+
+  - id: CORE_0023.3
+    title: Core — Daemon Local Access Control
+    significance: shall
+    description: >-
+      The daemon shall listen only on the loopback interface and shall refuse any request
+      whose token does not match the token recorded in its owner-only registry file
+    references:
+      requirement_ids: ["CORE_0023"]
+    categories: [security]
+    revision: 0.1.0
+
+  - id: CORE_0023.4
+    title: Core — Daemon Version Match
+    significance: shall
+    description: >-
+      A client shall refuse to reuse a daemon built from a different atunko version, stopping
+      it and starting a replacement, so that LSTs parsed by a different OpenRewrite are never
+      served
+    references:
+      requirement_ids: ["CORE_0023"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0009
+    title: CLI — Transparent Daemon Execution
+    significance: shall
+    description: >-
+      The run command shall execute through a daemon for the target project root, starting one
+      when none is available, and shall produce output identical to in-process execution
+    references:
+      requirement_ids: ["CORE_0023"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0009.1
+    title: CLI — Daemon Fallback
+    significance: shall
+    description: >-
+      When a daemon cannot be started or reached, the run command shall fall back to
+      in-process execution, report the reason as a warning, and still produce the correct
+      result rather than failing
+    references:
+      requirement_ids: ["CLI_0009"]
+    categories: [reliability]
+    revision: 0.1.0
+
+  - id: CLI_0009.2
+    title: CLI — Daemon Opt-Out
+    significance: shall
+    description: >-
+      The run command shall execute entirely in-process, contacting and starting no daemon,
+      when the daemon is disabled by flag or configuration
+    references:
+      requirement_ids: ["CLI_0009"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
+  - id: CLI_0009.3
+    title: CLI — Daemon Control Commands
+    significance: shall
+    description: >-
+      The CLI shall provide commands to list the running daemons with their project root,
+      port, process id and idle time, and to stop a single daemon or all of them
+    references:
+      requirement_ids: ["CLI_0009"]
     categories: [interaction-capability]
     revision: 0.1.0

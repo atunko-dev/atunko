@@ -101,6 +101,13 @@ subprojects {
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
 
+    // Stamped so the daemon can tell which atunko version parsed the LSTs it is holding.
+    tasks.withType(Jar).configureEach {
+        manifest {
+            attributes('Implementation-Version': project.version)
+        }
+    }
+
     tasks.named('test') {
         useJUnitPlatform()
         // Tests must never read the developer's real ~/.config/atunko (favorites, recent, user recipes)

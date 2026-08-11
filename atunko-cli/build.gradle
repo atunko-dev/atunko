@@ -22,6 +22,7 @@ tasks.named('test') {
 dependencies {
     implementation project(':atunko-core')
     testImplementation testFixtures(project(':atunko-core'))
+    implementation project(':atunko-daemon')
     implementation project(':atunko-tui')
     implementation project(':atunko-web')
 
