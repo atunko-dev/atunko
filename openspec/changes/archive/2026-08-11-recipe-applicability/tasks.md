@@ -37,7 +37,7 @@
 
 - [x] 5.1 `./gradlew spotlessApply build` green; reqstool annotations
       (`@Requirements`/`@SVCs`) on implementing classes and tests
-- [ ] 5.2 PR for Stage 1
+- [x] 5.2 PR for Stage 1
 
 ## 6. Core: Maven parsing (Stage 2)
 
@@ -55,4 +55,4 @@
 ## 7. Stage 2 wrap-up
 
 - [x] 7.1 `./gradlew spotlessApply build` green; annotations in place
-- [ ] 7.2 PR for Stage 2
+- [x] 7.2 PR for Stage 2

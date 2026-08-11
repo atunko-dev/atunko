@@ -1,11 +1,11 @@
 # LST Caching — Daemon Approach
 
 Follows from [#11 feat: LST caching](https://github.com/atunko-dev/atunko/issues/11) and
-supersedes the serialization-based design in `PLAN_LST.md`.
+supersedes the serialization-based design in `docs/design/lst-caching-serialization-superseded.md`.
 
 ## Why the original design failed
 
-`PLAN_LST.md` assumed OpenRewrite LSTs could be round-tripped via Jackson polymorphic
+`docs/design/lst-caching-serialization-superseded.md` assumed OpenRewrite LSTs could be round-tripped via Jackson polymorphic
 JSON (`@JsonTypeInfo(use = Id.CLASS)` on `Tree`). Implementation proved this wrong for
 all five supported subtypes:
 

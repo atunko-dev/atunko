@@ -52,4 +52,4 @@
       assume a scanned session
 - [x] 5.2 `./gradlew spotlessApply build` green; `openspec validate --all --strict`
       passes
-- [ ] 5.3 PR (stacked on feat/recipe-applicability-stage2), closes #44
+- [x] 5.3 PR (stacked on feat/recipe-applicability-stage2), closes #44
