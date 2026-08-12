@@ -55,6 +55,37 @@ $fg-error: light-red;
 }
 
 /* Status bar / footer */
+/* Tabs address screens; the active one is emphasised, the rest recede. */
+.tab-active {
+    color: $fg-accent;
+    text-style: bold;
+}
+
+.tab-inactive {
+    color: gray;
+}
+
+/* Focus indicator. Tab traversal is meaningless if the user cannot see where focus went,
+   and neither theme had a focus rule before. */
+:focus {
+    border-color: $fg-accent;
+}
+
+/* Key hints: the key is emphasised, the label recedes, so the eye finds the key
+   without reading the sentence. */
+.hint-key {
+    color: $fg-accent;
+    text-style: bold;
+}
+
+.hint-label {
+    color: gray;
+}
+
+.hint-bar {
+    background: $bg-primary;
+}
+
 .status-bar {
     color: white;
     background: $bg-primary;

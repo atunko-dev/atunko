@@ -1,17 +1,16 @@
 package io.github.atunkodev.tui.view;
 
 import static dev.tamboui.toolkit.Toolkit.column;
-import static dev.tamboui.toolkit.Toolkit.dock;
-import static dev.tamboui.toolkit.Toolkit.row;
-import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
 
-import dev.tamboui.layout.Constraint;
-import dev.tamboui.toolkit.element.Element;
+import dev.tamboui.toolkit.element.StyledElement;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.tui.event.MouseEvent;
 import dev.tamboui.tui.event.MouseEventKind;
 import io.github.atunkodev.tui.TuiController;
+import io.github.atunkodev.tui.shell.AtunkoBindings;
+import io.github.atunkodev.tui.shell.KeyHint;
+import io.github.atunkodev.tui.shell.TuiView;
 import io.github.reqstool.annotations.Requirements;
 import java.nio.file.Path;
 import java.util.List;
@@ -19,19 +18,53 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Requirements({"atunko:TUI_0001.10"})
-public final class LoadConfigView {
+public final class LoadConfigView implements TuiView {
 
     private static final Logger LOG = Logger.getLogger(LoadConfigView.class.getName());
 
-    private LoadConfigView() {}
+    @Override
+    public String id() {
+        return "load-config";
+    }
 
-    public static Element render(TuiController controller) {
+    @Override
+    public String title(TuiController controller) {
+        return "Load Config";
+    }
+
+    @Override
+    public String status(TuiController controller) {
+        int count = controller.configFiles().size();
+        return count == 0 ? "no saved configurations" : count + " configs found";
+    }
+
+    @Override
+    public List<KeyHint> keyHints(TuiController controller) {
+        return AtunkoBindings.hintsFor(AtunkoBindings.MOVE, AtunkoBindings.LOAD_CONFIG, AtunkoBindings.BACK);
+    }
+
+    @Override
+    public List<HelpOverlay.Section> helpSections() {
+        return AtunkoBindings.helpSections(AtunkoBindings.MOVE, AtunkoBindings.LOAD_CONFIG, AtunkoBindings.BACK);
+    }
+
+    @Override
+    public EventResult handleKey(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
+        return handleKeyEvent(controller, event);
+    }
+
+    @Override
+    public EventResult handleMouse(TuiController controller, MouseEvent event) {
+        return handleMouseEvent(controller, event);
+    }
+
+    @Override
+    public StyledElement<?> renderContent(TuiController controller) {
         List<Path> configFiles = controller.configFiles();
         int highlightIndex = controller.loadConfigHighlightIndex();
 
-        Element centerContent;
         if (configFiles.isEmpty()) {
-            centerContent = column(
+            return column(
                     text(""),
                     text(" No saved configurations found.").addClass("unselected"),
                     text(" Save one first with S in the browser.").addClass("unselected"));
@@ -45,22 +78,8 @@ public final class LoadConfigView {
                     listColumn.add(text("   " + filename));
                 }
             }
-            centerContent = listColumn;
+            return listColumn;
         }
-
-        String countText = configFiles.isEmpty() ? "" : configFiles.size() + " configs found";
-        Element header = row(text(" Load Config ").addClass("screen-title"), spacer(), text(countText));
-
-        Element statusBar = text(" j/k:navigate  Enter:load  Esc/q:back").addClass("status-bar");
-
-        return column(dock().top(header, Constraint.length(1))
-                        .center(centerContent)
-                        .bottom(statusBar, Constraint.length(1))
-                        .constraint(Constraint.fill()))
-                .id("load-config")
-                .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, event))
-                .onMouseEvent(event -> handleMouseEvent(controller, event));
     }
 
     private static EventResult handleMouseEvent(TuiController controller, MouseEvent event) {
@@ -84,11 +103,11 @@ public final class LoadConfigView {
     }
 
     private static EventResult handleKeyEvent(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
-        if (event.isDown() || event.isChar('j')) {
+        if (event.isDown()) {
             controller.moveLoadConfigDown();
             return EventResult.HANDLED;
         }
-        if (event.isUp() || event.isChar('k')) {
+        if (event.isUp()) {
             controller.moveLoadConfigUp();
             return EventResult.HANDLED;
         }

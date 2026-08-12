@@ -1,44 +1,113 @@
 package io.github.atunkodev.tui.view;
 
-import static dev.tamboui.toolkit.Toolkit.column;
-import static dev.tamboui.toolkit.Toolkit.dock;
 import static dev.tamboui.toolkit.Toolkit.handleTextInputKey;
 import static dev.tamboui.toolkit.Toolkit.list;
 import static dev.tamboui.toolkit.Toolkit.row;
-import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
 import static dev.tamboui.toolkit.Toolkit.textInput;
 
 import dev.tamboui.layout.Constraint;
-import dev.tamboui.toolkit.element.Element;
+import dev.tamboui.toolkit.element.StyledElement;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.tui.event.MouseEvent;
 import dev.tamboui.tui.event.MouseEventKind;
 import dev.tamboui.widgets.input.TextInputState;
 import io.github.atunkodev.tui.TuiController;
+import io.github.atunkodev.tui.shell.AtunkoBindings;
+import io.github.atunkodev.tui.shell.KeyHint;
+import io.github.atunkodev.tui.shell.TuiView;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
 @Requirements({"atunko:TUI_0001.11"})
-public final class TagBrowserView {
+public final class TagBrowserView implements TuiView {
 
     private static final TextInputState TAG_SEARCH_STATE = new TextInputState();
     private static int tagIndex;
     private static boolean tagSearchMode;
 
-    private TagBrowserView() {}
+    @Override
+    public String id() {
+        return "tag-browser";
+    }
 
-    public static Element render(TuiController controller) {
-        List<String> allTags = controller.allTags();
+    @Override
+    public String title(TuiController controller) {
+        return tagSearchMode ? "SEARCH TAGS" : "Tag Browser";
+    }
+
+    @Override
+    public String status(TuiController controller) {
+        List<String> tags = visibleTags(controller);
+        return tags.size() + " tags | " + controller.selectedTags().size() + " selected";
+    }
+
+    @Override
+    public List<KeyHint> keyHints(TuiController controller) {
+        if (tagSearchMode) {
+            return List.of(KeyHint.of("Enter", "apply"), KeyHint.of("Esc", "clear search"));
+        }
+        return AtunkoBindings.hintsFor(
+                AtunkoBindings.MOVE,
+                AtunkoBindings.TOGGLE_SELECTION,
+                AtunkoBindings.SEARCH,
+                AtunkoBindings.HELP,
+                AtunkoBindings.BACK);
+    }
+
+    @Override
+    public List<HelpOverlay.Section> helpSections() {
+        return AtunkoBindings.helpSections(
+                AtunkoBindings.MOVE,
+                AtunkoBindings.TOGGLE_SELECTION,
+                AtunkoBindings.SEARCH,
+                AtunkoBindings.HELP,
+                AtunkoBindings.BACK);
+    }
+
+    @Override
+    public EventResult handleKey(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
+        if (controller.isShowHelp()) {
+            controller.toggleHelp();
+            return event.isChar('?') ? EventResult.HANDLED : EventResult.UNHANDLED;
+        }
+        if (event.isChar('?')) {
+            controller.toggleHelp();
+            return EventResult.HANDLED;
+        }
+        return handleKeyEvent(controller, visibleTags(controller), event);
+    }
+
+    @Override
+    public EventResult handleMouse(TuiController controller, MouseEvent event) {
+        return handleMouseEvent(controller, visibleTags(controller), event);
+    }
+
+    /** Tags after the filter box, shared by rendering, status and event handling. */
+    private static List<String> visibleTags(TuiController controller) {
         String query = TAG_SEARCH_STATE.text().toLowerCase(Locale.ROOT);
-        List<String> tags = query.isBlank()
-                ? allTags
-                : allTags.stream()
+        return query.isBlank()
+                ? controller.allTags()
+                : controller.allTags().stream()
                         .filter(t -> t.toLowerCase(Locale.ROOT).contains(query))
                         .toList();
+    }
 
+    @Override
+    public StyledElement<?> renderHeaderExtras(TuiController controller) {
+        return textInput(TAG_SEARCH_STATE)
+                .placeholder("Filter tags...")
+                .rounded()
+                .focusable(false)
+                .cursorRequiresFocus(false)
+                .constraint(Constraint.fill(1));
+    }
+
+    @Override
+    public StyledElement<?> renderContent(TuiController controller) {
+        List<String> tags = visibleTags(controller);
         Set<String> selected = controller.selectedTags();
 
         var recipeList = list().addClass("list-item");
@@ -51,42 +120,11 @@ public final class TagBrowserView {
             recipeList.add(row(prefixEl, text(tag)));
         }
 
-        var headerLabel = tagSearchMode
-                ? text(" SEARCH TAGS ").addClass("screen-title", "search-mode")
-                : text(" Tag Browser ").addClass("screen-title");
-
-        long selectedCount = selected.size();
-        var selectedIndicator =
-                selectedCount > 0 ? text(" " + selectedCount + " selected ").addClass("coverage-indicator") : text("");
-
-        Element header = row(
-                headerLabel,
-                text(" "),
-                selectedIndicator,
-                spacer(),
-                textInput(TAG_SEARCH_STATE)
-                        .placeholder("Filter tags...")
-                        .rounded()
-                        .focusable(false)
-                        .cursorRequiresFocus(false)
-                        .constraint(Constraint.fill(1)));
-
-        String footer = tagSearchMode
-                ? " Type to filter | Enter:apply Esc:clear search"
-                : " \u2191\u2193/jk:nav Space:sel Enter:apply /:search Esc:clear q:back";
-
-        return column(dock().top(header, Constraint.length(3))
-                        .center(recipeList
-                                .selected(tagIndex)
-                                .title("Tags (" + tags.size() + ")")
-                                .addClass("panel")
-                                .autoScroll())
-                        .bottom(text(" " + footer).addClass("status-bar"), Constraint.length(1))
-                        .constraint(Constraint.fill()))
-                .id("tag-browser")
-                .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, tags, event))
-                .onMouseEvent(event -> handleMouseEvent(controller, tags, event));
+        return recipeList
+                .selected(tagIndex)
+                .title("Tags (" + tags.size() + ")")
+                .addClass("panel")
+                .autoScroll();
     }
 
     private static EventResult handleMouseEvent(TuiController controller, List<String> tags, MouseEvent event) {
@@ -127,11 +165,11 @@ public final class TagBrowserView {
             tagIndex = 0;
             return EventResult.HANDLED;
         }
-        if (event.isDown() || event.isChar('j')) {
+        if (event.isDown()) {
             tagIndex = Math.min(tagIndex + 1, Math.max(tags.size() - 1, 0));
             return EventResult.HANDLED;
         }
-        if (event.isUp() || event.isChar('k')) {
+        if (event.isUp()) {
             tagIndex = Math.max(tagIndex - 1, 0);
             return EventResult.HANDLED;
         }
@@ -144,11 +182,11 @@ public final class TagBrowserView {
 
     private static EventResult handleBrowseModeKey(
             TuiController controller, List<String> tags, dev.tamboui.tui.event.KeyEvent event) {
-        if (event.isDown() || event.isChar('j')) {
+        if (event.isDown()) {
             tagIndex = Math.min(tagIndex + 1, Math.max(tags.size() - 1, 0));
             return EventResult.HANDLED;
         }
-        if (event.isUp() || event.isChar('k')) {
+        if (event.isUp()) {
             tagIndex = Math.max(tagIndex - 1, 0);
             return EventResult.HANDLED;
         }

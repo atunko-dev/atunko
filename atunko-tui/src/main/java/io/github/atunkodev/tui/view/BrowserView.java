@@ -1,77 +1,158 @@
 package io.github.atunkodev.tui.view;
 
 import static dev.tamboui.toolkit.Toolkit.column;
-import static dev.tamboui.toolkit.Toolkit.dock;
 import static dev.tamboui.toolkit.Toolkit.handleTextInputKey;
 import static dev.tamboui.toolkit.Toolkit.panel;
 import static dev.tamboui.toolkit.Toolkit.row;
 import static dev.tamboui.toolkit.Toolkit.spacer;
-import static dev.tamboui.toolkit.Toolkit.tabs;
 import static dev.tamboui.toolkit.Toolkit.text;
 import static dev.tamboui.toolkit.Toolkit.textInput;
 
 import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
+import dev.tamboui.toolkit.element.StyledElement;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.tui.event.MouseEvent;
 import dev.tamboui.tui.event.MouseEventKind;
 import dev.tamboui.widgets.input.TextInputState;
 import io.github.atunkodev.core.recipe.FavoritesFilter;
 import io.github.atunkodev.core.recipe.RecipeInfo;
-import io.github.atunkodev.core.recipe.SortOrder;
 import io.github.atunkodev.tui.AtunkoTui;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
+import io.github.atunkodev.tui.shell.AtunkoBindings;
+import io.github.atunkodev.tui.shell.KeyHint;
+import io.github.atunkodev.tui.shell.TuiView;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Logger;
 
-@Requirements({"atunko:TUI_0001.1", "atunko:TUI_0001.2", "atunko:TUI_0001.13"})
-public final class BrowserView {
+@Requirements({"atunko:TUI_0001.1", "atunko:TUI_0001.2", "atunko:TUI_0001.13", "atunko:TUI_0009"})
+public final class BrowserView implements TuiView {
 
     private static final Logger LOG = Logger.getLogger(BrowserView.class.getName());
     private static final TextInputState SEARCH_STATE = new TextInputState();
     private static final TextInputState SAVE_NAME_STATE = new TextInputState();
 
-    private BrowserView() {}
+    private final AtunkoTui app;
 
-    public static Element render(TuiController controller, AtunkoTui app) {
+    public BrowserView(AtunkoTui app) {
+        this.app = app;
+    }
+
+    @Override
+    public String id() {
+        return "browser";
+    }
+
+    @Override
+    public String title(TuiController controller) {
+        return controller.isSearchMode() ? "SEARCH" : "atunko";
+    }
+
+    /** State only — key hints live on their own footer row now. */
+    @Override
+    @Requirements({"atunko:TUI_0006.1", "atunko:TUI_0009.2"})
+    public String status(TuiController controller) {
+        int selected = controller.selectedRecipes().size();
+        long parentCount =
+                controller.displayRows().stream().filter(r -> !r.isSubRecipe()).count();
+        String source = controller.sourceFilter().name().toLowerCase(Locale.ROOT);
+        String favorites = controller.favoritesFilter() == FavoritesFilter.FAVORITES ? "only" : "all";
+        String sort = controller.sortOrder().name().toLowerCase(Locale.ROOT);
+        return parentCount + " recipes | " + selected + " selected | sort:" + sort + " | src:" + source + " | fav:"
+                + favorites;
+    }
+
+    @Override
+    @Requirements({"atunko:TUI_0009.2"})
+    public List<KeyHint> keyHints(TuiController controller) {
+        if (controller.isSaveConfigMode()) {
+            return List.of(KeyHint.of("Enter", "save"), KeyHint.of("Esc", "cancel"));
+        }
+        if (controller.isSearchMode()) {
+            return List.of(KeyHint.of("Enter", "apply"), KeyHint.of("Esc", "clear"));
+        }
+        // Derived from the registry, not written out here — that is what stops the footer disagreeing with the keys.
+        return AtunkoBindings.hintsFor(
+                AtunkoBindings.MOVE,
+                AtunkoBindings.TOGGLE_SELECTION,
+                AtunkoBindings.OPEN_DETAIL,
+                AtunkoBindings.OPEN_RUN,
+                AtunkoBindings.SEARCH,
+                AtunkoBindings.OPEN_TAGS,
+                AtunkoBindings.OPEN_OPTIONS,
+                AtunkoBindings.HELP,
+                AtunkoBindings.QUIT);
+    }
+
+    /** Same registry the footer hints come from, so the two cannot describe different keys. */
+    @Override
+    @Requirements({"atunko:TUI_0009.6", "atunko:TUI_0009.7"})
+    public List<HelpOverlay.Section> helpSections() {
+        return AtunkoBindings.helpSections(
+                AtunkoBindings.MOVE,
+                AtunkoBindings.FOCUS_NEXT,
+                AtunkoBindings.EXPAND,
+                AtunkoBindings.COLLAPSE,
+                AtunkoBindings.EXPAND_ALL,
+                AtunkoBindings.COLLAPSE_ALL,
+                AtunkoBindings.TOGGLE_SELECTION,
+                AtunkoBindings.SELECT_ALL,
+                AtunkoBindings.DESELECT_ALL,
+                AtunkoBindings.OPEN_DETAIL,
+                AtunkoBindings.OPEN_OPTIONS,
+                AtunkoBindings.OPEN_RUN,
+                AtunkoBindings.OPEN_TAGS,
+                AtunkoBindings.SEARCH,
+                AtunkoBindings.NEXT_MATCH,
+                AtunkoBindings.PREV_MATCH,
+                AtunkoBindings.CYCLE_SORT,
+                AtunkoBindings.CYCLE_SOURCE,
+                AtunkoBindings.TOGGLE_FAVORITE,
+                AtunkoBindings.CYCLE_FAVORITES_FILTER,
+                AtunkoBindings.SAVE_CONFIG,
+                AtunkoBindings.LOAD_CONFIG,
+                AtunkoBindings.HELP,
+                AtunkoBindings.QUIT);
+    }
+
+    @Override
+    public StyledElement<?> renderContent(TuiController controller) {
         if (controller.isShowOptions()) {
-            return RecipeOptionsView.render(controller);
+            return (StyledElement<?>) RecipeOptionsView.render(controller);
         }
+        return (StyledElement<?>) renderRecipeList(controller, controller.displayRows());
+    }
 
-        List<DisplayRow> displayRows = controller.displayRows();
+    @Override
+    public StyledElement<?> renderDetails(TuiController controller) {
+        return controller.isShowOptions() ? null : (StyledElement<?>) renderDetailPanel(controller);
+    }
 
-        Element centerContent;
-        if (controller.isShowHelp()) {
-            centerContent = row(spacer(), HelpOverlay.render(HelpOverlay.BROWSER_HELP), spacer())
-                    .constraint(Constraint.fill());
-        } else {
-            centerContent = row(renderRecipeList(controller, displayRows), renderDetailPanel(controller))
-                    .constraint(Constraint.fill());
+    @Override
+    public StyledElement<?> renderHeaderExtras(TuiController controller) {
+        if (controller.isSaveConfigMode()) {
+            return (StyledElement<?>) row(
+                    text(" Save config: ").addClass("detail-label"),
+                    textInput(SAVE_NAME_STATE)
+                            .placeholder("config-name")
+                            .rounded()
+                            .constraint(Constraint.fill()));
         }
+        return (StyledElement<?>) renderHeader(controller);
+    }
 
-        Element bottomBar = controller.isSaveConfigMode()
-                ? row(
-                        text(" Save config: ").addClass("detail-label"),
-                        textInput(SAVE_NAME_STATE)
-                                .placeholder("config-name")
-                                .rounded()
-                                .constraint(Constraint.fill()),
-                        text("  Enter:save  Esc:cancel "))
-                : renderStatusBar(controller, displayRows);
+    @Override
+    public EventResult handleKey(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
+        return handleKeyEvent(controller, app, event);
+    }
 
-        return column(dock().top(renderHeader(controller), Constraint.length(3))
-                        .center(centerContent)
-                        .bottom(bottomBar, Constraint.length(1))
-                        .constraint(Constraint.fill()))
-                .id("browser")
-                .addClass("app")
-                .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, app, event))
-                .onMouseEvent(event -> handleMouseEvent(controller, event));
+    @Override
+    public EventResult handleMouse(TuiController controller, MouseEvent event) {
+        return handleMouseEvent(controller, event);
     }
 
     private static EventResult handleMouseEvent(TuiController controller, MouseEvent event) {
@@ -107,7 +188,12 @@ public final class BrowserView {
             TuiController controller, AtunkoTui app, dev.tamboui.tui.event.KeyEvent event) {
         if (controller.isShowHelp()) {
             controller.toggleHelp();
-            return EventResult.HANDLED;
+            // The dismissing key is not consumed: reading help and then pressing `r` to run used to do nothing,
+            // because the keystroke that closed the overlay was swallowed and had to be pressed twice. `?` is the
+            // exception — it toggles help, so closing is all it should do.
+            if (event.isChar('?')) {
+                return EventResult.HANDLED;
+            }
         }
         if (controller.isSaveConfigMode()) {
             return handleSaveConfigModeKey(controller, event);
@@ -159,11 +245,11 @@ public final class BrowserView {
 
     private static EventResult handleBrowseModeKey(
             TuiController controller, AtunkoTui app, dev.tamboui.tui.event.KeyEvent event) {
-        if (event.isDown() || event.isChar('j')) {
+        if (event.isDown()) {
             controller.moveDown();
             return EventResult.HANDLED;
         }
-        if (event.isUp() || event.isChar('k')) {
+        if (event.isUp()) {
             controller.moveUp();
             return EventResult.HANDLED;
         }
@@ -293,9 +379,7 @@ public final class BrowserView {
                         .focusable(false)
                         .cursorRequiresFocus(false)
                         .constraint(Constraint.fill(3)),
-                text(" "),
-                tabs(SortOrder.NAME.name(), SortOrder.TAGS.name(), SortOrder.RECENT.name())
-                        .selected(controller.sortOrder().ordinal()));
+                text(" "));
     }
 
     @Requirements({"atunko:TUI_0007.1"})

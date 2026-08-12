@@ -1,76 +1,93 @@
 package io.github.atunkodev.tui.view;
 
 import static dev.tamboui.toolkit.Toolkit.column;
-import static dev.tamboui.toolkit.Toolkit.dock;
 import static dev.tamboui.toolkit.Toolkit.row;
-import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
 
-import dev.tamboui.layout.Constraint;
 import dev.tamboui.toolkit.element.Element;
+import dev.tamboui.toolkit.element.StyledElement;
 import dev.tamboui.toolkit.event.EventResult;
 import dev.tamboui.tui.event.MouseEvent;
 import dev.tamboui.tui.event.MouseEventKind;
 import io.github.atunkodev.core.project.ProjectEntry;
 import io.github.atunkodev.tui.TuiController;
 import io.github.atunkodev.tui.TuiController.DisplayRow;
+import io.github.atunkodev.tui.shell.AtunkoBindings;
+import io.github.atunkodev.tui.shell.KeyHint;
+import io.github.atunkodev.tui.shell.TuiView;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 import java.util.Set;
 
 @Requirements({"atunko:TUI_0001.14", "atunko:TUI_0001.21", "atunko:TUI_0001.24", "atunko:TUI_0002.2"})
-public final class ConfirmRunView {
+public final class ConfirmRunView implements TuiView {
 
-    private ConfirmRunView() {}
+    @Override
+    public String id() {
+        return "confirm-run";
+    }
 
-    public static Element render(TuiController controller) {
-        if (controller.isShowOptions()) {
-            return RecipeOptionsView.render(controller);
+    @Override
+    public String title(TuiController controller) {
+        return "Run Recipes";
+    }
+
+    @Override
+    public String status(TuiController controller) {
+        List<DisplayRow> rows = controller.runDisplayRows();
+        if (rows.isEmpty()) {
+            return "no recipes selected";
         }
+        Set<String> selected = controller.selectedRecipes();
+        long selectedCount =
+                rows.stream().filter(r -> selected.contains(r.recipe().name())).count();
+        return selectedCount + "/" + rows.size() + " selected";
+    }
+
+    @Override
+    public List<KeyHint> keyHints(TuiController controller) {
+        if (controller.runDisplayRows().isEmpty()) {
+            return AtunkoBindings.hintsFor(AtunkoBindings.BACK);
+        }
+        return AtunkoBindings.hintsFor(
+                AtunkoBindings.MOVE,
+                AtunkoBindings.OPEN_OPTIONS,
+                AtunkoBindings.FLATTEN,
+                AtunkoBindings.EXPORT,
+                AtunkoBindings.HELP,
+                AtunkoBindings.BACK);
+    }
+
+    @Override
+    public List<HelpOverlay.Section> helpSections() {
+        return HelpOverlay.RUN_DIALOG_HELP;
+    }
+
+    @Override
+    public EventResult handleKey(TuiController controller, dev.tamboui.tui.event.KeyEvent event) {
+        return handleKeyEvent(controller, !controller.runDisplayRows().isEmpty(), event);
+    }
+
+    @Override
+    public EventResult handleMouse(TuiController controller, MouseEvent event) {
+        return handleMouseEvent(controller, !controller.runDisplayRows().isEmpty(), event);
+    }
+
+    @Override
+    public StyledElement<?> renderContent(TuiController controller) {
         if (controller.isShowExport()) {
-            return ExportConfigView.render(controller);
+            return (StyledElement<?>) ExportConfigView.render(controller);
         }
 
         List<DisplayRow> displayRows = controller.runDisplayRows();
         Set<String> selected = controller.selectedRecipes();
-        boolean hasRecipes = !displayRows.isEmpty();
-
-        Element centerContent;
-        if (controller.isShowHelp()) {
-            centerContent = row(spacer(), HelpOverlay.render(HelpOverlay.RUN_DIALOG_HELP), spacer());
-        } else if (hasRecipes) {
-            Element projectInfo = buildProjectInfo(controller);
-            centerContent = column(projectInfo, text(""), renderRecipeList(controller, displayRows, selected));
-        } else {
-            centerContent = column(
+        if (displayRows.isEmpty()) {
+            return column(
                     text(""),
                     text(" No recipes selected.").addClass("warning"),
                     text(" Use Space to select recipes, then press r to run."));
         }
-
-        long selectedCount = displayRows.stream()
-                .filter(r -> selected.contains(r.recipe().name()))
-                .count();
-        long totalCount = displayRows.size();
-        String footer = hasRecipes
-                ? selectedCount + "/" + totalCount
-                        + " selected | o:options  f:flatten  F:flatten-all  x:export  ?:help  Esc:back"
-                : "Esc:back";
-
-        return column(dock().top(
-                                row(
-                                        text(" Run Recipes ").addClass("screen-title"),
-                                        spacer(),
-                                        text(selectedCount + "/" + totalCount + " selected ")
-                                                .addClass("coverage-indicator")),
-                                Constraint.length(1))
-                        .center(centerContent)
-                        .bottom(text(" " + footer).addClass("status-bar"), Constraint.length(1))
-                        .constraint(Constraint.fill()))
-                .id("confirm-run")
-                .focusable()
-                .onKeyEvent(event -> handleKeyEvent(controller, hasRecipes, event))
-                .onMouseEvent(event -> handleMouseEvent(controller, hasRecipes, event));
+        return column(buildProjectInfo(controller), text(""), renderRecipeList(controller, displayRows, selected));
     }
 
     private static EventResult handleMouseEvent(TuiController controller, boolean hasRecipes, MouseEvent event) {
@@ -148,11 +165,11 @@ public final class ConfirmRunView {
             return EventResult.HANDLED;
         }
         if (hasRecipes) {
-            if (event.isDown() || event.isChar('j')) {
+            if (event.isDown()) {
                 controller.moveRunHighlightDown();
                 return EventResult.HANDLED;
             }
-            if (event.isUp() || event.isChar('k')) {
+            if (event.isUp()) {
                 controller.moveRunHighlightUp();
                 return EventResult.HANDLED;
             }
@@ -184,11 +201,11 @@ public final class ConfirmRunView {
                 controller.collapseRunRecipe();
                 return EventResult.HANDLED;
             }
-            if (event.isChar('f')) {
+            if (event.isChar('l')) {
                 controller.flattenRunRecipe();
                 return EventResult.HANDLED;
             }
-            if (event.isChar('F')) {
+            if (event.isChar('L')) {
                 controller.flattenAllRunRecipes();
                 return EventResult.HANDLED;
             }
