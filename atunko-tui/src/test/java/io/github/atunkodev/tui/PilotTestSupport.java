@@ -118,6 +118,9 @@ final class PilotTestSupport implements AutoCloseable {
                 .postRenderProcessor(capture)
                 .build();
         ToolkitPilot pilot = new ToolkitPilot(runner, backend);
+        // The app never sees this runner otherwise, and requestQuit() would be a no-op here even once it works in
+        // production — the very gap that let `q` ship broken.
+        app.bindRunner(runner);
 
         Thread runnerThread = new Thread(
                 () -> {
@@ -170,6 +173,12 @@ final class PilotTestSupport implements AutoCloseable {
     /** Focus traversal order of the last frame — empty when only one region is focusable. */
     List<String> focusOrder() {
         return capture.focusOrder;
+    }
+
+    /** Waits for the render loop to end — how a test observes that a quit key actually quit. */
+    boolean awaitExit(Duration timeout) throws InterruptedException {
+        runnerThread.join(timeout.toMillis());
+        return !runnerThread.isAlive();
     }
 
     /** Dispatches a raw event into the running TUI — e.g. mouse scroll, which {@link Pilot} has no method for. */

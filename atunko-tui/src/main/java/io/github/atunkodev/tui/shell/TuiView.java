@@ -29,6 +29,14 @@ public interface TuiView {
      */
     String title(TuiController controller);
 
+    /**
+     * Extra style classes for the title, for screens that highlight a mode — the browser turns the title yellow while
+     * searching. The shell always adds {@code screen-title}; these come on top of it.
+     */
+    default List<String> titleClasses(TuiController controller) {
+        return List.of();
+    }
+
     /** The state line of the footer: counts, active filters, current mode. Never key hints — those are separate. */
     String status(TuiController controller);
 

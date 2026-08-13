@@ -2,6 +2,7 @@ package io.github.atunkodev.tui.shell;
 
 import static dev.tamboui.toolkit.Toolkit.column;
 import static dev.tamboui.toolkit.Toolkit.dock;
+import static dev.tamboui.toolkit.Toolkit.panel;
 import static dev.tamboui.toolkit.Toolkit.row;
 import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
@@ -130,17 +131,27 @@ public final class TuiShell {
         return view.handleKey(controller, event);
     }
 
+    /**
+     * Title, tabs and the screen's own control on one row, inside a bordered band.
+     *
+     * <p>The panel's border plus its single content row is exactly {@link #HEADER_HEIGHT}, so everything in the band
+     * lines up by construction. Loose elements in a 3-row strip did not: the title's background painted all three rows
+     * while the tab bar sat on the first, and only a bordered input ever filled the band. It also matches the panels
+     * below, so header controls must be single-line — see the views' header extras.
+     */
+    @Requirements({"atunko:TUI_0009.8"})
     private static Element renderHeader(TuiView view, TuiController controller) {
         StyledElement<?> extras = view.renderHeaderExtras(controller);
-        Row header = row(text(" " + view.title(controller) + " ").addClass("screen-title"), text(" "));
+        StyledElement<?> title = text(" " + view.title(controller) + " ").addClass("screen-title");
+        view.titleClasses(controller).forEach(title::addClass);
+        Row header = row(title, text("  "));
         header.add(TabBar.render(controller));
         if (extras != null) {
-            header.add(text(" "));
             header.add(extras);
         } else {
             header.add(spacer());
         }
-        return header.constraint(Constraint.fill());
+        return panel(header).addClass("panel").constraint(Constraint.length(HEADER_HEIGHT));
     }
 
     /**

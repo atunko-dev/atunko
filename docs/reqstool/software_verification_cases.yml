@@ -2146,3 +2146,24 @@ cases:
       WHEN the help key is pressed
       THEN help opens and lists the bindings of that screen
     revision: "0.1.0"
+
+  - id: SVC_TUI_0009.8
+    requirement_ids: ["TUI_0009.8"]
+    title: Header shows the title once on one aligned row
+    verification: automated-test
+    description: |
+      GIVEN a screen rendered headlessly
+      WHEN the header band is inspected
+      THEN the screen title appears exactly once, and the title, the tab bar and the
+      screen's own header control share one row of the fixed header height
+    revision: "0.1.0"
+
+  - id: SVC_TUI_0001.28
+    requirement_ids: ["TUI_0001.28"]
+    title: Quit key exits the TUI
+    verification: automated-test
+    description: |
+      GIVEN the TUI running headlessly on any screen
+      WHEN the quit key is pressed
+      THEN the render loop ends and the application exits
+    revision: "0.1.0"

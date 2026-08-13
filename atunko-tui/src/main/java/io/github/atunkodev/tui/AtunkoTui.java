@@ -32,6 +32,12 @@ public class AtunkoTui extends ToolkitApp {
     private final Path logFile;
     private final ThemeConfig themeConfig;
 
+    /**
+     * The runner driving this app. {@link ToolkitApp} keeps its own, but only its {@code run()} assigns it, and this
+     * class overrides {@code run()} to pass the TCSS style engine — so the inherited {@code quit()} is a no-op.
+     */
+    private ToolkitRunner activeRunner;
+
     public AtunkoTui(TuiController controller) {
         this(controller, null, ThemeConfig.DEFAULT);
     }
@@ -104,15 +110,28 @@ public class AtunkoTui extends ToolkitApp {
                 .config(configure())
                 .styleEngine(styleEngine)
                 .build()) {
+            bindRunner(r);
             onStart();
             r.run(this::render);
         } finally {
+            bindRunner(null);
             onStop();
         }
     }
 
+    /**
+     * Binds the runner {@link #requestQuit()} quits. Called by {@link #run()}; a harness that builds its own runner
+     * must call it too, otherwise it tests a quit path the app does not use.
+     */
+    public void bindRunner(ToolkitRunner runner) {
+        this.activeRunner = runner;
+    }
+
+    @Requirements({"atunko:TUI_0001.28"})
     public void requestQuit() {
-        quit();
+        if (activeRunner != null) {
+            activeRunner.quit();
+        }
     }
 
     @Requirements({"atunko:TUI_0001.18"})

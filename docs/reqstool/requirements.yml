@@ -536,6 +536,15 @@ requirements:
     categories: [functional-suitability]
     revision: 0.1.0
 
+  - id: TUI_0001.28
+    title: TUI — Exit
+    significance: shall
+    description: The TUI shall exit when the quit key is pressed on any screen
+    references:
+      requirement_ids: ["TUI_0001"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
   # CLI requirements — list/search/run
   - id: CLI_0001
     title: CLI Default Behaviour — Launch TUI
@@ -1833,6 +1842,17 @@ requirements:
     description: >-
       Every screen shall offer help through the same key, and the help shown shall list
       the bindings of the screen it was opened from
+    references:
+      requirement_ids: ["TUI_0009"]
+    categories: [interaction-capability]
+    revision: 0.1.0
+
+  - id: TUI_0009.8
+    title: TUI — Header Composition
+    significance: shall
+    description: >-
+      The header shall present the screen title exactly once, alongside the tab bar and the
+      screen's own header control, aligned on a single row within the fixed header height
     references:
       requirement_ids: ["TUI_0009"]
     categories: [interaction-capability]

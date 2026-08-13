@@ -99,7 +99,6 @@ public final class TagBrowserView implements TuiView {
     public StyledElement<?> renderHeaderExtras(TuiController controller) {
         return textInput(TAG_SEARCH_STATE)
                 .placeholder("Filter tags...")
-                .rounded()
                 .focusable(false)
                 .cursorRequiresFocus(false)
                 .constraint(Constraint.fill(1));
