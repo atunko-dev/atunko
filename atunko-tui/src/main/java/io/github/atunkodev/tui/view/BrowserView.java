@@ -4,7 +4,6 @@ import static dev.tamboui.toolkit.Toolkit.column;
 import static dev.tamboui.toolkit.Toolkit.handleTextInputKey;
 import static dev.tamboui.toolkit.Toolkit.panel;
 import static dev.tamboui.toolkit.Toolkit.row;
-import static dev.tamboui.toolkit.Toolkit.spacer;
 import static dev.tamboui.toolkit.Toolkit.text;
 import static dev.tamboui.toolkit.Toolkit.textInput;
 
@@ -50,6 +49,11 @@ public final class BrowserView implements TuiView {
     @Override
     public String title(TuiController controller) {
         return controller.isSearchMode() ? "SEARCH" : "atunko";
+    }
+
+    @Override
+    public List<String> titleClasses(TuiController controller) {
+        return controller.isSearchMode() ? List.of("search-mode") : List.of();
     }
 
     /** State only — key hints live on their own footer row now. */
@@ -136,11 +140,11 @@ public final class BrowserView implements TuiView {
     public StyledElement<?> renderHeaderExtras(TuiController controller) {
         if (controller.isSaveConfigMode()) {
             return (StyledElement<?>) row(
-                    text(" Save config: ").addClass("detail-label"),
-                    textInput(SAVE_NAME_STATE)
-                            .placeholder("config-name")
-                            .rounded()
-                            .constraint(Constraint.fill()));
+                            text(" Save config: ").addClass("detail-label"),
+                            textInput(SAVE_NAME_STATE)
+                                    .placeholder("config-name")
+                                    .constraint(Constraint.fill()))
+                    .constraint(Constraint.fill());
         }
         return (StyledElement<?>) renderHeader(controller);
     }
@@ -357,29 +361,27 @@ public final class BrowserView implements TuiView {
         return EventResult.UNHANDLED;
     }
 
+    /** The title is the shell's to draw — this contributes only what is particular to the browser. */
     private static Element renderHeader(TuiController controller) {
         if (!controller.isSearchMode()) {
             SEARCH_STATE.setText(controller.searchQuery());
         }
-        var headerLabel = controller.isSearchMode()
-                ? text(" SEARCH ").addClass("screen-title", "search-mode")
-                : text(" atunko ").addClass("screen-title");
+        // An empty tag indicator has to be zero-width, not a spacer: a spacer competes with the search field for the
+        // header's remaining width and halves it.
         var tagIndicator = controller.selectedTags().isEmpty()
-                ? spacer()
+                ? text("")
                 : text(" tags:" + String.join(",", controller.selectedTags()) + " ")
                         .addClass("tag-indicator");
         return row(
-                headerLabel,
-                text(" "),
-                tagIndicator,
-                text(" "),
-                textInput(SEARCH_STATE)
-                        .placeholder("Search recipes...")
-                        .rounded()
-                        .focusable(false)
-                        .cursorRequiresFocus(false)
-                        .constraint(Constraint.fill(3)),
-                text(" "));
+                        tagIndicator,
+                        text(" "),
+                        textInput(SEARCH_STATE)
+                                .placeholder("Search recipes...")
+                                .focusable(false)
+                                .cursorRequiresFocus(false)
+                                .constraint(Constraint.fill()),
+                        text(" "))
+                .constraint(Constraint.fill());
     }
 
     @Requirements({"atunko:TUI_0007.1"})
