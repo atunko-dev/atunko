@@ -3,6 +3,7 @@ package io.github.atunkodev.daemon;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.atunkodev.daemon.protocol.DaemonMessage;
+import io.github.atunkodev.testing.DaemonDiagnostics;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,6 +44,9 @@ class DaemonLauncherTest {
         // Idle expiry has its own dedicated test — DaemonServerTest.exitsAfterIdleTimeout — which runs in-process
         // with a 500ms timeout and does not depend on how fast the machine is.
         System.setProperty(DaemonServer.IDLE_TIMEOUT_PROPERTY, "600");
+        // Bound the spawned JVMs: unbounded, each daemon claims a quarter of the host's memory, and a CI runner
+        // running two of them alongside the build has killed one mid-request.
+        System.setProperty(DaemonLauncher.MAX_HEAP_PROPERTY, "1g");
         registry = new DaemonRegistry(registryDir);
         client = new DaemonClient(registry, VERSION);
     }
@@ -52,6 +56,7 @@ class DaemonLauncherTest {
         registry.list().forEach(entry -> ProcessHandle.of(entry.pid()).ifPresent(ProcessHandle::destroy));
         System.clearProperty(DaemonDirs.REGISTRY_DIR_PROPERTY);
         System.clearProperty(DaemonServer.IDLE_TIMEOUT_PROPERTY);
+        System.clearProperty(DaemonLauncher.MAX_HEAP_PROPERTY);
     }
 
     @Test
@@ -62,12 +67,12 @@ class DaemonLauncherTest {
                 client.execute(projectRoot, new DaemonMessage.Execute(List.of(recipe()), Map.of(), false));
 
         assertThat(first.fallbackReason())
-                .as("daemon should have served the request")
+                .withFailMessage(() -> diagnostics(first.fallbackReason()))
                 .isNull();
         assertThat(first.startedDaemon()).isTrue();
         assertThat(first.result().orElseThrow().parsedFromCache()).isFalse();
 
-        DaemonEntry entry = registry.find(projectRoot).orElseThrow();
+        DaemonEntry entry = registeredDaemon();
         assertThat(entry.pid())
                 .as("the daemon must be a separate process")
                 .isNotEqualTo(ProcessHandle.current().pid());
@@ -75,6 +80,9 @@ class DaemonLauncherTest {
         DaemonClient.Attempt second =
                 client.execute(projectRoot, new DaemonMessage.Execute(List.of(recipe()), Map.of(), false));
 
+        assertThat(second.fallbackReason())
+                .withFailMessage(() -> diagnostics(second.fallbackReason()))
+                .isNull();
         assertThat(second.startedDaemon()).as("the running daemon is reused").isFalse();
         assertThat(second.result().orElseThrow().parsedFromCache())
                 .as("the second run across process boundaries must not re-parse — this is the whole feature")
@@ -84,8 +92,15 @@ class DaemonLauncherTest {
     @Test
     @Timeout(300)
     void stopTerminatesTheSpawnedProcess() throws Exception {
-        client.execute(projectRoot, new DaemonMessage.Execute(List.of(recipe()), Map.of(), false));
-        DaemonEntry entry = registry.find(projectRoot).orElseThrow();
+        DaemonClient.Attempt attempt =
+                client.execute(projectRoot, new DaemonMessage.Execute(List.of(recipe()), Map.of(), false));
+
+        // Checked before the lookup below: a fallback takes the registry entry with it, and the resulting empty
+        // Optional reports nothing about why the daemon was unusable.
+        assertThat(attempt.fallbackReason())
+                .withFailMessage(() -> diagnostics(attempt.fallbackReason()))
+                .isNull();
+        DaemonEntry entry = registeredDaemon();
         assertThat(entry.isProcessAlive()).isTrue();
 
         client.stop(entry);
@@ -103,8 +118,50 @@ class DaemonLauncherTest {
     void launcherWritesADaemonLogFile() throws Exception {
         Optional<DaemonEntry> entry = new DaemonLauncher(registry).launch(projectRoot, VERSION);
 
-        assertThat(entry).isPresent();
+        assertThat(entry)
+                .withFailMessage(() -> diagnostics("the launcher returned no entry"))
+                .isPresent();
         assertThat(DaemonLauncher.logFile(DaemonRegistry.resolve(projectRoot))).exists();
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0023.5"})
+    void configuredMaxHeapBoundsTheDaemonJvm() {
+        System.setProperty(DaemonLauncher.MAX_HEAP_PROPERTY, "1g");
+
+        List<String> command = new DaemonLauncher(registry).command(DaemonRegistry.resolve(projectRoot), VERSION);
+
+        assertThat(command).contains("-Xmx1g");
+        assertThat(command)
+                .as("the child starts daemons of its own, so it needs the setting too")
+                .contains("-D" + DaemonLauncher.MAX_HEAP_PROPERTY + "=1g");
+    }
+
+    @Test
+    @SVCs({"atunko:SVC_CORE_0023.5"})
+    void withoutAConfiguredMaxHeapTheDaemonKeepsJvmDefaults() {
+        // Undoes the bound setUp applies for the spawn tests — this one is about the unconfigured default.
+        System.clearProperty(DaemonLauncher.MAX_HEAP_PROPERTY);
+
+        List<String> command = new DaemonLauncher(registry).command(DaemonRegistry.resolve(projectRoot), VERSION);
+
+        assertThat(command).noneMatch(arg -> arg.startsWith("-Xmx"));
+    }
+
+    /**
+     * The daemon the test just started. Asserted rather than {@code orElseThrow}-ed: a bare
+     * {@code NoSuchElementException} here is what made issue #91 impossible to diagnose from a CI log.
+     */
+    private DaemonEntry registeredDaemon() {
+        Optional<DaemonEntry> entry = registry.find(projectRoot);
+        assertThat(entry)
+                .withFailMessage(() -> diagnostics("the daemon served the request but has no registry entry"))
+                .isPresent();
+        return entry.orElseThrow();
+    }
+
+    private String diagnostics(String reason) {
+        return DaemonDiagnostics.describe(registryDir, reason);
     }
 
     private static String recipe() {

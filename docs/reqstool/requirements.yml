@@ -1677,6 +1677,30 @@ requirements:
     categories: [functional-suitability]
     revision: 0.1.0
 
+  - id: CORE_0023.5
+    title: Core — Daemon JVM Memory Bound
+    significance: shall
+    description: >-
+      The launcher shall apply a configurable maximum heap to the daemon JVMs it starts, so that
+      daemons sharing a host with other memory-hungry work do not each claim an unbounded share
+      of physical memory
+    references:
+      requirement_ids: ["CORE_0023"]
+    categories: [performance-efficiency]
+    revision: 0.1.0
+
+  - id: CORE_0023.6
+    title: Core — Atomic Registry Updates
+    significance: shall
+    description: >-
+      A registry entry shall be replaced atomically, so that a client reading an entry while
+      another process writes it observes either the previous entry or the new one, and never
+      discards a live daemon's entry as corrupt
+    references:
+      requirement_ids: ["CORE_0023"]
+    categories: [reliability]
+    revision: 0.1.0
+
   - id: CLI_0009
     title: CLI — Transparent Daemon Execution
     significance: shall

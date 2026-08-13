@@ -6,8 +6,10 @@ import io.github.reqstool.annotations.Requirements;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.MessageDigest;
@@ -88,15 +90,42 @@ public class DaemonRegistry {
         return dir.resolve(keyFor(projectRoot) + ".yaml");
     }
 
-    /** Writes (or replaces) the entry for its project root. */
+    /**
+     * Writes (or replaces) the entry for its project root.
+     *
+     * <p>Renames a complete file into place rather than rewriting in place. Two processes update one entry moments
+     * apart — the daemon when it finishes a request, its client when the reply arrives — and {@link #read} deletes
+     * what it cannot parse, so a reader that caught a half-written file used to orphan a live daemon.
+     */
+    @Requirements({"atunko:CORE_0023.6"})
     public void write(DaemonEntry entry) {
+        Path temp = null;
         try {
             Files.createDirectories(dir);
             Path file = fileFor(entry.projectRoot());
-            Files.writeString(file, mapper.writeValueAsString(entry));
-            restrictPermissions(file);
+            // Same directory as the entry, so the rename stays within one filesystem and can be atomic. The .tmp
+            // suffix keeps it out of list(), which reads only .yaml.
+            temp = Files.createTempFile(dir, keyFor(entry.projectRoot()), ".tmp");
+            Files.writeString(temp, mapper.writeValueAsString(entry));
+            // Before the rename: the entry carries the daemon's auth token, so it is never briefly world-readable.
+            restrictPermissions(temp);
+            replace(temp, file);
+            temp = null;
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to write daemon registry entry", e);
+        } finally {
+            if (temp != null) {
+                deleteQuietly(temp);
+            }
+        }
+    }
+
+    private static void replace(Path temp, Path file) throws IOException {
+        try {
+            Files.move(temp, file, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            // Some network and virtualised filesystems cannot promise it; a plain replace still beats a truncate.
+            Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 

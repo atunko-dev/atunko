@@ -1997,6 +1997,27 @@ cases:
       its place
     revision: "0.1.0"
 
+  - id: SVC_CORE_0023.5
+    requirement_ids: ["CORE_0023.5"]
+    title: Configured maximum heap is applied to spawned daemons
+    verification: automated-test
+    description: |
+      GIVEN a maximum heap is configured for daemons
+      WHEN the launcher builds the command for a daemon JVM
+      THEN the command carries that bound as the child's maximum heap and forwards the setting,
+      and WHEN no maximum heap is configured THEN the command imposes no bound
+    revision: "0.1.0"
+
+  - id: SVC_CORE_0023.6
+    requirement_ids: ["CORE_0023.6"]
+    title: A concurrent reader never destroys a live registry entry
+    verification: automated-test
+    description: |
+      GIVEN a registered daemon whose entry is repeatedly rewritten
+      WHEN another party reads that entry concurrently
+      THEN every read returns the entry, and the entry still exists afterwards
+    revision: "0.1.0"
+
   - id: SVC_CLI_0009
     requirement_ids: ["CLI_0009"]
     title: Run through the daemon matches in-process output

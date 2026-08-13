@@ -5,8 +5,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.github.atunkodev.daemon.AtunkoVersion;
 import io.github.atunkodev.daemon.DaemonDirs;
 import io.github.atunkodev.daemon.DaemonEntry;
+import io.github.atunkodev.daemon.DaemonLauncher;
 import io.github.atunkodev.daemon.DaemonRegistry;
 import io.github.atunkodev.testing.CommandLineFixture;
+import io.github.atunkodev.testing.DaemonDiagnostics;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,6 +36,9 @@ class DaemonCommandTest {
         // Long enough that a daemon cannot idle out mid-test — the first run builds the recipe environment and
         // takes minutes on CI. Teardown kills whatever is still running, so nothing outlives the suite.
         System.setProperty("atunko.daemon.idle-timeout", "600");
+        // Bound the spawned JVMs: unbounded, each daemon claims a quarter of the host's memory, and this suite
+        // starts two of them alongside the build.
+        System.setProperty(DaemonLauncher.MAX_HEAP_PROPERTY, "1g");
         Files.writeString(projectDir.resolve("Sample.java"), "import java.util.List;\nclass Sample {}\n");
         registry = new DaemonRegistry(registryDir);
     }
@@ -49,6 +54,7 @@ class DaemonCommandTest {
         });
         System.clearProperty(DaemonDirs.REGISTRY_DIR_PROPERTY);
         System.clearProperty("atunko.daemon.idle-timeout");
+        System.clearProperty(DaemonLauncher.MAX_HEAP_PROPERTY);
     }
 
     @Test
@@ -92,6 +98,7 @@ class DaemonCommandTest {
     void stopTerminatesTheDaemonForAProjectAndClearsItsEntry() {
         CommandLineFixture run = CommandLineFixture.create();
         run.execute("run", "-r", RECIPE, "--project-dir", projectDir.toString());
+        assertDaemonServed(run);
         assertThat(registry.list()).as("a daemon should be running to stop").hasSize(1);
 
         CommandLineFixture fixture = CommandLineFixture.create();
@@ -109,8 +116,12 @@ class DaemonCommandTest {
         Path second = Files.createDirectory(projectDir.resolve("nested"));
         Files.writeString(second.resolve("Other.java"), "import java.util.Map;\nclass Other {}\n");
 
-        CommandLineFixture.create().execute("run", "-r", RECIPE, "--project-dir", projectDir.toString());
-        CommandLineFixture.create().execute("run", "-r", RECIPE, "--project-dir", second.toString());
+        CommandLineFixture first = CommandLineFixture.create();
+        first.execute("run", "-r", RECIPE, "--project-dir", projectDir.toString());
+        assertDaemonServed(first);
+        CommandLineFixture nested = CommandLineFixture.create();
+        nested.execute("run", "-r", RECIPE, "--project-dir", second.toString());
+        assertDaemonServed(nested);
         assertThat(registry.list()).hasSize(2);
 
         CommandLineFixture fixture = CommandLineFixture.create();
@@ -118,6 +129,17 @@ class DaemonCommandTest {
 
         assertThat(exit).isZero();
         assertThat(registry.list()).isEmpty();
+    }
+
+    /**
+     * Checked before any assertion on the registry: a run that fell back to in-process execution leaves no daemon
+     * behind, so the registry assertion fails with a count that says nothing about the cause. {@code run} reports
+     * the fallback on stderr.
+     */
+    private void assertDaemonServed(CommandLineFixture run) {
+        assertThat(run.stderr())
+                .withFailMessage(() -> DaemonDiagnostics.describe(registryDir, run.stderr()))
+                .doesNotContain("Daemon unavailable");
     }
 
     @Test
