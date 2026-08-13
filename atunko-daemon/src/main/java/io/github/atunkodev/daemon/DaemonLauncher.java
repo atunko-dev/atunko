@@ -1,5 +1,6 @@
 package io.github.atunkodev.daemon;
 
+import io.github.reqstool.annotations.Requirements;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +21,13 @@ import java.util.Optional;
  * outliving the CLI that started it must not keep the terminal's file descriptors open.
  */
 public class DaemonLauncher {
+
+    /**
+     * Maximum heap for a spawned daemon, in {@code -Xmx} syntax (e.g. {@code 1g}). Unset leaves the child on JVM
+     * ergonomics, which give it a quarter of physical memory — fine on a workstation, too much on a shared CI
+     * runner where several daemons and the build itself compete for the same memory.
+     */
+    public static final String MAX_HEAP_PROPERTY = "atunko.daemon.max-heap";
 
     private final DaemonRegistry registry;
     private final Duration startupTimeout;
@@ -51,15 +59,22 @@ public class DaemonLauncher {
         return awaitRegistration(root, process);
     }
 
-    private List<String> command(Path root, String atunkoVersion) {
+    /** Package-visible so the memory bound can be asserted without launching a JVM. */
+    @Requirements({"atunko:CORE_0023.5"})
+    List<String> command(Path root, String atunkoVersion) {
         List<String> command = new ArrayList<>();
         command.add(javaBinary());
         command.add("-cp");
         command.add(System.getProperty("java.class.path"));
+        String maxHeap = System.getProperty(MAX_HEAP_PROPERTY);
+        if (maxHeap != null && !maxHeap.isBlank()) {
+            command.add("-Xmx" + maxHeap);
+        }
         // Carry the client's daemon configuration into the child; it has no other way to see it.
         forwardProperty(command, DaemonServer.IDLE_TIMEOUT_PROPERTY);
         forwardProperty(command, DaemonRegistry.MAX_DAEMONS_PROPERTY);
         forwardProperty(command, DaemonDirs.REGISTRY_DIR_PROPERTY);
+        forwardProperty(command, MAX_HEAP_PROPERTY);
         command.add(DaemonMain.class.getName());
         command.add(root.toString());
         command.add(atunkoVersion);

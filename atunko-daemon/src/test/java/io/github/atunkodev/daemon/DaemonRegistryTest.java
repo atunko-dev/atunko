@@ -46,6 +46,51 @@ class DaemonRegistryTest {
         return p.pid();
     }
 
+    /**
+     * The daemon touches its own entry when it finishes a request and its client touches the same entry when the
+     * reply arrives, so two processes rewrite one file moments apart. A reader that caught a half-written file used
+     * to delete it as corrupt, orphaning a live daemon — which is what made the spawn tests flaky.
+     */
+    @Test
+    @SVCs({"atunko:SVC_CORE_0023.6"})
+    void aConcurrentReaderNeverDestroysALiveEntry() throws Exception {
+        registry.write(liveEntry(projectRoot, 1_000L));
+        int rounds = 300;
+        var missing = new java.util.concurrent.atomic.AtomicInteger();
+        var start = new java.util.concurrent.CountDownLatch(1);
+
+        Thread writer = new Thread(() -> {
+            awaitQuietly(start);
+            for (int i = 0; i < rounds; i++) {
+                registry.write(liveEntry(projectRoot, 2_000L + i));
+            }
+        });
+        Thread reader = new Thread(() -> {
+            awaitQuietly(start);
+            for (int i = 0; i < rounds; i++) {
+                if (registry.find(projectRoot).isEmpty()) {
+                    missing.incrementAndGet();
+                }
+            }
+        });
+        writer.start();
+        reader.start();
+        start.countDown();
+        writer.join();
+        reader.join();
+
+        assertThat(missing).hasValue(0);
+        assertThat(registry.find(projectRoot)).isPresent();
+    }
+
+    private static void awaitQuietly(java.util.concurrent.CountDownLatch latch) {
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     @Test
     void writesAndReadsBackAnEntry() {
         DaemonEntry entry = liveEntry(projectRoot, 1_000L);

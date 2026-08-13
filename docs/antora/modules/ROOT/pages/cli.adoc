@@ -730,6 +730,11 @@ java -Datunko.daemon.disabled=true -jar atunko.jar run ...   # every run
 | How many daemons are retained before the least recently used idle one is stopped
 (default: `3`)
 
+| `atunko.daemon.max-heap`
+| Maximum heap for each daemon process, in `-Xmx` syntax (e.g. `1g`). Unset leaves the
+daemon on JVM defaults, which allow it a quarter of physical memory — set a bound where
+several daemons share a machine with memory-hungry builds, such as CI
+
 | `atunko.daemon.registry.dir`
 | Where daemon registry files live (default: `$XDG_STATE_HOME/atunko/daemons`, falling
 back to `~/.local/state/atunko/daemons`)

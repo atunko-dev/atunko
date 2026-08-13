@@ -87,9 +87,10 @@ public class DaemonClient {
                 return Attempt.fallback("could not start a daemon: " + e.getMessage(), false);
             }
             if (existing.isEmpty()) {
-                return Attempt.fallback(
-                        "daemon did not start within the startup timeout (see " + DaemonLauncher.logHint(root) + ")",
-                        false);
+                // Deliberately does not name a cause: the launcher gives up both when the child exits early and
+                // when it never registers, and claiming a timeout for a daemon that died on startup sends whoever
+                // reads this looking in the wrong place. The log says which it was.
+                return Attempt.fallback("daemon did not start (see " + DaemonLauncher.logHint(root) + ")", false);
             }
             started = true;
         }

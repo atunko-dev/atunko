@@ -23,6 +23,7 @@ dependencies {
     implementation project(':atunko-core')
     testImplementation testFixtures(project(':atunko-core'))
     implementation project(':atunko-daemon')
+    testImplementation testFixtures(project(':atunko-daemon'))
     implementation project(':atunko-tui')
     implementation project(':atunko-web')
 
