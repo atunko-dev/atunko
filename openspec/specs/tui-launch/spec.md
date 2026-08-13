@@ -126,3 +126,9 @@ The system SHALL pass SVC_TUI_0001.17.2.
 
 #### Scenario: SVC_TUI_0001.17.3
 The system SHALL pass SVC_TUI_0001.17.3.
+
+### Requirement: TUI_0001.28
+The system SHALL implement TUI_0001.28.
+
+#### Scenario: SVC_TUI_0001.28
+The system SHALL pass SVC_TUI_0001.28.
