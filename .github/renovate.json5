@@ -16,7 +16,9 @@
   automergeType: "pr",
   platformAutomerge: true,
 
-  branchPrefix: "renovate",
+  // Trailing slash is load-bearing: the prefix is concatenated, not joined, so
+  // "renovate" would yield branches like `renovatejunit-5.x`.
+  branchPrefix: "renovate/",
 
   addLabels: [
     "bot-renovate",
@@ -76,6 +78,10 @@
       matchUpdateTypes: ["digest"],
       addLabels: ["renovate-version-digest"],
     },
+    {
+      matchUpdateTypes: ["pin"],
+      automerge: true,
+    },
 
     // =====================================================
     // Gradle-specific tuning
@@ -124,8 +130,9 @@
       semanticCommitType: "chore",
       semanticCommitScope: "github-actions",
       addLabels: ["renovate-type-cicd"],
-      // GitHub Actions use major version tags (v3 → v4) for routine updates;
-      // auto-merge these when all checks pass.
+      // Actions majors (v3 → v4) carry input renames and runtime changes, so
+      // they stay manual like every other major.
+      matchUpdateTypes: ["minor", "patch", "pin"],
       automerge: true,
     },
 
