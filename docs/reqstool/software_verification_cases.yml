@@ -574,8 +574,8 @@ cases:
       THEN the recipes are applied and results are displayed
     revision: "0.1.0"
 
-  - id: SVC_TUI_0001.19
-    requirement_ids: ["TUI_0001.19"]
+  - id: SVC_TUI_0001.29
+    requirement_ids: ["TUI_0001.29"]
     title: TUI navigates results file list
     verification: automated-test
     description: |
@@ -584,8 +584,8 @@ cases:
       THEN the highlighted file in the results list moves accordingly and index is clamped within bounds
     revision: "0.1.0"
 
-  - id: SVC_TUI_0001.19.1
-    requirement_ids: ["TUI_0001.19"]
+  - id: SVC_TUI_0001.29.1
+    requirement_ids: ["TUI_0001.29"]
     title: TUI resets file index on new execution result
     verification: automated-test
     description: |
@@ -594,8 +594,8 @@ cases:
       THEN the highlighted file index resets to the first file
     revision: "0.1.0"
 
-  - id: SVC_TUI_0001.20
-    requirement_ids: ["TUI_0001.20"]
+  - id: SVC_TUI_0001.30
+    requirement_ids: ["TUI_0001.30"]
     title: TUI opens file diff view
     verification: automated-test
     description: |
@@ -604,8 +604,8 @@ cases:
       THEN the file diff screen is shown with before and after content panels
     revision: "0.1.0"
 
-  - id: SVC_TUI_0001.20.1
-    requirement_ids: ["TUI_0001.20"]
+  - id: SVC_TUI_0001.30.1
+    requirement_ids: ["TUI_0001.30"]
     title: TUI returns from file diff to results list
     verification: automated-test
     description: |
@@ -614,8 +614,8 @@ cases:
       THEN the results list screen is shown (not the browser)
     revision: "0.1.0"
 
-  - id: SVC_TUI_0001.20.2
-    requirement_ids: ["TUI_0001.20"]
+  - id: SVC_TUI_0001.30.2
+    requirement_ids: ["TUI_0001.30"]
     title: TUI file diff is no-op when no changes exist
     verification: automated-test
     description: |
@@ -2058,6 +2058,8 @@ cases:
       WHEN the daemon status command runs and the daemon stop command is then issued
       THEN status lists each daemon's project root, port, process id and idle time, and stop
       terminates the targeted daemons and clears their registry entries
+    revision: "0.1.0"
+
   - id: SVC_TUI_0009
     requirement_ids: ["TUI_0009"]
     title: Every screen implements the view contract
