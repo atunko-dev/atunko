@@ -28,7 +28,10 @@
 
   dependencyDashboard: false,
 
-  prConcurrentLimit: 10,
+  // Each PR occupies two long-running CI jobs (build ~10 min, integration
+  // ~3 min) against this org's 20-job concurrency cap, so 5 leaves half the
+  // capacity for human PRs.
+  prConcurrentLimit: 5,
   prHourlyLimit: 5,
 
   lockFileMaintenance: {
