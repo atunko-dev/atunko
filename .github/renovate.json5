@@ -20,6 +20,11 @@
   // "renovate" would yield branches like `renovatejunit-5.x`.
   branchPrefix: "renovate/",
 
+  // Migrates the slash-less branches opened before the fix above. It defaults
+  // to "renovate/", so without this the old branches are neither renamed nor
+  // pruned — they orphan. REMOVE once no `renovate<name>` branch remains.
+  branchPrefixOld: "renovate",
+
   addLabels: [
     "bot-renovate",
   ],
