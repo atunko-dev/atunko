@@ -55,7 +55,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create snapshot pre-release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           # Fixed tag so the JBang catalog URL (releases/download/snapshot/atunko.jar) never changes
           tag_name: snapshot
