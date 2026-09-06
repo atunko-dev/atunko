@@ -1,7 +1,7 @@
 [versions]
 openrewrite-bom = "3.25.0"
 picocli = "4.7.7"
-gradle-tooling-api = "9.3.1"
+gradle-tooling-api = "9.7.1"
 tamboui = "0.4.0"
 reqstool-annotations = "1.0.1"
 junit = "5.11.4"
