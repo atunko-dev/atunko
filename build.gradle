@@ -65,7 +65,7 @@ subprojects {
 
     // --- Checkstyle (style & convention enforcement) ---
     checkstyle {
-        toolVersion = '13.9.0'
+        toolVersion = '13.11.0'
         configFile = rootProject.file('gradle/checkstyle/checkstyle.xml')
         configProperties = ['suppressionFile': rootProject.file('gradle/checkstyle/suppressions.xml')]
         maxErrors = 0
