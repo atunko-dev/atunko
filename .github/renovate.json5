@@ -16,7 +16,14 @@
   automergeType: "pr",
   platformAutomerge: true,
 
-  branchPrefix: "renovate",
+  // Trailing slash is load-bearing: the prefix is concatenated, not joined, so
+  // "renovate" would yield branches like `renovatejunit-5.x`.
+  branchPrefix: "renovate/",
+
+  // Migrates the slash-less branches opened before the fix above. It defaults
+  // to "renovate/", so without this the old branches are neither renamed nor
+  // pruned — they orphan. REMOVE once no `renovate<name>` branch remains.
+  branchPrefixOld: "renovate",
 
   addLabels: [
     "bot-renovate",
@@ -26,7 +33,10 @@
 
   dependencyDashboard: false,
 
-  prConcurrentLimit: 10,
+  // Each PR occupies two long-running CI jobs (build ~10 min, integration
+  // ~3 min) against this org's 20-job concurrency cap, so 5 leaves half the
+  // capacity for human PRs.
+  prConcurrentLimit: 5,
   prHourlyLimit: 5,
 
   lockFileMaintenance: {
@@ -76,6 +86,10 @@
       matchUpdateTypes: ["digest"],
       addLabels: ["renovate-version-digest"],
     },
+    {
+      matchUpdateTypes: ["pin"],
+      automerge: true,
+    },
 
     // =====================================================
     // Gradle-specific tuning
@@ -124,8 +138,9 @@
       semanticCommitType: "chore",
       semanticCommitScope: "github-actions",
       addLabels: ["renovate-type-cicd"],
-      // GitHub Actions use major version tags (v3 → v4) for routine updates;
-      // auto-merge these when all checks pass.
+      // Actions majors (v3 → v4) carry input renames and runtime changes, so
+      // they stay manual like every other major.
+      matchUpdateTypes: ["minor", "patch", "pin"],
       automerge: true,
     },
 
