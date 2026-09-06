@@ -16,7 +16,7 @@ import io.github.atunkodev.tui.shell.TuiView;
 import io.github.reqstool.annotations.Requirements;
 import java.util.List;
 
-@Requirements({"atunko:TUI_0001.20"})
+@Requirements({"atunko:TUI_0001.30"})
 public final class FileDiffView implements TuiView {
 
     @Override

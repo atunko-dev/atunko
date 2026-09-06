@@ -303,7 +303,7 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: TUI_0001.19
+  - id: TUI_0001.29
     title: TUI — Results File Navigation
     significance: shall
     description: The TUI shall allow the user to navigate the list of changed files in execution and dry-run results
@@ -312,7 +312,7 @@ requirements:
     categories: [interaction-capability]
     revision: 0.1.0
 
-  - id: TUI_0001.20
+  - id: TUI_0001.30
     title: TUI — File Diff View
     significance: shall
     description: The TUI shall display a before/after diff panel for any changed file selected from the results list
@@ -1752,6 +1752,9 @@ requirements:
       port, process id and idle time, and to stop a single daemon or all of them
     references:
       requirement_ids: ["CLI_0009"]
+    categories: [functional-suitability]
+    revision: 0.1.0
+
   # TUI layout and interaction baseline requirements
   - id: TUI_0009
     title: TUI — Shared View Contract
