@@ -5,7 +5,7 @@ plugins {
     id 'net.ltgt.errorprone' version '5.1.1' apply false
     id 'io.github.reqstool.gradle-plugin' version '0.1.2' apply false
     id 'com.vaadin' version '25.2.6' apply false
-    id 'pl.allegro.tech.build.axion-release' version '1.18.2'
+    id 'pl.allegro.tech.build.axion-release' version '1.21.3'
 }
 
 scmVersion {
