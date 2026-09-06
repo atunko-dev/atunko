@@ -59,9 +59,26 @@ class DaemonServerTest {
     }
 
     @AfterEach
-    void tearDown() {
+    void tearDown() throws InterruptedException {
         if (server != null) {
             server.close();
+        }
+        // close() only signals: it sets running=false and closes the socket, then returns while the serve loop may
+        // still be inside handle() -> registry.touch(). JUnit deletes @TempDir as soon as this method returns, and
+        // DaemonRegistry.write starts with createDirectories, so the two race — either the write fails, or it
+        // re-creates the directory mid-deletion and JUnit fails instead. Join before releasing the fixture.
+        joinServerThread(serverThread);
+    }
+
+    /** Shared with the other tests that run a server on a thread of their own. */
+    static void joinServerThread(Thread serverThread) throws InterruptedException {
+        if (serverThread == null) {
+            return;
+        }
+        serverThread.join(Duration.ofSeconds(30).toMillis());
+        if (serverThread.isAlive()) {
+            throw new IllegalStateException(
+                    "daemon server thread did not stop; it would outlive @TempDir and race its deletion");
         }
     }
 

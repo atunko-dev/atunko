@@ -39,10 +39,13 @@ class DaemonClientTest {
     }
 
     @AfterEach
-    void tearDown() {
+    void tearDown() throws InterruptedException {
         if (server != null) {
             server.close();
         }
+        // See DaemonServerTest.joinServerThread: close() does not wait, and a serve loop still writing to the
+        // registry races JUnit's @TempDir deletion.
+        DaemonServerTest.joinServerThread(serverThread);
     }
 
     private DaemonEntry startServer(String version) throws Exception {
