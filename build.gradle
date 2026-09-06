@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.diffplug.spotless' version '8.10.0' apply false
+    id 'com.diffplug.spotless' version '8.10.1' apply false
     id 'com.palantir.java-format-spotless' version '2.97.0' apply false
     id 'net.ltgt.errorprone' version '5.1.1' apply false
     id 'io.github.reqstool.gradle-plugin' version '0.1.2' apply false
@@ -65,7 +65,7 @@ subprojects {
 
     // --- Checkstyle (style & convention enforcement) ---
     checkstyle {
-        toolVersion = '13.9.0'
+        toolVersion = '13.11.0'
         configFile = rootProject.file('gradle/checkstyle/checkstyle.xml')
         configProperties = ['suppressionFile': rootProject.file('gradle/checkstyle/suppressions.xml')]
         maxErrors = 0
