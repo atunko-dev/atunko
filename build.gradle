@@ -3,7 +3,7 @@ plugins {
     id 'com.diffplug.spotless' version '8.2.1' apply false
     id 'com.palantir.java-format-spotless' version '2.89.0' apply false
     id 'net.ltgt.errorprone' version '5.0.0' apply false
-    id 'io.github.reqstool.gradle-plugin' version '0.1.0' apply false
+    id 'io.github.reqstool.gradle-plugin' version '0.1.2' apply false
     id 'com.vaadin' version '25.1.0' apply false
     id 'pl.allegro.tech.build.axion-release' version '1.18.2'
 }
@@ -48,9 +48,6 @@ subprojects {
         dependsOn 'compileJava', 'compileTestJava'
     }
 
-    tasks.named('build') {
-        dependsOn 'assembleRequirements'
-    }
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(25)
