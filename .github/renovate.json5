@@ -98,7 +98,6 @@
     {
       matchManagers: ["gradle"],
       matchDepTypes: ["plugin"],
-      groupName: "gradle plugins",
       addLabels: ["renovate-type-gradle-plugin"],
     },
 
@@ -144,14 +143,8 @@
       automerge: true,
     },
 
-    // =====================================================
-    // Generic grouping fallback (MUST BE LAST)
-    // =====================================================
-
-    {
-      matchManagers: ["gradle"],
-      groupName: "{{groupId}} packages",
-      matchPackageNames: ["/.*/"],
-    },
+    // No catch-all grouping rule. Grouping is left to config:recommended's
+    // group:monorepos and group:recommended, which bundle things that genuinely
+    // release together.
   ],
 }
