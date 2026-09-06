@@ -10,7 +10,7 @@ slf4j = "2.0.17"
 errorprone = "2.48.0"
 vaadin = "25.1.0"
 vaadin-boot = "13.6"
-karibu-testing = "2.7.0"
+karibu-testing = "2.7.2"
 javadiffutils = "4.12"
 playwright = "1.50.0"
 
