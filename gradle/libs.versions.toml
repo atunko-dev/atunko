@@ -1,5 +1,5 @@
 [versions]
-openrewrite-bom = "3.25.0"
+openrewrite-bom = "3.38.0"
 picocli = "4.7.7"
 gradle-tooling-api = "9.7.1"
 tamboui = "0.4.0"
