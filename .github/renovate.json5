@@ -56,6 +56,13 @@
       allowedVersions: "<=25",
     },
 
+    // 3.38.0+ needs OpenRewrite artifacts that are only published to the
+    // authenticated Code Genome Project, not Maven Central.
+    {
+      matchPackageNames: ["org.openrewrite.recipe:rewrite-recipe-bom"],
+      allowedVersions: "<3.38.0",
+    },
+
     // =====================================================
     // Version classification labels
     // =====================================================
