@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -140,8 +141,9 @@ class DaemonServerTest {
         exchange(server.token(), executeRecipe());
 
         Files.writeString(projectRoot.resolve("src/A.java"), """
-            import java.util.Map;
-            class A { int x; }
+                        import java.util.Map;
+            import java.util.concurrent.atomic.AtomicInteger;
+                        class A { int x; }
             """);
 
         DaemonMessage after = exchange(server.token(), executeRecipe());
@@ -186,6 +188,59 @@ class DaemonServerTest {
 
         awaitTrue(() -> !serverThread.isAlive(), "daemon thread exits after a stop request");
         assertThat(registry.find(projectRoot)).isEmpty();
+    }
+
+    @Test
+    @Timeout(60)
+    @SVCs({"atunko:SVC_CORE_0023.7"})
+    void finishesRegistryUpdatesBeforeReplying() throws Exception {
+        SlowRegistry slow = new SlowRegistry(registryDir);
+        registry = slow;
+        start(Duration.ofMinutes(5));
+
+        exchange(server.token(), new DaemonMessage.Status());
+        assertThat(slow.completedUpdates).as("touched before the reply").hasValue(1);
+
+        exchange(server.token(), new DaemonMessage.Stop());
+        assertThat(slow.completedUpdates).as("deregistered before the reply").hasValue(2);
+        assertThat(registry.find(projectRoot)).isEmpty();
+
+        joinServerThread(serverThread);
+        assertThat(slow.completedUpdates)
+                .as("no registry update after acknowledging the stop")
+                .hasValue(2);
+    }
+
+    /** Slow updates, so a reply sent before them would reach the client while they are still running. */
+    private static final class SlowRegistry extends DaemonRegistry {
+
+        final AtomicInteger completedUpdates = new AtomicInteger();
+
+        SlowRegistry(Path dir) {
+            super(dir, entry -> {});
+        }
+
+        @Override
+        public void touch(Path projectRoot) {
+            pause();
+            super.touch(projectRoot);
+            completedUpdates.incrementAndGet();
+        }
+
+        @Override
+        public void remove(Path projectRoot) {
+            pause();
+            super.remove(projectRoot);
+            completedUpdates.incrementAndGet();
+        }
+
+        private static void pause() {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     @Test

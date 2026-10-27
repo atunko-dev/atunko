@@ -6,6 +6,7 @@ import io.github.atunkodev.daemon.DaemonClient;
 import io.github.atunkodev.daemon.DaemonDirs;
 import io.github.atunkodev.daemon.DaemonRegistry;
 import io.github.atunkodev.testing.CommandLineFixture;
+import io.github.atunkodev.testing.DaemonProcesses;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,13 +48,7 @@ class RunCommandDaemonTest {
 
     @AfterEach
     void tearDown() {
-        // Skips this JVM: some tests register a synthetic entry carrying the current pid.
-        long self = ProcessHandle.current().pid();
-        new DaemonRegistry(registryDir).list().forEach(entry -> {
-            if (entry.pid() != self) {
-                ProcessHandle.of(entry.pid()).ifPresent(ProcessHandle::destroy);
-            }
-        });
+        DaemonProcesses.stopAll(registryDir);
         System.clearProperty(DaemonDirs.REGISTRY_DIR_PROPERTY);
         System.clearProperty("atunko.daemon.idle-timeout");
         System.clearProperty(DaemonClient.DISABLED_PROPERTY);

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.atunkodev.daemon.protocol.DaemonMessage;
 import io.github.atunkodev.testing.DaemonDiagnostics;
+import io.github.atunkodev.testing.DaemonProcesses;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,7 +54,7 @@ class DaemonLauncherTest {
 
     @AfterEach
     void tearDown() {
-        registry.list().forEach(entry -> ProcessHandle.of(entry.pid()).ifPresent(ProcessHandle::destroy));
+        DaemonProcesses.stopAll(registryDir);
         System.clearProperty(DaemonDirs.REGISTRY_DIR_PROPERTY);
         System.clearProperty(DaemonServer.IDLE_TIMEOUT_PROPERTY);
         System.clearProperty(DaemonLauncher.MAX_HEAP_PROPERTY);

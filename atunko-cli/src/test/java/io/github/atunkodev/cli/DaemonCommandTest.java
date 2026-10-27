@@ -9,12 +9,10 @@ import io.github.atunkodev.daemon.DaemonLauncher;
 import io.github.atunkodev.daemon.DaemonRegistry;
 import io.github.atunkodev.testing.CommandLineFixture;
 import io.github.atunkodev.testing.DaemonDiagnostics;
+import io.github.atunkodev.testing.DaemonProcesses;
 import io.github.reqstool.annotations.SVCs;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,34 +46,10 @@ class DaemonCommandTest {
 
     @AfterEach
     void tearDown() {
-        // Skips this JVM: some tests register a synthetic entry carrying the current pid.
-        long self = ProcessHandle.current().pid();
-        registry.list().forEach(entry -> {
-            if (entry.pid() != self) {
-                ProcessHandle.of(entry.pid()).ifPresent(DaemonCommandTest::destroyAndWait);
-            }
-        });
+        DaemonProcesses.stopAll(registryDir);
         System.clearProperty(DaemonDirs.REGISTRY_DIR_PROPERTY);
         System.clearProperty("atunko.daemon.idle-timeout");
         System.clearProperty(DaemonLauncher.MAX_HEAP_PROPERTY);
-    }
-
-    /**
-     * destroy() only delivers the signal. A daemon still shutting down writes to the registry on its way out, and
-     * JUnit deletes {@code @TempDir} as soon as teardown returns — so the two race, failing either the daemon's write
-     * or JUnit's deletion. Waiting for the process to actually exit removes the overlap.
-     */
-    private static void destroyAndWait(ProcessHandle handle) {
-        handle.destroy();
-        try {
-            handle.onExit().get(30, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            handle.destroyForcibly();
-        } catch (ExecutionException e) {
-            // The process is gone, which is all this needs.
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     }
 
     @Test
