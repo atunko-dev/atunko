@@ -1,5 +1,10 @@
 [versions]
-openrewrite-bom = "3.25.0"
+openrewrite-bom = "3.37.0"
+# Overrides of BOM 3.37.0 with the newest releases on Maven Central (see renovate.json5).
+openrewrite-core = "8.90.4"
+openrewrite-migrate-java = "3.42.1"
+openrewrite-spring = "6.37.1"
+openrewrite-static-analysis = "2.41.1"
 picocli = "4.7.7"
 gradle-tooling-api = "9.8.1"
 tamboui = "0.6.0"
@@ -17,6 +22,7 @@ playwright = "1.63.0"
 [libraries]
 # OpenRewrite BOM
 openrewrite-bom = { module = "org.openrewrite.recipe:rewrite-recipe-bom", version.ref = "openrewrite-bom" }
+openrewrite-core-bom = { module = "org.openrewrite:rewrite-bom", version.ref = "openrewrite-core" }
 
 # OpenRewrite core
 openrewrite-core = { module = "org.openrewrite:rewrite-core" }
@@ -30,9 +36,9 @@ openrewrite-maven = { module = "org.openrewrite:rewrite-maven" }
 openrewrite-gradle = { module = "org.openrewrite:rewrite-gradle" }
 
 # OpenRewrite recipe modules
-openrewrite-migrate-java = { module = "org.openrewrite.recipe:rewrite-migrate-java" }
-openrewrite-spring = { module = "org.openrewrite.recipe:rewrite-spring" }
-openrewrite-static-analysis = { module = "org.openrewrite.recipe:rewrite-static-analysis" }
+openrewrite-migrate-java = { module = "org.openrewrite.recipe:rewrite-migrate-java", version.ref = "openrewrite-migrate-java" }
+openrewrite-spring = { module = "org.openrewrite.recipe:rewrite-spring", version.ref = "openrewrite-spring" }
+openrewrite-static-analysis = { module = "org.openrewrite.recipe:rewrite-static-analysis", version.ref = "openrewrite-static-analysis" }
 openrewrite-testing-frameworks = { module = "org.openrewrite.recipe:rewrite-testing-frameworks" }
 
 # Picocli

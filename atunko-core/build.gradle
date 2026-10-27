@@ -6,6 +6,7 @@ plugins {
 dependencies {
     // OpenRewrite BOM for version alignment
     api platform(rootProject.libs.openrewrite.bom)
+    api platform(rootProject.libs.openrewrite.core.bom)
 
     // OpenRewrite core
     api libs.openrewrite.core
