@@ -70,7 +70,7 @@ Types: `feat`, `fix`, `build`, `chore`, `ci`, `docs`, `perf`, `refactor`, `rever
 
 ## Key Dependencies
 
-- **OpenRewrite** (`rewrite-recipe-bom:3.25.0`) — code transformation engine
+- **OpenRewrite** (`rewrite-recipe-bom:3.37.0`, core `8.90.4`; Maven Central only) — code transformation engine
 - **Picocli** (`4.7.7`) — CLI framework
 - **TamboUI** (`0.2.0-SNAPSHOT`) — TUI framework
 - **Gradle Tooling API** (`9.3.1`) — project scanning

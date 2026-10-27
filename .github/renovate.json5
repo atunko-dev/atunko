@@ -56,11 +56,28 @@
       allowedVersions: "<=25",
     },
 
-    // 3.38.0+ needs OpenRewrite artifacts that are only published to the
-    // authenticated Code Genome Project, not Maven Central.
+    // OpenRewrite now publishes only to the authenticated Code Genome Project.
+    // Recipe BOM 3.38.0 is on Maven Central but needs CGP-only artifacts, so
+    // each OpenRewrite dependency is capped at its first CGP-era version.
     {
       matchPackageNames: ["org.openrewrite.recipe:rewrite-recipe-bom"],
       allowedVersions: "<3.38.0",
+    },
+    {
+      matchPackageNames: ["org.openrewrite:rewrite-bom"],
+      allowedVersions: "<8.91.0",
+    },
+    {
+      matchPackageNames: ["org.openrewrite.recipe:rewrite-migrate-java"],
+      allowedVersions: "<3.43.0",
+    },
+    {
+      matchPackageNames: ["org.openrewrite.recipe:rewrite-spring"],
+      allowedVersions: "<6.38.0",
+    },
+    {
+      matchPackageNames: ["org.openrewrite.recipe:rewrite-static-analysis"],
+      allowedVersions: "<2.42.0",
     },
 
     // =====================================================
