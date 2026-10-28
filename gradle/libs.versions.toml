@@ -16,7 +16,7 @@ errorprone = "2.50.0"
 vaadin = "25.3.2"
 vaadin-boot = "13.7"
 karibu-testing = "2.7.3"
-javadiffutils = "4.17"
+javadiffutils = "4.18"
 playwright = "1.63.0"
 
 [libraries]
