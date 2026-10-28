@@ -2018,6 +2018,17 @@ cases:
       THEN every read returns the entry, and the entry still exists afterwards
     revision: "0.1.0"
 
+  - id: SVC_CORE_0023.7
+    requirement_ids: ["CORE_0023.7"]
+    title: Registry updates finish before the daemon replies
+    verification: automated-test
+    description: |
+      GIVEN a running daemon whose registry updates are slow
+      WHEN a client receives the reply to a status request, and then to a stop request
+      THEN the daemon's entry was already touched, respectively removed, when each reply arrived,
+      and the daemon makes no further registry update after the stop is acknowledged
+    revision: "0.1.0"
+
   - id: SVC_CLI_0009
     requirement_ids: ["CLI_0009"]
     title: Run through the daemon matches in-process output

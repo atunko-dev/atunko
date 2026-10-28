@@ -57,6 +57,7 @@ public class DaemonServer implements AutoCloseable {
 
     private final ServerSocket serverSocket;
     private final AtomicBoolean running = new AtomicBoolean(true);
+    private final AtomicBoolean deregistered = new AtomicBoolean(false);
     private volatile long lastRequestMillis = System.currentTimeMillis();
 
     public DaemonServer(
@@ -165,8 +166,15 @@ public class DaemonServer implements AutoCloseable {
                 }
             }
         } finally {
-            registry.remove(projectRoot);
+            deregister();
             closeQuietly();
+        }
+    }
+
+    /** Once only: after a stop has been acknowledged, the root may already belong to a replacement daemon. */
+    private void deregister() {
+        if (deregistered.compareAndSet(false, true)) {
+            registry.remove(projectRoot);
         }
     }
 
@@ -174,6 +182,7 @@ public class DaemonServer implements AutoCloseable {
         return Duration.ofMillis(System.currentTimeMillis() - lastRequestMillis);
     }
 
+    @Requirements({"atunko:CORE_0023.7"})
     private void handle(Socket socket) throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
         Writer out = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
@@ -186,24 +195,28 @@ public class DaemonServer implements AutoCloseable {
         ProtocolCodec.write(out, new DaemonMessage.Ok());
 
         DaemonMessage request = ProtocolCodec.read(in);
-        switch (request) {
-            case DaemonMessage.Execute execute -> ProtocolCodec.write(out, execute(execute));
+        DaemonMessage reply = switch (request) {
+            case DaemonMessage.Execute execute -> execute(execute);
             case DaemonMessage.Status ignored ->
-                ProtocolCodec.write(
-                        out,
-                        new DaemonMessage.StatusResult(
-                                projectRoot.toString(),
-                                atunkoVersion,
-                                idleFor().toMillis(),
-                                ProcessHandle.current().pid()));
+                new DaemonMessage.StatusResult(
+                        projectRoot.toString(),
+                        atunkoVersion,
+                        idleFor().toMillis(),
+                        ProcessHandle.current().pid());
             case DaemonMessage.Stop ignored -> {
-                ProtocolCodec.write(out, new DaemonMessage.Ok());
                 running.set(false);
+                yield new DaemonMessage.Ok();
             }
-            default -> ProtocolCodec.write(out, new DaemonMessage.Failure("unexpected request", false));
-        }
+            default -> new DaemonMessage.Failure("unexpected request", false);
+        };
         lastRequestMillis = System.currentTimeMillis();
-        registry.touch(projectRoot);
+        // Before the reply: a client holding its answer acts on the registry at once, and must not race this daemon.
+        if (running.get()) {
+            registry.touch(projectRoot);
+        } else {
+            deregister();
+        }
+        ProtocolCodec.write(out, reply);
     }
 
     /**

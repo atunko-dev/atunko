@@ -1710,6 +1710,18 @@ requirements:
     categories: [reliability]
     revision: 0.1.0
 
+  - id: CORE_0023.7
+    title: Core — Registry Settled Before Reply
+    significance: shall
+    description: >-
+      A daemon shall complete its registry update for a request before replying to it, and shall
+      make no registry update after acknowledging a stop request, so that a client holding a reply
+      can act on the registry without racing the daemon
+    references:
+      requirement_ids: ["CORE_0023"]
+    categories: [reliability]
+    revision: 0.1.0
+
   - id: CLI_0009
     title: CLI — Transparent Daemon Execution
     significance: shall
