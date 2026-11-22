@@ -17,7 +17,7 @@ vaadin = "25.3.5"
 vaadin-boot = "13.7"
 karibu-testing = "2.7.3"
 javadiffutils = "4.18"
-playwright = "1.64.0"
+playwright = "1.65.0"
 
 [libraries]
 # OpenRewrite BOM
