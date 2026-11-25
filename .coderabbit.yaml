@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# Repository overrides. Everything else comes from the central config
+# (<owner>/coderabbit) via `inheritance: true`.
+# https://docs.coderabbit.ai/configuration/central-configuration
+inheritance: true
+
+reviews:
+  path_instructions:
+    - path: "atunko-core/**"
+      instructions: >-
+        Core must have no UI dependencies. Flag business logic that belongs
+        here but is duplicated in atunko-tui or atunko-web.
+    - path: "docs/antora/**"
+      instructions: >-
+        User-facing docs. Must match any CLI flag, command or workflow change
+        in the same PR.
